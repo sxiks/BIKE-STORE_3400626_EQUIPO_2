@@ -1,0 +1,9 @@
+# Normaliza finales de línea a LF en el repositorio.
+# Evita "conflictos fantasma" cuando un integrante usa Windows (CRLF) y otro Linux (LF).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary
