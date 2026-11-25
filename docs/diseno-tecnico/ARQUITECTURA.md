@@ -1,5 +1,9 @@
 # Arquitectura en capas · Bike Store
 
+> **Para qué sirve:** explica cómo está organizado el código en [capas](../GLOSARIO.md#arquitectura-capas) y qué puede importar cada una.
+> **Cuándo usarlo:** antes de crear un archivo nuevo, y antes de abrir un PR (comprobación de la sección 2). La versión formal, con diagrama, está en [INFORME_ARQUITECTURA.pdf](INFORME_ARQUITECTURA.pdf) y [DIAGRAMA_ARQUITECTURA.png](DIAGRAMA_ARQUITECTURA.png).
+> ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
+
 ## 1. Vista general
 
 ```
@@ -21,7 +25,7 @@
 
 ## 2. Regla de dependencia (obligatoria)
 
-Cada capa **solo** importa a la capa inmediatamente inferior:
+Cada capa **solo** importa a la capa inmediatamente inferior ([regla de dependencia](../GLOSARIO.md#regla-dependencia)). Qué hace cada capa: [ruta](../GLOSARIO.md#ruta), [middleware](../GLOSARIO.md#middleware), [controlador](../GLOSARIO.md#controlador), [servicio](../GLOSARIO.md#servicio), [repositorio](../GLOSARIO.md#repositorio-capa).
 
 | Capa | Puede importar | NO puede importar |
 |------|----------------|-------------------|
@@ -42,7 +46,7 @@ grep -rn "middlewares" backend/src/services
 ## 3. Convenciones del backend
 
 - **Nombres de archivo:** `<modulo>.routes.js`, `<modulo>.controller.js`, `<modulo>.services.js`, `<modulo>.repository.js`.
-- **Respuesta HTTP uniforme:** éxito `{ ok: true, data?, message? }` con `utils/respuesta.ok()`; error `{ ok: false, message, code?, data? }`. Ver `docs/API_CONTRATOS.md`.
+- **Respuesta HTTP uniforme:** éxito `{ ok: true, data?, message? }` con `utils/respuesta.ok()`; error `{ ok: false, message, code?, data? }`. Ver [API_CONTRATOS](API_CONTRATOS.md#formato-de-respuesta).
 - **Errores de negocio:** `throw new AppError(mensaje, status, code?, data?)` en `services`. El `error.middleware.js` los convierte en respuesta.
 - **Errores async:** Express 5 envía al `errorHandler` cualquier error de un controlador `async`, así que los controladores no necesitan `try/catch`.
 - **Cuerpo vacío:** en Express 5, `req.body` es `undefined` si no llega cuerpo. Los controladores pasan `req.body ?? {}`.
@@ -73,7 +77,7 @@ grep -rn "middlewares" backend/src/services
 
 - **Bloqueos:** para descontar stock se usa `SELECT … FOR UPDATE ORDER BY id_producto`, que evita deadlocks, y luego `UPDATE … WHERE existencias >= n`.
 - **Errores de PostgreSQL:** el servicio traduce los que tienen significado de negocio (ej. 23505 → "El correo ya está registrado"). Los demás los traduce el `errorHandler`: 23505 → 409, 23503 → 409, 23514 → 400, 22P02 → 400.
-- **Esquema:** cada cambio es una migración nueva en `database/migrations/`. Ver `database/README.md`.
+- **Esquema:** cada cambio es una migración nueva en `database/migrations/`. Ver [database/README](../../database/README.md).
 
 ## 4. Mapa de módulos del backend
 
@@ -108,10 +112,10 @@ grep -rn "middlewares" backend/src/services
 
 | Tema | Situación | Se resuelve en |
 |------|-----------|----------------|
-| El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 sin decidir | Sprint 4 |
+| El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
 | La tienda usa datos simulados (`data/productos.js`) y `localStorage` | El backend ya ofrece catálogo y carrito reales | Sprints 2–3 (frontend) |
-| Dos estilos visuales (`.lab` y `.tienda`) y dos navbars | Aislados; `lab.css` conserva estilos sin uso del antiguo CRUD de equipos | Sprints 1–2 (frontend): un solo sistema de diseño |
-| Claves de `localStorage` con prefijo `labcrud_` | Funcionan; el nombre es heredado | Cuando se rehaga `AuthContext` |
-| Las imágenes de los productos de la semilla no existen en disco | El frontend necesita una imagen de reemplazo | Sprint 2 (decisión L) |
+| Dos estilos visuales (`.lab` y `.tienda`) y dos navbars | Aislados; `lab.css` conserva estilos sin uso del antiguo CRUD de equipos | Sprints 1–2 ([F1.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f11--sesión-y-navbar-unificada) y [F2.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f21--sistema-de-diseño-unificado)) |
+| Claves de `localStorage` con prefijo `labcrud_` | Funcionan; el nombre es heredado | Sprint 1 ([F1.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f11--sesión-y-navbar-unificada)) |
+| Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Sin pruebas automatizadas del backend | Hubo verificación manual completa (78 casos) | Recomendado en el Sprint 1 |
+| Sin pruebas automatizadas del backend | Hubo verificación manual completa (78 casos) | Sprints 1–4, empezando por [B1.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b11--base-de-pruebas-automatizadas-y-autenticación) |

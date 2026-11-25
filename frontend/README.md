@@ -4,8 +4,8 @@ SPA en React 19 + Vite 7 + React Router 7. Es la capa de presentación y consume
 
 ## Requisitos
 
-- Node.js 20+
-- Backend corriendo en `http://localhost:3000`, con PostgreSQL: `../docs/GUIA_DESARROLLO_LOCAL.md`. La tienda funciona sin backend porque aún usa datos simulados, pero el login y el registro lo necesitan.
+- Node.js 22+ (recomendado 24 LTS)
+- Backend corriendo en `http://localhost:3000`, con PostgreSQL: [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md). La tienda funciona sin backend porque aún usa datos simulados, pero el login y el registro lo necesitan.
 
 ## Instalar y ejecutar
 
@@ -29,14 +29,14 @@ npm run build      # versión de producción en dist/
 | `/` | Pública | Tienda: catálogo + carrito (aún con datos simulados en `src/data/productos.js`) |
 | `/login`, `/registro` | Pública | Autenticación, conectada a la API |
 
-Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar contraseña, paneles de admin) se construyen por sprints: `../docs/ROADMAP.md`. El backend de todas ya existe: `../docs/API_CONTRATOS.md`.
+Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar contraseña, paneles de admin) se construyen por sprints: [ROADMAP](../docs/ROADMAP.md). El backend de todas ya existe: [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
 
 ## Puntos clave
 
 - Los componentes no hacen `fetch`: todo pasa por `src/services/`, y `api.js` agrega el token Bearer.
 - La API responde `{ ok, data, message, code }`: los datos se leen en `respuesta.data` y los errores se manejan por `code`.
 - Estilos: `assets/base.css` (global mínimo), `assets/lab.css` (raíz `.lab`, login y registro) y `assets/tienda.css` (raíz `.tienda`). Están aislados a propósito hasta unificar el diseño.
-- Para pedir ayuda sin romper la arquitectura: `../docs/GUIA_PROMPTS_FRONTEND.md`.
+- Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Flujo de sesión
 

@@ -1,11 +1,11 @@
 # Bike Store · Backend
 
 API REST con Express 5, PostgreSQL (`pg`), bcrypt, JWT y roles `admin` / `cliente`.
-Arquitectura en capas: `routes → middlewares → controllers → services → repositories → PostgreSQL` (ver `../docs/ARQUITECTURA.md`).
+Arquitectura en capas: `routes → middlewares → controllers → services → repositories → PostgreSQL` (ver [ARQUITECTURA](../docs/diseno-tecnico/ARQUITECTURA.md)).
 
 ## Puesta en marcha
 
-1. Crear la base y aplicar las migraciones: `../docs/GUIA_DESARROLLO_LOCAL.md` §2–3.
+1. Crear la base y aplicar las migraciones: pasos 4 y 5 de la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-crear-el-rol-y-la-base-de-datos).
 2. Variables de entorno:
    ```bash
    cp .env.example .env
@@ -35,7 +35,7 @@ src/
 
 ## Endpoints
 
-Contratos completos en `../docs/API_CONTRATOS.md`.
+Contratos completos en [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
 
 | Módulo | Rutas |
 |--------|-------|
