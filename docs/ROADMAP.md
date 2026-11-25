@@ -6,8 +6,11 @@
 
 ## Estado general
 
-- **Backend:** implementado para los CU-01 a CU-22 sobre [PostgreSQL](GLOSARIO.md#postgresql), salvo la exportación de CU-18, que ya tiene decisión ([D11](#resueltas)) y se implementa en el Sprint 4. Cada sprint de backend consiste en **asegurar con pruebas automatizadas** lo ya construido, corregir lo que esas pruebas revelen y terminar lo pendiente.
-- **Frontend:** la tienda funciona con [datos simulados](GLOSARIO.md#mock), y el login y el registro ya están conectados a la API. El resto de pantallas se construye en los sprints.
+- **Backend:** implementado para los CU-01 a CU-22 sobre [PostgreSQL](GLOSARIO.md#postgresql), salvo la exportación de CU-18, que ya tiene decisión ([D11](#resueltas)) y se implementa en el Sprint 4. Cada sprint de backend consiste en **asegurar con pruebas automatizadas** lo ya construido, corregir lo que esas pruebas revelen y terminar lo pendiente. Ya existe la base de pruebas (Vitest + Supertest, base `bike_store_test`) y el módulo `auth` está cubierto (B1.1).
+- **Frontend:**
+  - **Ya hecho:** una sola navbar con la sesión, validación del token al abrir la app, cierre de sesión automático si la API la rechaza (F1.1); rutas `/admin` y `/cuenta` protegidas por rol (F1.2); sistema de diseño "Montaña Clara" aplicado a todas las vistas (F2.1, adelantada).
+  - **Sigue con [datos simulados](GLOSARIO.md#mock):** el catálogo y el carrito, hasta F2.2 y F3.1.
+  - El resto de pantallas se construye en los sprints.
 - **Base de datos:** el modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) 002 y 003 están verificadas.
 - **Único punto abierto:** el [Sprint 5 · Despliegue](#sprint-5--despliegue-pendiente).
 
@@ -18,13 +21,13 @@ Cada tarea enlaza a su prompt. **Cada tarea es una [rama](GLOSARIO.md#rama) y un
 | Sprint | RF · CU | Backend (Dev Backend) | Frontend (Dev Frontend) |
 |--------|---------|-----------------------|-------------------------|
 | **0 · Base** ✅ | – | Fusión, cambio a PostgreSQL, modelo, API completa | Fusión Lab + Carrito; login conectado a la API |
-| **1 · Autenticación y seguridad** | RF-13–16, RF-27–31 · CU-09, 10, 11, 19, 20, 21, 22 | [B1.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b11--base-de-pruebas-automatizadas-y-autenticación) base de pruebas (Vitest + Supertest) y pruebas de `auth` · [B1.2](guias-prompts/GUIA_PROMPTS_BACKEND.md#b12--pruebas-de-usuarios-y-control-de-acceso) pruebas de `usuarios` y control de acceso | [F1.1](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f11--sesión-y-navbar-unificada) navbar con sesión y manejo de `CUENTA_DESACTIVADA` · [F1.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f12--rutas-protegidas-por-rol) rutas protegidas por rol · [F1.3](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f13--recuperar-contraseña-y-validar-registro) recuperar y restablecer contraseña · [F1.4](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f14--panel-de-usuarios-admin) panel de usuarios |
+| **1 · Autenticación y seguridad** (en curso) | RF-13–16, RF-27–31 · CU-09, 10, 11, 19, 20, 21, 22 | [B1.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b11--base-de-pruebas-automatizadas-y-autenticación) base de pruebas (Vitest + Supertest) y pruebas de `auth` ✅ · [B1.2](guias-prompts/GUIA_PROMPTS_BACKEND.md#b12--pruebas-de-usuarios-y-control-de-acceso) pruebas de `usuarios` y control de acceso | [F1.1](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f11--sesión-y-navbar-unificada) navbar con sesión y manejo de `CUENTA_DESACTIVADA` ✅ · [F1.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f12--rutas-protegidas-por-rol) rutas protegidas por rol ✅ · [F1.3](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f13--recuperar-contraseña-y-validar-registro) recuperar y restablecer contraseña · [F1.4](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f14--panel-de-usuarios-admin) panel de usuarios |
 | **2 · Catálogo y productos** | RF-01–04, RF-17–20 · CU-01, 02, 12–15 | [B2.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b21--pruebas-de-catálogo-y-productos) pruebas de `productos` e imágenes | [F2.1](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f21--sistema-de-diseño-unificado) sistema de diseño ✅ (adelantada al Sprint 1) · [F2.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api) catálogo desde la API con imagen de reemplazo (L) · [F2.3](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f23--panel-de-productos-admin) panel de productos |
 | **3 · Carrito y checkout** | RF-05–12 · CU-03–08 | [B3.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito) pruebas de `carrito` · [B3.2](guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago) pruebas de `pedidos` y pago | [F3.1](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api) carrito conectado a la API (D4) · [F3.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f32--mis-pedidos-y-detalle-del-pedido) mis pedidos · [F3.3](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f33--checkout-y-pago-simulado) checkout y pago |
 | **4 · Informes y tablero** | RF-21–26 · CU-16–18 | [B4.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf) exportación Excel y PDF (D11) · [B4.2](guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) pruebas del tablero | [F4.1](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f41--tablero-de-control-admin) tablero · [F4.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes) exportar informes |
 | **5 · Despliegue** (pendiente) | RNF | Ver la [tabla siguiente](#sprint-5--despliegue-pendiente) | Build de producción; `VITE_API_URL` apuntando a la API publicada |
 
-Al cerrar cada sprint se integra `develop` en `main` como indica la [sección 8 de CONTRIBUTING](../CONTRIBUTING.md#8-cierre-de-sprint).
+✅ = integrada en `develop`. Al cerrar cada sprint se integra `develop` en `main` como indica la [sección 8 de CONTRIBUTING](../CONTRIBUTING.md#8-cierre-de-sprint).
 
 ### Sprint 5 · Despliegue (pendiente)
 

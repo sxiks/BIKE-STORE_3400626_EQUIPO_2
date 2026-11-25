@@ -136,7 +136,12 @@ Cambia el `1` de `/pedidos/1/pagos` por el `id_pedido` que devolvió el paso 3.
 | Windows: *la ejecución de scripts está deshabilitada* al usar `npm` | Política de ejecución de PowerShell | `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` |
 | Las imágenes de los productos de la semilla no cargan | La semilla no incluye imágenes reales (decisión L) | Esperado. El frontend muestra una imagen de reemplazo (Sprint 2) |
 | [CORS](GLOSARIO.md#cors) bloqueado en el navegador | El frontend no corre en `http://localhost:5173` | Ajusta `CORS_ORIGIN` en `backend/.env` |
-| Un cliente recibe 403 *"Tu cuenta está desactivada"* con sesión abierta | Un admin desactivó la cuenta | Esperado: el estado y el rol se revisan en cada petición |
+| Un cliente recibe 403 *"Tu cuenta está desactivada"* con sesión abierta | Un admin desactivó la cuenta | Esperado: el estado y el rol se revisan en cada petición. El frontend cierra la sesión, muestra el mensaje y lleva a `/login` |
+| `npm run test:db` o `npm test` (backend): *password authentication failed* | `DB_PASSWORD` de `backend/.env.test` no es la contraseña del rol | Pon en `.env.test` la misma `DB_PASSWORD` de tu `backend/.env` (`grep '^DB_PASSWORD=' .env .env.test` para compararlas) |
+| Las pruebas del backend dicen *"Falta backend/.env.test"* o *"DB_NAME … debe terminar en _test"* | Falta el archivo, o apunta a una base que no es de pruebas | Es una protección: las pruebas borran datos. Crea `.env.test` desde `.env.test.example` con `DB_NAME=bike_store_test` ([backend/README](../backend/README.md#pruebas-automatizadas)) |
+| Las pruebas del backend fallan con *database "bike_store_test" does not exist* | No se creó la base de pruebas | Créala una vez, como indica [backend/README](../backend/README.md#pruebas-automatizadas) |
+| Después de actualizar `develop`, la sesión aparece cerrada | Desde F1.1 las claves de sesión son `bikestore_*`; las antiguas `labcrud_*` se borran | Esperado, ocurre una sola vez: vuelve a iniciar sesión |
+| Las tipografías se ven distintas a las del diseño | Sin internet no cargan Outfit y Nunito Sans (Google Fonts) | Se usa la fuente del sistema como respaldo; con internet se ven las del diseño |
 
 ---
 

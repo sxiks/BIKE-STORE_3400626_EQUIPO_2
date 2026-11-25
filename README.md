@@ -22,8 +22,8 @@ Detalle y reglas de cada capa: [ARQUITECTURA](docs/diseno-tecnico/ARQUITECTURA.m
 
 ## Estado
 
-- **Backend:** implementado para los CU-01 a CU-22 (la exportación de CU-18 está decidida y se implementa en el Sprint 4), con 78 casos verificados contra PostgreSQL.
-- **Frontend:** tienda con datos simulados; login y registro conectados a la API. Las demás pantallas se construyen por sprints ([ROADMAP](docs/ROADMAP.md)).
+- **Backend:** implementado para los CU-01 a CU-22 (la exportación de CU-18 está decidida y se implementa en el Sprint 4), con 78 casos verificados contra PostgreSQL. Tiene base de pruebas automatizadas (Vitest + Supertest) y el módulo de autenticación ya está cubierto.
+- **Frontend:** sistema de diseño "Montaña Clara", navbar con sesión, rutas `/admin` y `/cuenta` protegidas por rol, login y registro conectados a la API. El catálogo y el carrito siguen con datos simulados hasta los sprints 2 y 3 ([ROADMAP](docs/ROADMAP.md)).
 
 ## Ejecutar el proyecto en tu PC
 
