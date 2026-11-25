@@ -27,9 +27,18 @@ npm run build      # versión de producción en dist/
 | Ruta | Acceso | Vista |
 |------|--------|-------|
 | `/` | Pública | Tienda: catálogo + carrito (aún con datos simulados en `src/data/productos.js`) |
-| `/login`, `/registro` | Pública | Autenticación, conectada a la API |
+| `/login`, `/registro` | Pública | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
+| `/admin` | Solo `admin` | Panel de administración (inicio provisional: las secciones llegan en F1.4, F2.3 y F4.1) |
+| `/cuenta` | Solo `cliente` | Mi cuenta (inicio provisional: "Mis pedidos" llega en F3.2) |
 
-Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar contraseña, paneles de admin) se construyen por sprints: [ROADMAP](../docs/ROADMAP.md). El backend de todas ya existe: [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
+Las rutas privadas usan `components/ProtectedRoute.jsx` (`<ProtectedRoute roles={['admin']} />`):
+- mientras se valida la sesión muestra "Verificando sesión…";
+- sin sesión lleva a `/login`;
+- con otro rol muestra "No autorizado" en la misma URL.
+
+Para agregar una página privada, ponla dentro del grupo de su rol en `App.jsx`.
+
+Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar contraseña, secciones de los paneles) se construyen por sprints: [ROADMAP](../docs/ROADMAP.md). El backend de todas ya existe: [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
 
 ## Puntos clave
 

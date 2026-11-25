@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Bike, LogIn, LogOut, ShoppingCart, UserPlus } from 'lucide-react';
+import { Bike, LayoutDashboard, LogIn, LogOut, ShoppingCart, UserPlus, UserRound } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import '../assets/navbar.css';
@@ -8,7 +8,7 @@ import '../assets/navbar.css';
 // `carrito` es opcional: solo la tienda lo pasa ({ totalUnidades, onAbrir }), porque solo allí existe el carrito.
 // El ícono del carrito va siempre al final (a la derecha), como piden las pruebas del instructor.
 export default function Navbar({ carrito = null }) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { mostrar } = useToast();
 
   function cerrarSesion() {
@@ -27,6 +27,18 @@ export default function Navbar({ carrito = null }) {
         <div className="nav-principal__sesion">
           {isAuthenticated ? (
             <>
+              {/* Acceso a la sección de cada rol (F1.2). Ocultarlo no es seguridad: el backend valida el rol. */}
+              {isAdmin ? (
+                <Link to="/admin" className="nav-principal__boton">
+                  <LayoutDashboard size={16} aria-hidden="true" />
+                  Administración
+                </Link>
+              ) : (
+                <Link to="/cuenta" className="nav-principal__boton">
+                  <UserRound size={16} aria-hidden="true" />
+                  Mi cuenta
+                </Link>
+              )}
               <span className="nav-principal__usuario" data-testid="usuario-sesion">
                 {user?.nombre}
                 <span className={`nav-principal__rol nav-principal__rol--${user?.rol}`}>{user?.rol}</span>
