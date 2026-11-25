@@ -32,7 +32,7 @@ Consecuencia práctica: la `002` **no se puede ejecutar dos veces** sobre la mis
 
 ## Cómo aplicarlas (primera vez)
 
-Los pasos completos, incluida la instalación de PostgreSQL, están en `docs/GUIA_DESARROLLO_LOCAL.md`. Resumen, desde la raíz del repositorio:
+Los pasos completos, incluida la instalación de PostgreSQL, están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md) (pasos 4 y 5, con comandos para Linux y Windows). Resumen, desde la raíz del repositorio:
 
 ```bash
 # 1. Crear el rol de la aplicación y la base (una sola vez, como superusuario postgres)
@@ -72,4 +72,4 @@ sudo -u postgres psql -c "DROP DATABASE IF EXISTS bike_store;"
 | `migrations/003_datos_semilla.sql` | 5 categorías y 10 productos de ejemplo (uno con stock bajo, uno agotado y uno inactivo) |
 | `migrations/legacy_mysql/` | Migración original en MySQL. Histórico, **no se ejecuta** |
 
-El modelo completo (MER, MR y decisiones) está en `docs/MODELO_DATOS.md`.
+El modelo completo (MER, MR y decisiones) está en [MODELO_DATOS](../docs/diseno-tecnico/MODELO_DATOS.md) y su justificación en [JUSTIFICACION_MODELO_DATOS](../docs/diseno-tecnico/JUSTIFICACION_MODELO_DATOS.md).

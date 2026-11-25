@@ -1,6 +1,10 @@
 # Modelo de datos · Bike Store
 
-Diseñado y aprobado en el chat de modelado (fases A–D). PostgreSQL 15+. La implementación física está en `database/migrations/002_modelo_bike_store.sql`.
+> **Para qué sirve:** resume el modelo de datos aprobado: decisiones, MER y tablas.
+> **Cuándo usarlo:** cuando necesites saber qué tabla o columna guarda un dato. El porqué de cada decisión está en [JUSTIFICACION_MODELO_DATOS](JUSTIFICACION_MODELO_DATOS.md).
+> ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
+
+Diseñado y aprobado en el chat de modelado (fases A–D). [PostgreSQL](../GLOSARIO.md#postgresql) 15+. La implementación física está en [`database/migrations/002_modelo_bike_store.sql`](../../database/migrations/002_modelo_bike_store.sql).
 
 ## Decisiones de diseño
 

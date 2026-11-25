@@ -21,14 +21,14 @@ Nombres en minúscula, palabras separadas por guion, sin tildes ni espacios.
 |-------------------|-------|---------------------|
 | `backend/**`, `database/**` | Dev Backend | no la modifica; si necesita algo, lo pide en un issue o comentario de PR |
 | `frontend/**` | Dev Frontend | no la modifica |
-| `docs/API_CONTRATOS.md` | Dev Backend redacta; Dev Frontend **aprueba** | propone cambios en el PR |
+| [`docs/diseno-tecnico/API_CONTRATOS.md`](docs/diseno-tecnico/API_CONTRATOS.md) | Dev Backend redacta; Dev Frontend **aprueba** | propone cambios en el PR |
 | `README.md`, `CONTRIBUTING.md`, resto de `docs/`, `.gitignore` | Compartido | se cambia solo en una rama `docs/...` con PR revisado por ambos |
 
 Si ambos tocan carpetas distintas, Git nunca genera conflicto entre sus ramas.
 
 ## 3. Contrato primero
 
-1. El Dev Backend abre una rama `docs/contrato-<modulo>` y documenta en `docs/API_CONTRATOS.md` los endpoints del módulo (método, URL, rol, request, respuestas).
+1. El Dev Backend abre una rama `docs/contrato-<modulo>` y documenta en `docs/diseno-tecnico/API_CONTRATOS.md` los endpoints del módulo (método, URL, rol, request, respuestas).
 2. El Dev Frontend revisa y aprueba ese PR. Desde ese momento el contrato es la fuente de verdad.
 3. En paralelo:
    - Backend implementa el contrato en `feature/back-<modulo>`.
@@ -95,8 +95,8 @@ Nunca uses `git push --force` sobre `develop` o `main`.
 ## 6. Reglas anti-conflictos
 
 1. Nunca hacer commit directo en `develop` ni en `main` (protegidas en GitHub).
-2. Respetar la propiedad de carpetas (§2).
-3. Contrato de API antes que código (§3).
+2. Respetar la propiedad de carpetas ([sección 2](#2-propiedad-de-carpetas-la-regla-que-más-conflictos-evita)).
+3. Contrato de API antes que código ([sección 3](#3-contrato-primero)).
 4. Hacer `git merge origin/develop` en tu rama al menos una vez al día y siempre antes del PR.
 5. Migraciones SQL: un archivo nuevo por cambio (`004_...sql`, `005_...sql`). Nunca editar uno ya integrado. El PR debe decir "Requiere aplicar la migración 00N" y cada integrante la aplica con `psql` (ver `database/README.md`).
 6. `package-lock.json` **se versiona**: garantiza que ambos instalan exactamente las mismas versiones. Si hay conflicto en él: acepta la versión de `develop` y ejecuta `npm install` para regenerarlo (`git checkout --theirs package-lock.json && npm install`).

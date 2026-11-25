@@ -42,4 +42,4 @@ temp/
 .DS_Store
 Thumbs.db
 
-# NOTA: package-lock.json SÍ se versiona (ver CONTRIBUTING.md §6).
+# NOTA: package-lock.json SÍ se versiona (ver CONTRIBUTING.md, sección 6).

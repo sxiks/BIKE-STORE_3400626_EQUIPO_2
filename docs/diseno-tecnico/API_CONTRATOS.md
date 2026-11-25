@@ -1,6 +1,10 @@
 # Contratos de API · Bike Store
 
-Fuente de verdad entre Backend y Frontend. **Se actualiza este documento antes que el código** (`CONTRIBUTING.md` §3). Todos los endpoints de este documento están implementados y probados, salvo la exportación de CU-18 (pendiente de D11).
+> **Para qué sirve:** es la fuente de verdad entre Backend y Frontend: qué recibe y qué responde cada [endpoint](../GLOSARIO.md#endpoint).
+> **Cuándo usarlo:** antes de consumir o modificar un endpoint, y para reaccionar a los errores por su [`code`](../GLOSARIO.md#code-error).
+> ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
+
+**Se actualiza este documento antes que el código** (ver la [sección 3 de CONTRIBUTING](../../CONTRIBUTING.md#3-contrato-primero)). Todos los endpoints de este documento están implementados y probados, salvo la exportación de CU-18, que está **por implementar en el Sprint 4** (decisión D11 del [ROADMAP](../ROADMAP.md#resueltas)).
 
 - URL base (desarrollo): `http://localhost:3000/api`. En el frontend sale de `VITE_API_URL`.
 - Formato: JSON. Los endpoints con imagen usan `multipart/form-data`, con la imagen en el campo `imagen`.
@@ -79,7 +83,7 @@ Request: `{ "email": "ana@correo.com", "password": "Segura123" }`
 ### `POST /auth/recuperar` · pública · CU-11
 Request: `{ "email": "ana@correo.com" }`
 - `200` → `{ "ok": true, "message": "Si el correo está registrado, se generó un enlace de recuperación" }`
-- Solo en desarrollo (`NODE_ENV=development` y `RESET_TOKEN_EN_RESPUESTA=true`), y si el correo existe: además `"data": { "token_desarrollo": "<64 hex>" }`. Uso: `docs/GUIA_DESARROLLO_LOCAL.md` §7.
+- Solo en desarrollo (`NODE_ENV=development` y `RESET_TOKEN_EN_RESPUESTA=true`), y si el correo existe: además `"data": { "token_desarrollo": "<64 hex>" }`. Uso: [sección 1 de GUIA_PRUEBAS_LOCALES](../GUIA_PRUEBAS_LOCALES.md#1-recuperación-de-contraseña-cu-11).
 - `400` correo con formato inválido
 
 ### `POST /auth/restablecer` · pública · CU-11
@@ -224,8 +228,12 @@ Solo cuenta pedidos **pagados**. El rango es inclusivo y se interpreta en hora d
   "pedidos_fallidos": [ ... ] }
 ```
 
-### Exportación (CU-18) · **pendiente**
-Queda pendiente de la decisión D11 (dónde se generan Excel y PDF). Ver `docs/ROADMAP.md`.
+### `GET /dashboard/exportar?formato=xlsx|pdf` · admin · CU-18 · por implementar
+**Por implementar en el Sprint 4** (tareas [B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf) y [F4.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes)). Decisión D11: el archivo se genera en el backend con `exceljs` (xlsx) y `pdfkit` (pdf), en memoria; el frontend solo lo descarga. La tarea B4.1 completa este bloque antes de programar.
+
+Query params: `formato` (obligatorio: `xlsx` | `pdf`), y `desde`, `hasta` y `categoria` con las mismas reglas que `/dashboard/metricas`.
+- `200` → el archivo (no JSON), con `Content-Type` del formato y `Content-Disposition: attachment; filename="bike-store-informe-AAAA-MM-DD.<formato>"`
+- `400` formato inválido, fecha inválida o `desde` posterior a `hasta` (JSON) · `401` · `403`
 
 ---
 
