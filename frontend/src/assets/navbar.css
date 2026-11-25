@@ -1,41 +1,42 @@
-/* Barra de navegación única (F1.1). Clases BEM propias: no dependen de las raíces .lab ni .tienda.
-   Los colores se unificarán con el resto en el sistema de diseño (F2.1). */
+/* Barra de navegación única (F1.1), con el sistema de diseño (F2.1). */
 .nav-principal {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #1b5e20;
-  color: #fff;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
 }
 
 .nav-principal__inner {
-  max-width: 1100px;
-  min-height: 60px;
+  max-width: var(--ancho-contenido);
+  min-height: var(--alto-navbar);
   margin: 0 auto;
-  padding: 8px 16px;
+  padding: var(--espacio-2) var(--espacio-6);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--espacio-3);
 }
 
 .nav-principal__marca {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--espacio-2);
   margin-right: auto; /* empuja la sesión y el carrito a la derecha */
-  color: inherit;
+  color: var(--color-primario);
   text-decoration: none;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: 0.06em;
+  font-size: var(--texto-xl);
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
+
+.nav-principal__marca:hover { color: var(--color-primario-hover); }
 
 .nav-principal__sesion {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--espacio-2);
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -43,102 +44,95 @@
 .nav-principal__usuario {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
+  gap: var(--espacio-2);
+  font-weight: 600;
+  color: var(--color-texto-suave);
 }
 
 .nav-principal__rol {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  font-size: 0.75rem;
-  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--radio-pildora);
+  background: var(--color-primario-suave);
+  color: var(--color-primario);
+  font-size: var(--texto-xs);
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .nav-principal__rol--admin {
-  background: #ffb300;
-  color: #222;
+  background: var(--color-acento);
+  color: var(--color-texto);
 }
 
 .nav-principal__boton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 var(--espacio-4);
+  border: 0;
+  border-radius: var(--radio-md);
   background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
+  color: var(--color-primario);
+  font-weight: 700;
+  font-size: 0.95rem;
   text-decoration: none;
   cursor: pointer;
 }
 
 .nav-principal__boton:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--color-primario-suave);
+  color: var(--color-primario-hover);
 }
 
 .nav-principal__boton--resaltado {
-  border-color: #ffb300;
-  background: #ffb300;
-  color: #222;
+  background: var(--color-primario);
+  color: #ffffff;
 }
 
 .nav-principal__boton--resaltado:hover {
-  background: #ffc233;
+  background: var(--color-primario-hover);
+  color: #ffffff;
 }
 
 .nav-principal__carrito {
   position: relative;
-  padding: 8px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
   border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
+  border-radius: var(--radio-lg);
+  background: var(--color-primario-suave);
+  color: var(--color-primario);
   cursor: pointer;
 }
 
-.nav-principal__carrito:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
+.nav-principal__carrito:hover { background: #e0e7f8; }
 
 .nav-principal__contador {
   position: absolute;
-  top: -2px;
+  top: -4px;
   right: -4px;
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
-  background: #ffb300;
-  color: #222;
-  font-size: 0.75rem;
-  font-weight: 700;
+  border-radius: var(--radio-pildora);
+  background: var(--color-acento);
+  color: var(--color-texto);
+  font-size: var(--texto-xs);
+  font-weight: 800;
+  animation: pop 0.25s ease;
 }
 
-.nav-principal :focus-visible {
-  outline: 3px solid #ffb300;
-  outline-offset: 2px;
-}
+@keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
 
-@media (max-width: 560px) {
-  .nav-principal__inner {
-    gap: 8px;
-    padding: 8px 12px;
-  }
-
-  .nav-principal__usuario {
-    display: none; /* en pantallas angostas solo queda el botón de cerrar sesión */
-  }
-
-  .nav-principal__boton {
-    padding: 6px 8px;
-    font-size: 0.82rem;
-  }
+@media (max-width: 640px) {
+  .nav-principal__inner { gap: var(--espacio-2); padding: var(--espacio-2) var(--espacio-3); }
+  .nav-principal__marca { font-size: var(--texto-lg); }
+  .nav-principal__usuario { display: none; } /* en pantallas angostas solo quedan las acciones */
+  .nav-principal__boton { padding: 0 var(--espacio-2); font-size: 0.85rem; }
 }

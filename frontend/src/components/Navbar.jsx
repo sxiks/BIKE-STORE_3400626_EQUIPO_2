@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Bike, LayoutDashboard, LogIn, LogOut, ShoppingCart, UserPlus, UserRound } from 'lucide-react';
+import { LayoutDashboard, LogIn, LogOut, Mountain, ShoppingBag, UserPlus, UserRound } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import '../assets/navbar.css';
@@ -20,7 +20,7 @@ export default function Navbar({ carrito = null }) {
     <header className="nav-principal">
       <nav className="nav-principal__inner" aria-label="Principal">
         <Link to="/" className="nav-principal__marca">
-          <Bike size={24} aria-hidden="true" />
+          <Mountain size={28} aria-hidden="true" />
           BIKE STORE
         </Link>
 
@@ -69,7 +69,7 @@ export default function Navbar({ carrito = null }) {
             aria-label={`Abrir carrito (${carrito.totalUnidades} unidades)`}
             onClick={carrito.onAbrir}
           >
-            <ShoppingCart size={26} aria-hidden="true" />
+            <ShoppingBag size={22} aria-hidden="true" />
             {carrito.totalUnidades > 0 && (
               <span className="nav-principal__contador" data-testid="contador-carrito">
                 {carrito.totalUnidades}

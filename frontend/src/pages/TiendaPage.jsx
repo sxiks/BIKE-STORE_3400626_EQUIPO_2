@@ -24,12 +24,12 @@ function TiendaContenido() {
   const cerrarCarrito = useCallback(() => setCarritoAbierto(false), []);
 
   return (
-    <div className="tienda">
+    <>
       <Navbar carrito={{ totalUnidades, onAbrir: abrirCarrito }} />
-      <main className="contenido">
+      <main className="contenedor">
         <Catalogo />
       </main>
       <CarritoPanel abierto={carritoAbierto} onCerrar={cerrarCarrito} />
-    </div>
+    </>
   );
 }

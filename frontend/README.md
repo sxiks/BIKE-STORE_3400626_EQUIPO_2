@@ -46,7 +46,11 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 - La API responde `{ ok, data, message, code }`: los datos se leen en `respuesta.data`. Los errores llegan como `ApiError` (`message`, `status`, `code`, `data`) y se manejan por `code`.
 - Proveedores globales en `App.jsx`, en este orden: Router → `ToastProvider` → `AuthProvider`. Los mensajes al usuario van con `useToast().mostrar()`, nunca con `alert()`.
 - Una sola barra de navegación: `components/Navbar.jsx`. El carrito solo aparece cuando la página le pasa la prop `carrito`.
-- Estilos: `assets/base.css` (global mínimo), `navbar.css` y `toast.css` (globales, con clases propias), `lab.css` (raíz `.lab`, login y registro) y `tienda.css` (raíz `.tienda`). Se unifican en el sistema de diseño (F2.1).
+- **Sistema de diseño "Montaña Clara"** (F2.1):
+  - `assets/tokens.css` es la única fuente de colores, tipografía, espacios, radios y sombras. Nunca escribas un color a mano: usa `var(--…)`.
+  - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento`, `.alerta--error` y `.solo-lector`.
+  - Cada vista tiene su `.css` con clases BEM propias: `navbar.css`, `toast.css`, `tienda.css`, `auth.css` y `panel.css`.
+  - Tipografías Outfit (títulos) y Nunito Sans (texto), cargadas desde Google Fonts en `index.html`.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Flujo de sesión

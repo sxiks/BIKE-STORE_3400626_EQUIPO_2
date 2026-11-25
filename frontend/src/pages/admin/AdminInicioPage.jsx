@@ -1,4 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
+import '../../assets/panel.css';
 
 // Inicio provisional del panel de administración (F1.2).
 // Cada sección se convierte en un enlace cuando su tarea esté integrada.
@@ -12,17 +13,17 @@ export default function AdminInicioPage() {
   const { user } = useAuth();
 
   return (
-    <main className="panel">
+    <main className="contenedor">
       <header className="panel__encabezado">
         <h1>Panel de administración</h1>
         <p>Hola, {user?.nombre}. Estas son las secciones del panel.</p>
       </header>
       <ul className="panel__secciones">
         {SECCIONES.map((seccion) => (
-          <li key={seccion.nombre} className="panel__seccion">
+          <li key={seccion.nombre} className="panel__seccion tarjeta">
             <h2>{seccion.nombre}</h2>
             <p>{seccion.detalle}</p>
-            <span className="panel__pendiente">Próximamente · {seccion.tarea}</span>
+            <span className="etiqueta etiqueta--aviso">Próximamente · {seccion.tarea}</span>
           </li>
         ))}
       </ul>
