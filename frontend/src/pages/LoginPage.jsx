@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
-import { AlertCircle, Bike, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Lock, LogIn, Mail, Mountain } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 // Ruta a la que se vuelve después de iniciar sesión: la que ProtectedRoute guardó en el estado
@@ -41,58 +41,74 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <form className="card auth-card" onSubmit={submit}>
-        <div className="auth-logo">
-          <Bike size={26} aria-hidden="true" />
+    <main className="auth">
+      <form className="auth__tarjeta tarjeta" onSubmit={submit}>
+        <div className="auth__logo">
+          <Mountain size={28} aria-hidden="true" />
         </div>
 
-        <h1>BIKE STORE</h1>
-        <h2>Inicia sesión para continuar</h2>
-
-        {error && <p className="error"><AlertCircle size={16} />{error}</p>}
-
-        <div className="field">
-          <Mail size={16} />
-          <input
-            name="email"
-            type="email"
-            placeholder="Correo"
-            value={form.email}
-            onChange={change}
-            autoComplete="username"
-            required
-          />
+        <div className="auth__encabezado">
+          <h1>BIKE STORE</h1>
+          <h2>Inicia sesión para continuar</h2>
         </div>
 
-        <div className="field">
-          <Lock size={16} />
-          <input
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Contraseña"
-            value={form.password}
-            onChange={change}
-            autoComplete="current-password"
-            className="has-toggle"
-            required
-          />
-          <button
-            type="button"
-            className="toggle-visibility"
-            onClick={() => setShowPassword((value) => !value)}
-            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
+        {error && (
+          <p className="alerta alerta--error" role="alert">
+            <AlertCircle size={18} aria-hidden="true" />
+            {error}
+          </p>
+        )}
+
+        <div className="campo">
+          <label className="campo__etiqueta" htmlFor="login-email">Correo</label>
+          <div className="campo__control">
+            <Mail size={18} className="campo__icono" aria-hidden="true" />
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              placeholder="Correo"
+              value={form.email}
+              onChange={change}
+              autoComplete="username"
+              className="input input--con-icono"
+              required
+            />
+          </div>
         </div>
 
-        <button type="submit" disabled={submitting}>
-          <LogIn size={16} />
+        <div className="campo">
+          <label className="campo__etiqueta" htmlFor="login-password">Contraseña</label>
+          <div className="campo__control">
+            <Lock size={18} className="campo__icono" aria-hidden="true" />
+            <input
+              id="login-password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Contraseña"
+              value={form.password}
+              onChange={change}
+              autoComplete="current-password"
+              className="input input--con-icono input--con-accion"
+              required
+            />
+            <button
+              type="button"
+              className="campo__accion"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" className="btn btn--primario btn--bloque" disabled={submitting}>
+          <LogIn size={18} aria-hidden="true" />
           {submitting ? 'Ingresando...' : 'Ingresar'}
         </button>
 
-        <p>¿No tienes cuenta? <Link to="/registro">Registrarme</Link></p>
+        <p className="auth__pie">¿No tienes cuenta? <Link to="/registro">Registrarme</Link></p>
       </form>
     </main>
   );

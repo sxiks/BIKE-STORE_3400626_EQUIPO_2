@@ -22,9 +22,9 @@ export default function CarritoPanel({ abierto, onCerrar }) {
 
   return (
     <>
-      <div className="fondo" onClick={onCerrar} aria-hidden="true" />
-      <aside className="panel" role="dialog" aria-modal="true" aria-labelledby="titulo-carrito">
-        <div className="panel__cabecera">
+      <div className="carrito__fondo" onClick={onCerrar} aria-hidden="true" />
+      <aside className="carrito" role="dialog" aria-modal="true" aria-labelledby="titulo-carrito">
+        <div className="carrito__cabecera">
           <h2 id="titulo-carrito">Tu carrito</h2>
           <button ref={botonCerrar} type="button" className="icono-btn" aria-label="Cerrar carrito" onClick={onCerrar}>
             <X size={22} aria-hidden="true" />
@@ -32,16 +32,16 @@ export default function CarritoPanel({ abierto, onCerrar }) {
         </div>
 
         {lineas.length === 0 ? (
-          <p className="panel__vacio">Tu carrito está vacío.</p>
+          <p className="carrito__vacio">Tu carrito está vacío.</p>
         ) : (
-          <ul className="lineas">
+          <ul className="carrito__lineas">
             {lineas.map((l) => (
-              <li key={l.id} className="linea" data-testid={`linea-${l.id}`}>
-                <div className="linea__info">
+              <li key={l.id} className="carrito__linea" data-testid={`linea-${l.id}`}>
+                <div className="carrito__info">
                   <strong>{l.nombre}</strong>
                   <span>{formatoCOP(l.precio)} c/u</span>
                 </div>
-                <div className="linea__controles">
+                <div className="carrito__controles">
                   <button
                     type="button"
                     className="icono-btn"
@@ -74,7 +74,7 @@ export default function CarritoPanel({ abierto, onCerrar }) {
                     <Trash2 size={18} aria-hidden="true" />
                   </button>
                 </div>
-                <p className="linea__subtotal">
+                <p className="carrito__subtotal">
                   Subtotal: <strong data-testid={`subtotal-${l.id}`}>{formatoCOP(l.subtotal)}</strong>
                 </p>
               </li>
@@ -82,12 +82,12 @@ export default function CarritoPanel({ abierto, onCerrar }) {
           </ul>
         )}
 
-        <dl className="totales">
+        <dl className="carrito__totales">
           <div>
             <dt>Total de unidades</dt>
             <dd data-testid="total-unidades">{totalUnidades}</dd>
           </div>
-          <div className="totales__compra">
+          <div className="carrito__total-compra">
             <dt>Total de la compra</dt>
             <dd data-testid="total-compra">{formatoCOP(totalCompra)}</dd>
           </div>

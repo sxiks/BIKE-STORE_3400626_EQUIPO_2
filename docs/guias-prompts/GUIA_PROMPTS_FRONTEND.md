@@ -30,9 +30,10 @@ Reglas del frontend que debes respetar:
 - Dinero en COP como número; fechas en ISO UTC.
 - URL base desde config/env.js (VITE_API_URL). Nada de URLs a mano.
 - Mensajes al usuario con ToastContext (mostrar), nunca alert() ni confirm().
+- Sistema de diseño "Montaña Clara": colores, tipografía (Outfit títulos, Nunito Sans texto), espacios, radios y sombras SOLO con las variables de assets/tokens.css (nunca un color a mano). Reutiliza las clases de assets/base.css (.contenedor, .btn + .btn--primario/--suave/--acento/--peligro, .icono-btn, .campo, .input, .tarjeta, .etiqueta--exito/--aviso/--error, .alerta--error, .solo-lector) y crea clases BEM propias por componente en su .css.
 - Solo trabajo dentro de frontend/. No propongas cambios en backend/ ni database/: si algo falta en la API, ayúdame a redactar el pedido para el Dev Backend.
 - El flujo de trabajo es el de CONTRIBUTING.md: una rama por tarea desde develop, commits con Conventional Commits, PR hacia develop con la plantilla .github/pull_request_template.md y 1 aprobación.
-Adjunto: docs/diseno-tecnico/ARQUITECTURA.md, docs/diseno-tecnico/API_CONTRATOS.md, CONTRIBUTING.md y los archivos que voy a tocar.
+Adjunto: docs/diseno-tecnico/ARQUITECTURA.md, docs/diseno-tecnico/API_CONTRATOS.md, CONTRIBUTING.md, frontend/src/assets/tokens.css, frontend/src/assets/base.css y los archivos que voy a tocar.
 Entrega por pasos: primero el plan y la lista de archivos a crear o modificar; espera mi aprobación antes de escribir código.
 ```
 
@@ -48,7 +49,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 1 | [F1.2 Rutas protegidas por rol](#f12--rutas-protegidas-por-rol) | `feature/front-rutas-por-rol` | 22 | F1.1 |
 | 1 | [F1.3 Recuperar contraseña y validar registro](#f13--recuperar-contraseña-y-validar-registro) | `feature/front-recuperar-password` | 09, 11 | F1.1 |
 | 1 | [F1.4 Panel de usuarios](#f14--panel-de-usuarios-admin) | `feature/front-panel-usuarios` | 19, 20, 21 | F1.2 |
-| 2 | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
+| 1 ✅ | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) (adelantada al Sprint 1) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
 | 2 | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
 | 2 | [F2.3 Panel de productos](#f23--panel-de-productos-admin) | `feature/front-admin-productos` | 12–15 | F1.2, F2.1 |
 | 3 | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
@@ -173,6 +174,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F2.1 · Sistema de diseño unificado
+
+> ✅ **Hecha** (adelantada al Sprint 1): se eligió la opción C "Montaña Clara". Resultado: `assets/tokens.css` + `assets/base.css`. Este prompt queda como referencia.
 
 ```
 TAREA F2.1 · Sprint 2 · RNF de usabilidad · Rama: feature/front-sistema-diseno (ya creada desde develop actualizado; si no, dame primero los comandos).

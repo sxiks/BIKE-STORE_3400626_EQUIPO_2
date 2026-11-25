@@ -3,7 +3,7 @@ import Navbar from './Navbar';
 import '../assets/panel.css';
 
 // Layout de las secciones privadas: /admin (administrador) y /cuenta (cliente).
-// La navbar va fuera del contenedor, igual que en LabLayout.
+// Misma estructura que AuthLayout: navbar y, debajo, la página.
 export default function PanelLayout() {
   return (
     <>

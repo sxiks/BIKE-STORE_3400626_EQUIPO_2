@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
-import LabLayout from './components/LabLayout';
+import AuthLayout from './components/AuthLayout';
 import PanelLayout from './components/PanelLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import TiendaPage from './pages/TiendaPage';
@@ -32,8 +32,8 @@ export function AppRutas() {
           {/* Pública: catálogo + carrito (aún con datos simulados) */}
           <Route path="/" element={<TiendaPage />} />
 
-          {/* Autenticación (estilos heredados del Laboratorio) */}
-          <Route element={<LabLayout />}>
+          {/* Autenticación */}
+          <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/registro" element={<RegisterPage />} />
           </Route>
