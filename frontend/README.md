@@ -34,12 +34,17 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 ## Puntos clave
 
 - Los componentes no hacen `fetch`: todo pasa por `src/services/`, y `api.js` agrega el token Bearer.
-- La API responde `{ ok, data, message, code }`: los datos se leen en `respuesta.data` y los errores se manejan por `code`.
-- Estilos: `assets/base.css` (global mínimo), `assets/lab.css` (raíz `.lab`, login y registro) y `assets/tienda.css` (raíz `.tienda`). Están aislados a propósito hasta unificar el diseño.
+- La API responde `{ ok, data, message, code }`: los datos se leen en `respuesta.data`. Los errores llegan como `ApiError` (`message`, `status`, `code`, `data`) y se manejan por `code`.
+- Proveedores globales en `App.jsx`, en este orden: Router → `ToastProvider` → `AuthProvider`. Los mensajes al usuario van con `useToast().mostrar()`, nunca con `alert()`.
+- Una sola barra de navegación: `components/Navbar.jsx`. El carrito solo aparece cuando la página le pasa la prop `carrito`.
+- Estilos: `assets/base.css` (global mínimo), `navbar.css` y `toast.css` (globales, con clases propias), `lab.css` (raíz `.lab`, login y registro) y `tienda.css` (raíz `.tienda`). Se unifican en el sistema de diseño (F2.1).
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Flujo de sesión
 
-Login → `AuthContext` guarda `data.token` y `data.user` en `localStorage` → `api.js` agrega `Authorization: Bearer` → el backend verifica el JWT y, en cada petición, el estado y el rol del usuario.
+Login → `AuthContext` guarda `data.token` y `data.user` en `localStorage` (`bikestore_token`, `bikestore_user`) → `api.js` agrega `Authorization: Bearer` → el backend verifica el JWT y, en cada petición, el estado y el rol del usuario.
+
+- Al abrir la app con un token guardado, `AuthContext` lo valida con `GET /auth/me` y refresca nombre y rol. Mientras tanto, `verificando` es `true`.
+- Si una petición con token responde 401, o 403 con `CUENTA_DESACTIVADA`, `api.js` avisa al `AuthContext` (callback registrado con `registrarManejadorSesionInvalida`): se cierra la sesión, se muestra el mensaje y se va a `/login`.
 
 Ocultar un botón en React no es seguridad: el backend también verifica el rol.

@@ -73,38 +73,6 @@
 .lab button.secondary { background: var(--gray-500); }
 .lab button.secondary:hover { background: var(--gray-700); }
 
-.lab .navbar {
-  min-height: 64px;
-  padding: 12px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: white;
-  border-bottom: 3px solid var(--teal);
-}
-
-.lab .brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--blue);
-  text-decoration: none;
-  font-size: 1.35rem;
-  font-weight: 800;
-}
-
-.lab .nav-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: var(--gray-700);
-}
-
-.lab .nav-right button.secondary {
-  padding: 6px 12px;
-  font-size: 0.875rem;
-}
-
 .lab .container {
   width: min(1100px, calc(100% - 32px));
   margin: 30px auto;
@@ -178,7 +146,7 @@
 .lab tbody tr:hover { background: #f0fdfa; }
 
 .lab .auth-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 60px); /* descuenta la navbar */
   display: grid;
   place-items: center;
   padding: 20px;
@@ -379,17 +347,6 @@
 }
 
 @media (max-width: 640px) {
-  .lab .navbar {
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-
-  .lab .nav-right { flex-direction: column; gap: 10px; }
-
-  .lab .brand { font-size: 1.2rem; }
-
   .lab .container { margin: 16px auto; }
 
   .lab .actions { flex-wrap: wrap; }

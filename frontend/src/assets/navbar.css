@@ -1,0 +1,144 @@
+/* Barra de navegación única (F1.1). Clases BEM propias: no dependen de las raíces .lab ni .tienda.
+   Los colores se unificarán con el resto en el sistema de diseño (F2.1). */
+.nav-principal {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #1b5e20;
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.nav-principal__inner {
+  max-width: 1100px;
+  min-height: 60px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-principal__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto; /* empuja la sesión y el carrito a la derecha */
+  color: inherit;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.nav-principal__sesion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nav-principal__usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.nav-principal__rol {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.nav-principal__rol--admin {
+  background: #ffb300;
+  color: #222;
+}
+
+.nav-principal__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-principal__boton:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-principal__boton--resaltado {
+  border-color: #ffb300;
+  background: #ffb300;
+  color: #222;
+}
+
+.nav-principal__boton--resaltado:hover {
+  background: #ffc233;
+}
+
+.nav-principal__carrito {
+  position: relative;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.nav-principal__carrito:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-principal__contador {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #ffb300;
+  color: #222;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.nav-principal :focus-visible {
+  outline: 3px solid #ffb300;
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .nav-principal__inner {
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .nav-principal__usuario {
+    display: none; /* en pantallas angostas solo queda el botón de cerrar sesión */
+  }
+
+  .nav-principal__boton {
+    padding: 6px 8px;
+    font-size: 0.82rem;
+  }
+}

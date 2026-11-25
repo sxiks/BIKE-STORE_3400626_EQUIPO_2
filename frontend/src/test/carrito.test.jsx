@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import TiendaPage from "../pages/TiendaPage";
 import { MSG_MAX } from "../context/CarritoContext";
 import { formatoCOP as formatoReal } from "../utils/formato";
+import { renderConProveedores } from "./utils";
 
 // Intl usa un espacio de no separación (U+00A0); jest-dom normaliza el texto
 // del elemento a espacio normal, así que normalizamos también el valor esperado.
@@ -24,9 +25,10 @@ const agregar = (nombre, cantidad) => {
 const abrirCarrito = () => fireEvent.click(screen.getByRole("button", { name: /abrir carrito/i }));
 const cambiar = (input, valor) => fireEvent.change(input, { target: { value: valor } });
 
+// Desde F1.1 la tienda usa la navbar unificada, que necesita Router, Toasts y Sesión.
 beforeEach(() => {
   localStorage.clear();
-  render(<TiendaPage />);
+  renderConProveedores(<TiendaPage />);
 });
 
 describe("Tienda · casos de prueba del carrito (instructor)", () => {
@@ -141,7 +143,7 @@ describe("Tienda · casos de prueba del carrito (instructor)", () => {
     const nav = screen.getByRole("navigation");
     const boton = screen.getByRole("button", { name: /abrir carrito/i });
     expect(nav.lastElementChild).toBe(boton);
-    expect(nav.firstElementChild).toHaveTextContent("TIENDA PALMIRA");
+    expect(nav.firstElementChild).toHaveTextContent("BIKE STORE");
     expect(screen.getByTestId("contador-carrito")).toHaveTextContent("6");
   });
 });

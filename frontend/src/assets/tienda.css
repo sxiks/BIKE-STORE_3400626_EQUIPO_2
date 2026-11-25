@@ -1,6 +1,7 @@
 /* Estilos del módulo Tienda (origen: proyecto Carrito / TIENDA PALMIRA).
    Todo selector va bajo la raíz .tienda para no chocar con lab.css
    (ambos proyectos definían .card, .navbar y body).
+   La navbar (navbar.css) y los toasts (toast.css) son globales desde F1.1.
    Temporal: se unifica en un solo sistema de diseño en un sprint de frontend. */
 
 :root {
@@ -24,16 +25,9 @@
 
 .tienda :focus-visible { outline: 3px solid #ffb300; outline-offset: 2px; }
 
-/* Navbar */
-.tienda .navbar { position: fixed; inset: 0 0 auto 0; z-index: 50; background: var(--verde); color: #fff; }
-.tienda .navbar__inner { max-width: 1100px; margin: 0 auto; height: 60px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; }
-.tienda .navbar__marca { font-weight: 800; letter-spacing: 0.06em; font-size: 1.15rem; }
-.tienda .navbar__carrito { position: relative; background: transparent; border: 0; color: inherit; padding: 8px; border-radius: 8px; cursor: pointer; }
-.tienda .navbar__carrito:hover { background: rgba(255, 255, 255, 0.15); }
-.tienda .navbar__contador { position: absolute; top: -2px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #ffb300; color: #222; font-size: 0.75rem; font-weight: 700; display: grid; place-items: center; animation: pop 0.25s ease; }
 
 /* Contenido y catálogo */
-.tienda .contenido { max-width: 1100px; margin: 0 auto; padding: 84px 16px 40px; }
+.tienda .contenido { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; }
 .tienda .titulo-seccion { margin: 0 0 16px; color: var(--verde); }
 .tienda .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .tienda .card { background: #fff; border: 1px solid var(--borde); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
@@ -49,7 +43,6 @@
 .tienda .btn--primario { flex: 1; background: var(--verde-vivo); color: #fff; }
 .tienda .btn--primario:hover:not(:disabled) { background: #2e8700; }
 .tienda .btn:disabled { background: #b8c2bb; color: #fff; cursor: not-allowed; }
-.tienda .btn--toast { background: #ffb300; color: #222; padding: 6px 12px; }
 .tienda .icono-btn { background: transparent; border: 1px solid var(--borde); border-radius: 8px; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer; color: inherit; }
 .tienda .icono-btn:hover { background: var(--verde-claro); }
 .tienda .icono-btn--peligro { color: var(--rojo); }
@@ -74,17 +67,11 @@
 .tienda .totales__compra { font-size: 1.2rem; font-weight: 800; color: var(--verde); }
 
 /* Toasts */
-.tienda .toasts { position: fixed; right: 16px; bottom: 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100% - 32px)); }
-.tienda .toast { background: #263238; color: #fff; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; box-shadow: var(--sombra); animation: deslizar-toast 0.25s ease; }
-.tienda .toast__mensaje { margin: 0; flex: 1; font-size: 0.92rem; }
-.tienda .toast__cerrar { background: transparent; border: 0; color: #cfd8dc; cursor: pointer; padding: 4px; border-radius: 6px; }
-.tienda .toast__cerrar:hover { color: #fff; }
 
 /* Animaciones */
 @keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
 @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
 @keyframes deslizar { from { transform: translateX(100%); } to { transform: translateX(0); } }
-@keyframes deslizar-toast { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -92,6 +79,5 @@
 
 /* Responsive */
 @media (max-width: 480px) {
-  .tienda .toasts { right: 8px; left: 8px; width: auto; bottom: 8px; }
   .tienda .card__acciones { flex-wrap: wrap; }
 }

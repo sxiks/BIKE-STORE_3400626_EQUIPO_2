@@ -32,7 +32,7 @@ export default function RegisterPage() {
   return (
     <main className="auth-page">
       <form className="card auth-card" onSubmit={submit}>
-        <h1>LAB CRUD</h1>
+        <h1>BIKE STORE</h1>
         <h2>Crear usuario</h2>
 
         {error && <p className="error"><AlertCircle size={16} />{error}</p>}

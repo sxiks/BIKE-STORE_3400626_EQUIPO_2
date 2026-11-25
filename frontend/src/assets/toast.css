@@ -1,0 +1,63 @@
+/* Notificaciones (ToastContext). Globales desde F1.1: el ToastProvider envuelve toda la app,
+   así los avisos se ven también en login y registro (antes solo existían dentro de .tienda). */
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(380px, calc(100% - 32px));
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #263238;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  animation: deslizar-toast 0.25s ease;
+}
+
+.toast__mensaje {
+  margin: 0;
+  flex: 1;
+  font-size: 0.92rem;
+}
+
+.toast__cerrar {
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #cfd8dc;
+  cursor: pointer;
+}
+
+.toast__cerrar:hover {
+  color: #fff;
+}
+
+.btn--toast {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffb300;
+  color: #222;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes deslizar-toast {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .toasts { right: 8px; left: 8px; width: auto; bottom: 8px; }
+}
