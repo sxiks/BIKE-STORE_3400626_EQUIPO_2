@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { AlertCircle, Eye, EyeOff, LayoutGrid, Lock, LogIn, Mail } from 'lucide-react';
+import { AlertCircle, Bike, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function LoginPage() {
@@ -37,10 +37,10 @@ export default function LoginPage() {
     <main className="auth-page">
       <form className="card auth-card" onSubmit={submit}>
         <div className="auth-logo">
-          <LayoutGrid size={26} />
+          <Bike size={26} aria-hidden="true" />
         </div>
 
-        <h1>LAB CRUD</h1>
+        <h1>BIKE STORE</h1>
         <h2>Inicia sesión para continuar</h2>
 
         {error && <p className="error"><AlertCircle size={16} />{error}</p>}

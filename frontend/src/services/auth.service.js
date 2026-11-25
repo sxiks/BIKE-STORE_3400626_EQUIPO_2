@@ -13,3 +13,9 @@ export function login(data) {
     body: JSON.stringify(data)
   });
 }
+
+// Valida el token guardado y trae el usuario con su rol y estado actuales (CU-22).
+// Sin manejo global: si falla al abrir la app, AuthContext decide qué hacer.
+export function me() {
+  return api('/auth/me', { manejarSesion: false });
+}
