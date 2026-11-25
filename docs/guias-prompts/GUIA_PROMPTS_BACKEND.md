@@ -47,11 +47,11 @@ Entrega por pasos: primero el análisis y la lista de archivos a crear o modific
 
 ## Sección 1 · Prompts por tarea de sprint
 
-Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de la tabla. El estado de cada sprint está en el [ROADMAP](../ROADMAP.md#sprints).
+Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de la tabla. ✅ = integrada en `develop`. El estado de cada sprint está en el [ROADMAP](../ROADMAP.md#sprints).
 
 | Sprint | Tarea | Rama | CU | Depende de |
 |---|---|---|---|---|
-| 1 | [B1.1 Base de pruebas automatizadas y autenticación](#b11--base-de-pruebas-automatizadas-y-autenticación) | `feature/back-tests-auth` | 09, 10, 11 | — |
+| 1 ✅ | [B1.1 Base de pruebas automatizadas y autenticación](#b11--base-de-pruebas-automatizadas-y-autenticación) | `feature/back-tests-auth` | 09, 10, 11 | — |
 | 1 | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
 | 2 | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
 | 3 | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito` | 03–07 | B1.1 |
@@ -62,6 +62,8 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 Todos los prompts de esta sección terminan con el mismo **bloque de cierre**: explicación de cómo, por qué y para qué se hizo, cómo probarlo y pasos para el PR. Está incluido en cada uno para que se copien completos.
 
 ### B1.1 · Base de pruebas automatizadas y autenticación
+
+> ✅ **Hecha.** Resultado: Vitest + Supertest, base `bike_store_test` con protección por nombre, `npm run test:db` y `tests/auth.test.js` (32 pruebas). Las tareas B siguientes agregan su archivo en `tests/` y reutilizan `tests/helpers/`. Este prompt queda como referencia.
 
 ```
 TAREA B1.1 · Sprint 1 · CU-09, CU-10, CU-11 · Rama: feature/back-tests-auth (ya creada desde develop actualizado; si no, dame primero los comandos).

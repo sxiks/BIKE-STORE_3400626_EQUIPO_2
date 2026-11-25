@@ -96,26 +96,33 @@ grep -rn "middlewares" backend/src/services
 |---------|-----------------|
 | `pages/` | Una pantalla por ruta. Orquesta componentes y llama a servicios o contextos. |
 | `components/` | Piezas visuales reutilizables. Reciben datos por props; no hacen `fetch`. |
-| `context/` | Estado global (`AuthContext`, `CarritoContext`, `ToastContext`). |
+| `context/` | Estado global (`AuthContext`, `CarritoContext`, `ToastContext`). `App.jsx` monta los proveedores en este orden: Router → `ToastProvider` → `AuthProvider`. |
 | `hooks/` | Hooks propios (`useAuth`, …). |
-| `services/` | Único lugar que llama a la API (`api.js` agrega el token Bearer). |
+| `services/` | Único lugar que llama a la API. `api.js` agrega el token Bearer, lanza `ApiError` (`message`, `status`, `code`, `data`) y avisa al `AuthContext` cuando una petición con token recibe 401 o 403 `CUENTA_DESACTIVADA`. |
 | `utils/` | Funciones puras (`formatoCOP`, `urlImagen`, `localStorage`). |
 | `data/` | Datos simulados mientras se conecta la API real. |
-| `assets/` | Estilos. `base.css` global; `lab.css` y `tienda.css` aislados por clase raíz. |
+| `assets/` | Sistema de diseño "Montaña Clara": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`navbar`, `toast`, `tienda`, `auth`, `panel`). |
 | `test/` | Pruebas con Vitest y Testing Library. |
 
 - Un componente **nunca** llama a `fetch` directamente: usa una función de `services/`.
 - Las URLs del backend salen de `config/env.js` (`VITE_API_URL`); nunca se escriben a mano.
-- Las respuestas se leen como `respuesta.data`. Los errores traen `message` y, a veces, `code` (ver contratos).
+- Las respuestas se leen como `respuesta.data`. Los errores llegan como `ApiError` y se manejan por su `code` (ver contratos), nunca comparando textos.
+- Las secciones privadas usan `components/ProtectedRoute.jsx` con roles: `/admin` solo `admin` y `/cuenta` solo `cliente`. Ocultar o proteger una pantalla no es seguridad: el backend valida el rol en cada petición.
+- Ningún `.css` escribe colores a mano: todo sale de `var(--…)` en `tokens.css`.
 
 ## 6. Estado actual (deuda técnica conocida)
 
 | Tema | Situación | Se resuelve en |
 |------|-----------|----------------|
 | El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
-| La tienda usa datos simulados (`data/productos.js`) y `localStorage` | El backend ya ofrece catálogo y carrito reales | Sprints 2–3 (frontend) |
-| Dos estilos visuales (`.lab` y `.tienda`) y dos navbars | Aislados; `lab.css` conserva estilos sin uso del antiguo CRUD de equipos | Sprints 1–2 ([F1.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f11--sesión-y-navbar-unificada) y [F2.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f21--sistema-de-diseño-unificado)) |
-| Claves de `localStorage` con prefijo `labcrud_` | Funcionan; el nombre es heredado | Sprint 1 ([F1.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f11--sesión-y-navbar-unificada)) |
+| La tienda usa datos simulados (`data/productos.js`) y el carrito vive en `localStorage` (clave heredada `tienda-palmira-carrito`) | El backend ya ofrece catálogo y carrito reales | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) y Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
 | Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Sin pruebas automatizadas del backend | Hubo verificación manual completa (78 casos) | Sprints 1–4, empezando por [B1.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b11--base-de-pruebas-automatizadas-y-autenticación) |
+| Pruebas automatizadas del backend incompletas | Base lista y `auth` cubierto (32 pruebas, B1.1). Faltan `usuarios`, `productos`, `carrito`, `pedidos` y `tablero`; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 1–4: [B1.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b12--pruebas-de-usuarios-y-control-de-acceso), [B2.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b21--pruebas-de-catálogo-y-productos), [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
+
+**Resuelto en el Sprint 1:**
+- Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.
+- Claves de `localStorage` con prefijo `labcrud_`: ahora son `bikestore_token` y `bikestore_user` (F1.1).
+- `ProtectedRoute` sin uso: ahora protege `/admin` y `/cuenta` por rol (F1.2).
+
+> El diagrama y el informe de arquitectura de esta carpeta reflejan el estado anterior a estos cambios; se actualizan al cerrar el Sprint 1.

@@ -84,6 +84,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 
 - <a name="postgresql"></a>**PostgreSQL:** el motor de base de datos relacional del proyecto (versión 15 o superior).
 - <a name="psql"></a>**`psql`:** cliente de terminal de PostgreSQL para ejecutar SQL y aplicar migraciones.
+- <a name="base-pruebas"></a>**Base de datos de pruebas:** base separada (`bike_store_test`) que usan las pruebas automatizadas del backend. Se vacía y se recrea con `npm run test:db`; por eso su nombre debe terminar en `_test` y nunca es la base de desarrollo. Ver [backend/README](../backend/README.md#pruebas-automatizadas).
 - <a name="rol-postgres"></a>**Rol de PostgreSQL:** usuario de la base de datos. La API se conecta con `bike_store_app`, no con el superusuario `postgres`.
 - <a name="sql-parametrizado"></a>**SQL parametrizado:** consultas con marcadores `$1, $2…` en lugar de pegar texto del usuario. Evita la inyección SQL.
 - <a name="migracion"></a>**Migración:** archivo SQL numerado con un cambio del esquema (`002_…`, `003_…`). Nunca se edita una ya aplicada. Ver [database/README](../database/README.md).
@@ -124,13 +125,18 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="contexto"></a>**Contexto (React Context):** estado compartido por muchos componentes, como la sesión (`AuthContext`) o el carrito (`CarritoContext`).
 - <a name="hook"></a>**Hook:** función de React que empieza con `use`, como `useState` o `useAuth`.
 - <a name="react-router"></a>**React Router:** librería que asocia cada URL del frontend con una página.
-- <a name="ruta-protegida"></a>**Ruta protegida:** página que solo se muestra con sesión iniciada o con un rol concreto (`ProtectedRoute`).
+- <a name="ruta-protegida"></a>**Ruta protegida:** página que solo se muestra con sesión iniciada o con un rol concreto, mediante `<ProtectedRoute roles={['admin']} />`. Sin sesión lleva a `/login` y con otro rol muestra "No autorizado". No reemplaza la seguridad del backend.
+- <a name="apierror"></a>**ApiError:** error que lanza `services/api.js` cuando la API responde con fallo. Trae `message`, `status` (código HTTP), `code` y `data`, para que cada pantalla reaccione según el `code`.
 - <a name="fetch"></a>**fetch:** función del navegador para hacer peticiones HTTP. En el proyecto solo se usa dentro de `services/api.js`.
 - <a name="localstorage"></a>**localStorage:** almacenamiento del navegador donde el frontend guarda la sesión.
 - <a name="toast"></a>**Toast:** mensaje emergente breve en una esquina de la pantalla (éxito, error o aviso).
 - <a name="mock"></a>**Mock (datos simulados):** datos falsos con la misma forma que la API real, para trabajar sin backend.
 - <a name="vitest"></a>**Vitest / Testing Library:** herramientas para escribir y ejecutar pruebas automatizadas (`npm test`).
 - <a name="build"></a>**Build:** la versión optimizada del frontend lista para publicar, en la carpeta `dist/`.
+- <a name="sistema-diseno"></a>**Sistema de diseño:** conjunto de reglas visuales y piezas reutilizables que comparten todas las pantallas. El del proyecto se llama "Montaña Clara" y vive en `assets/tokens.css` y `assets/base.css`.
+- <a name="tokens-diseno"></a>**Tokens de diseño:** variables CSS con nombre (`--color-primario`, `--espacio-4`, `--radio-md`…) que guardan los valores del sistema de diseño. Se usan con `var(--nombre)` en lugar de escribir el valor a mano.
+- <a name="bem"></a>**BEM (Bloque, Elemento, Modificador):** forma de nombrar clases CSS: `bloque__elemento--modificador`, por ejemplo `producto__stock--agotado`. Evita que los estilos de una pantalla afecten a otra.
+- <a name="contraste-aa"></a>**Contraste AA:** nivel mínimo de accesibilidad entre el color del texto y el del fondo (4.5:1 en texto normal), para que se lea bien.
 
 ## Proyecto y documentación
 

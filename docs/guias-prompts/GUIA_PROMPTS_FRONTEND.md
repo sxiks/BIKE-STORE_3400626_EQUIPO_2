@@ -41,12 +41,12 @@ Entrega por pasos: primero el plan y la lista de archivos a crear o modificar; e
 
 ## Sección 1 · Prompts por tarea de sprint
 
-Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de la tabla, porque algunas dependen de otras. El estado de cada sprint está en el [ROADMAP](../ROADMAP.md#sprints).
+Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de la tabla, porque algunas dependen de otras. ✅ = integrada en `develop`. El estado de cada sprint está en el [ROADMAP](../ROADMAP.md#sprints).
 
 | Sprint | Tarea | Rama | CU | Depende de |
 |---|---|---|---|---|
-| 1 | [F1.1 Sesión y navbar unificada](#f11--sesión-y-navbar-unificada) | `feature/front-navbar-sesion` | 10, 22 | — |
-| 1 | [F1.2 Rutas protegidas por rol](#f12--rutas-protegidas-por-rol) | `feature/front-rutas-por-rol` | 22 | F1.1 |
+| 1 ✅ | [F1.1 Sesión y navbar unificada](#f11--sesión-y-navbar-unificada) | `feature/front-navbar-sesion` | 10, 22 | — |
+| 1 ✅ | [F1.2 Rutas protegidas por rol](#f12--rutas-protegidas-por-rol) | `feature/front-rutas-por-rol` | 22 | F1.1 |
 | 1 | [F1.3 Recuperar contraseña y validar registro](#f13--recuperar-contraseña-y-validar-registro) | `feature/front-recuperar-password` | 09, 11 | F1.1 |
 | 1 | [F1.4 Panel de usuarios](#f14--panel-de-usuarios-admin) | `feature/front-panel-usuarios` | 19, 20, 21 | F1.2 |
 | 1 ✅ | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) (adelantada al Sprint 1) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
@@ -61,6 +61,8 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 Todos los prompts de esta sección terminan con el mismo **bloque de cierre**: explicación de cómo, por qué y para qué se hizo, cómo probarlo y pasos para el PR. Está incluido en cada uno para que se copien completos.
 
 ### F1.1 · Sesión y navbar unificada
+
+> ✅ **Hecha.** Resultado: `components/Navbar.jsx`, `AuthContext` (con `isAdmin` y `verificando`) y `ApiError` en `services/api.js`. Este prompt queda como referencia.
 
 ```
 TAREA F1.1 · Sprint 1 · CU-10, CU-22 · Rama: feature/front-navbar-sesion (ya creada desde develop actualizado; si no, dame primero los comandos).
@@ -92,6 +94,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F1.2 · Rutas protegidas por rol
+
+> ✅ **Hecha.** Resultado: `ProtectedRoute` con roles, grupos `/admin` y `/cuenta` en `App.jsx` y `PanelLayout`. Las páginas nuevas de admin o de cliente se agregan dentro de su grupo. Este prompt queda como referencia.
 
 ```
 TAREA F1.2 · Sprint 1 · CU-22 · Rama: feature/front-rutas-por-rol (ya creada desde develop actualizado; si no, dame primero los comandos).
