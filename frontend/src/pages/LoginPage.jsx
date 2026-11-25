@@ -1,18 +1,27 @@
 import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { AlertCircle, Bike, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
+// Ruta a la que se vuelve después de iniciar sesión: la que ProtectedRoute guardó en el estado
+// de la navegación (F1.2), o la tienda. Solo se aceptan rutas internas.
+function rutaDestino(location) {
+  const desde = location.state?.from;
+  const ruta = desde ? `${desde.pathname}${desde.search ?? ''}` : '/';
+  return ruta.startsWith('/') && !ruta.startsWith('/login') ? ruta : '/';
+}
+
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  // Con sesión (ya iniciada o recién iniciada) se va al destino. Un solo punto de redirección.
+  if (isAuthenticated) return <Navigate to={rutaDestino(location)} replace />;
 
   function change(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -24,11 +33,9 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      await login(form);
-      navigate('/');
+      await login(form); // al cambiar la sesión, el componente se vuelve a pintar y redirige
     } catch (err) {
       setError(err.message);
-    } finally {
       setSubmitting(false);
     }
   }
