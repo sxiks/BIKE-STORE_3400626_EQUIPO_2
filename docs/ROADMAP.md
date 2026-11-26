@@ -11,7 +11,7 @@
   - **Ya hecho:** una sola navbar con la sesión, validación del token al abrir la app, cierre de sesión automático si la API la rechaza (F1.1); rutas `/admin` y `/cuenta` protegidas por rol (F1.2); sistema de diseño "Montaña Clara" aplicado a todas las vistas (F2.1, adelantada).
   - **Sigue con [datos simulados](GLOSARIO.md#mock):** el catálogo y el carrito, hasta F2.2 y F3.1.
   - El resto de pantallas se construye en los sprints.
-- **Base de datos:** el modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) 002 y 003 están verificadas.
+- **Base de datos:** el modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) de la 002 a la 005 están verificadas. La 004 y la 005 aplican la decisión D12 (el carrito es un pedido en estado `carrito`).
 - **Único punto abierto:** el [Sprint 5 · Despliegue](#sprint-5--despliegue-pendiente).
 
 ## Sprints

@@ -168,16 +168,38 @@ psql -U postgres -c "ALTER DATABASE bike_store SET timezone TO 'America/Bogota';
 
 **Quién:** Dev Backend y Dev Frontend, cada uno en su base.
 
-Las [migraciones](GLOSARIO.md#migracion) crean las 9 tablas (la `002`) y cargan categorías y productos de ejemplo (la `003`, la [semilla](GLOSARIO.md#semilla)). Se ejecutan **desde la raíz del repositorio** y **en orden**; `psql` pide la contraseña del rol (`cambia_esta_clave`). Los comandos son iguales en Linux y en Windows:
+Las [migraciones](GLOSARIO.md#migracion) crean las tablas (la `002`), cargan categorías y productos de ejemplo (la `003`, la [semilla](GLOSARIO.md#semilla)) y convierten el carrito en un pedido en estado `carrito` (la `004` y la `005`, decisión D12 del [ROADMAP](ROADMAP.md#resueltas)). Se ejecutan **desde la raíz del repositorio**, **en orden** y **una a la vez**: revisa que cada una termine sin `ERROR` antes de la siguiente.
 
+Para no escribir la contraseña del rol en cada comando, guárdala en una variable que solo dura mientras la terminal esté abierta:
+
+**Linux**
 ```bash
+export PGPASSWORD='cambia_esta_clave'
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/002_modelo_bike_store.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/003_datos_semilla.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
 psql -h localhost -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
+unset PGPASSWORD
 ```
 
+**Windows (PowerShell)**
+```powershell
+$env:PGPASSWORD = 'cambia_esta_clave'
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/002_modelo_bike_store.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/003_datos_semilla.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
+psql -h localhost -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
+Remove-Item Env:PGPASSWORD
+```
+
+Si usaste otra contraseña al crear el rol en el paso 4, pon esa en `PGPASSWORD`.
+
+**Si tu base ya tenía la `002` y la `003`** (montaste el entorno antes de la decisión D12): aplica **solo la `004` y luego la `005`**. Comprueba que quedó bien con `psql -h localhost -U bike_store_app -d bike_store -c "\dt"`: deben aparecer 7 tablas y ya no `carritos` ni `carrito_items`.
+
 - **Nunca ejecutes** `database/migrations/legacy_mysql/001_base_usuarios_equipos.sql`: es MySQL y falla.
-- La `002` no se puede aplicar dos veces sobre la misma base.
+- La `002` y la `005` no se pueden aplicar dos veces sobre la misma base.
 - Qué es una migración, cómo empezar de cero y cómo agregar una nueva: [database/README](../database/README.md).
 
 ---
