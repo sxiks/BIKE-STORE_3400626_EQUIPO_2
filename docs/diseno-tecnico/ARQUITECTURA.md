@@ -86,8 +86,8 @@ grep -rn "middlewares" backend/src/services
 | Autenticación | `/api/auth` | `auth.services` | `usuarios`, `tokensRecuperacion` | 09, 10, 11, 22 |
 | Usuarios (admin) | `/api/usuarios` | `usuarios.services` | `usuarios` | 19, 20, 21 |
 | Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services` | `categorias`, `productos` | 01, 02, 12–15 |
-| Carrito | `/api/carrito` | `carrito.services` | `carritos`, `productos` | 03–07 |
-| Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos`, `carritos` | 07, 08 |
+| Carrito | `/api/carrito` | `carrito.services` | `pedidos` (el carrito es un pedido en estado `carrito`, D12), `productos` | 03–07 |
+| Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos` | 07, 08 |
 | Tablero | `/api/dashboard` | `dashboard.services` | `dashboard` | 16, 17 (18 pendiente) |
 
 ## 5. Convenciones del frontend

@@ -152,14 +152,14 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 TAREA B3.1 · Sprint 3 · CU-03 a CU-07 · Rama: feature/back-tests-carrito (ya creada desde develop actualizado; si no, dame primero los comandos).
 REQUISITO PREVIO: B1.1 integrada.
 
-OBJETIVO: cubrir con pruebas el carrito persistido por cliente.
+OBJETIVO: cubrir con pruebas el carrito persistido por cliente. El carrito es el pedido del cliente en estado 'carrito' y sus líneas son filas de detalle_pedido (decisión D12); tests/carrito-pedido.test.js ya cubre el modelo: amplíalo sin duplicar casos.
 
 ESPECIFICACIONES (contratos en la sección "Carrito · cliente" de API_CONTRATOS.md, adjunto):
 - Acceso: sin token → 401 (D1); con rol admin → 403 (K).
 - Agregar: suma cantidades sobre la misma línea (R2); superar las existencias → 400 STOCK_MAXIMO con data.maximo; producto agotado → 400 SIN_STOCK; producto inactivo → 400 PRODUCTO_INACTIVO; inexistente → 404.
 - Actualizar: cantidad 0 → 400 CANTIDAD_MINIMA; decimal o negativa → 400; producto que no está en el carrito → 404.
 - Eliminar: siempre permitido, incluso si el producto está inactivo (D4).
-- GET /carrito: totales correctos; un producto inactivado después de agregarlo aparece con disponible = false, motivo INACTIVO, y puede_comprar = false (D4, CU-06, CU-07); el carrito se conserva entre sesiones.
+- GET /carrito: totales correctos; un producto inactivado después de agregarlo aparece con disponible = false, motivo INACTIVO, y puede_comprar = false (D4, CU-06, CU-07); el carrito se conserva entre sesiones; un cliente nunca tiene dos pedidos en estado 'carrito'.
 - No cambiar el comportamiento de la API. Si una prueba revela un error real, detente, explícamelo y propón la corrección mínima.
 
 ARCHIVOS PROBABLES: backend/tests/carrito.test.js, backend/tests/helpers/.
@@ -181,8 +181,8 @@ REQUISITO PREVIO: B3.1 integrada.
 OBJETIVO: cubrir con pruebas la creación de pedidos y el flujo transaccional del pago simulado.
 
 ESPECIFICACIONES (contratos en la sección "Pedidos y pago · cliente" de API_CONTRATOS.md; flujo en las decisiones 10, E y F de docs/diseno-tecnico/MODELO_DATOS.md y docs/ROADMAP.md, adjuntos):
-- Crear pedido: carrito vacío → 400 CARRITO_VACIO; con ítems no disponibles → 409 CARRITO_NO_DISPONIBLE; datos de envío incompletos → 400; éxito → 201, estado pendiente, número con formato BS-AAAA-NNNNNN (trigger) y precio_unitario copiado (R3: cambiar el precio después no altera el pedido).
-- Pago: número inválido → 400; número terminado en 0000 → 402 PAGO_RECHAZADO, pedido fallido y SIN descontar stock; reintento sobre el pedido fallido → 201 aprobado (F); al aprobar se descuenta el stock, se registra el pago con solo los últimos 4 dígitos y se vacía el carrito; segundo pago → 409 PEDIDO_YA_PAGADO.
+- Confirmar el carrito (POST /pedidos): carrito vacío → 400 CARRITO_VACIO; con ítems no disponibles → 409 CARRITO_NO_DISPONIBLE y el pedido sigue en estado 'carrito'; datos de envío incompletos → 400; éxito → 201, el mismo id_pedido pasa a 'pendiente' con numero_pedido BS-AAAA-NNNNNN y fecha_pedido (trigger), precio_unitario refrescado al vigente (R3: cambiar el precio después no altera el pedido) y el carrito queda vacío.
+- Pago: número inválido → 400; número terminado en 0000 → 402 PAGO_RECHAZADO, pedido fallido y SIN descontar stock; reintento sobre el pedido fallido → 201 aprobado (F); al aprobar se descuenta el stock, se registra el pago con solo los últimos 4 dígitos (el carrito ya se vació al confirmar); segundo pago → 409 PEDIDO_YA_PAGADO; pagar un pedido en estado 'carrito' → 404.
 - Decisión E: si el stock bajó entre crear el pedido y pagarlo → 409 SIN_STOCK, el pedido sigue pendiente y NO se registra ningún pago.
 - Acceso: el pedido de otro cliente → 404; el admin puede ver cualquier pedido con GET /pedidos/:numero pero no pagar (403).
 - Opcional: una prueba de concurrencia con dos pagos simultáneos sobre la última unidad (solo uno debe aprobarse).
@@ -235,8 +235,8 @@ REQUISITO PREVIO: B1.1 integrada.
 OBJETIVO: cubrir con pruebas las métricas y alertas del tablero.
 
 ESPECIFICACIONES (contratos en la sección "Tablero · admin" de API_CONTRATOS.md, adjunto):
-- Métricas: solo cuentan pedidos pagados; filtro desde/hasta inclusivo interpretado en hora de Colombia (un pedido de las 23:30 hora local pertenece a ese día); filtro por categoría; top 5 de más vendidos ordenado; fecha inválida o desde > hasta → 400; cliente → 403.
-- Alertas: stock bajo según STOCK_BAJO_UMBRAL, agotados, inactivos dentro de carritos, pedidos pendientes y fallidos.
+- Métricas: solo cuentan pedidos pagados y filtran por fecha_pedido (no por created_at); los carritos nunca cuentan; filtro desde/hasta inclusivo interpretado en hora de Colombia (un pedido de las 23:30 hora local pertenece a ese día); filtro por categoría; top 5 de más vendidos ordenado; fecha inválida o desde > hasta → 400; cliente → 403.
+- Alertas: stock bajo según STOCK_BAJO_UMBRAL, agotados, inactivos dentro de carritos (líneas de pedidos en estado 'carrito'), pedidos pendientes y fallidos con fecha_pedido (sin carritos).
 - No cambiar el comportamiento de la API. Si una prueba revela un error real, detente, explícamelo y propón la corrección mínima.
 
 ARCHIVOS PROBABLES: backend/tests/dashboard.test.js, backend/tests/helpers/.
