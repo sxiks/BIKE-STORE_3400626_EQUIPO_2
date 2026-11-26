@@ -1,0 +1,12 @@
+-- =====================================================================
+-- 004_estado_pedido_carrito.sql
+-- Bike Store - el carrito pasa a ser un pedido en estado 'carrito' (paso 1 de 2).
+-- PostgreSQL 15+. Ejecutar conectado a la base, DESPUES de 002 y 003.
+--
+-- Este archivo tiene UNA sola sentencia y va sin BEGIN/COMMIT a proposito:
+-- PostgreSQL no permite USAR un valor nuevo de un ENUM en la misma transaccion
+-- en que se agrega ("unsafe use of new value"). Por eso el valor queda confirmado
+-- aqui y la 005 lo usa despues (DEFAULT, CHECK, indice parcial, conversion de datos).
+-- IF NOT EXISTS: si se ejecuta dos veces no falla.
+-- =====================================================================
+ALTER TYPE estado_pedido ADD VALUE IF NOT EXISTS 'carrito' BEFORE 'pendiente';
