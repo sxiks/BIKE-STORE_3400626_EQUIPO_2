@@ -8,6 +8,7 @@ import TiendaPage from './pages/TiendaPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminInicioPage from './pages/admin/AdminInicioPage';
+import UsuariosPage from './pages/admin/UsuariosPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import './assets/base.css';
 
@@ -42,6 +43,7 @@ export function AppRutas() {
           <Route element={<PanelLayout />}>
             <Route element={<ProtectedRoute roles={['admin']} />}>
               <Route path="/admin" element={<AdminInicioPage />} />
+              <Route path="/admin/usuarios" element={<UsuariosPage />} />
             </Route>
             <Route element={<ProtectedRoute roles={['cliente']} />}>
               <Route path="/cuenta" element={<CuentaInicioPage />} />
