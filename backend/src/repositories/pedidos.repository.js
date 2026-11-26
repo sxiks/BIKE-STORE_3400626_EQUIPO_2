@@ -12,8 +12,19 @@ const SELECT_PEDIDO = `
 
 // ---------- Carrito (pedido en estado 'carrito') ----------
 
+// Busca el carrito del cliente SIN crearlo (GET /carrito no escribe en la base).
+async function buscarCarrito(idUsuario, db = pool) {
+  const { rows } = await db.query(
+    `SELECT id_pedido FROM pedidos WHERE id_usuario = $1 AND estado = 'carrito'`,
+    [idUsuario]
+  );
+  return rows[0]?.id_pedido ?? null;
+}
+
 // Un carrito por cliente (índice único parcial uq_pedidos_carrito_usuario): lo crea la primera vez.
 // ON CONFLICT repite el predicado del índice parcial para que PostgreSQL lo reconozca.
+// Dentro de una transacción, el DO UPDATE deja la fila del carrito BLOQUEADA hasta el final:
+// así una confirmación simultánea espera (o, si confirmó antes, se crea un carrito nuevo).
 async function obtenerOCrearCarrito(idUsuario, db = pool) {
   const { rows } = await db.query(
     `INSERT INTO pedidos (id_usuario) VALUES ($1)
@@ -25,7 +36,9 @@ async function obtenerOCrearCarrito(idUsuario, db = pool) {
   return rows[0].id_pedido;
 }
 
-// Bloquea el carrito del cliente para confirmarlo sin carreras (dos confirmaciones a la vez).
+// Bloquea el carrito del cliente (FOR UPDATE) para modificarlo o confirmarlo sin carreras.
+// Si otra transacción lo confirma mientras se espera el bloqueo, PostgreSQL vuelve a evaluar
+// estado = 'carrito' sobre la fila nueva y no la devuelve: se trata como "no hay carrito".
 async function bloquearCarrito(idUsuario, db = pool) {
   const { rows } = await db.query(
     `SELECT id_pedido FROM pedidos WHERE id_usuario = $1 AND estado = 'carrito' FOR UPDATE`,
@@ -175,6 +188,7 @@ async function actualizarEstado(idPedido, estado, db = pool) {
 }
 
 module.exports = {
+  buscarCarrito,
   obtenerOCrearCarrito,
   bloquearCarrito,
   listarLineasCarrito,
