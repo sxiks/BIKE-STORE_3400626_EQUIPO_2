@@ -18,9 +18,16 @@
   list-style: none;
 }
 
-.panel__seccion { padding: var(--espacio-5); }
+.panel__seccion { position: relative; padding: var(--espacio-5); }
 
 .panel__seccion h2 { margin-bottom: 6px; font-size: var(--texto-lg); font-weight: 700; }
+
+.panel__seccion-enlace { color: inherit; text-decoration: none; }
+
+/* El enlace cubre toda la tarjeta: se puede hacer clic en cualquier parte */
+.panel__seccion-enlace::after { content: ""; position: absolute; inset: 0; border-radius: var(--radio-xl); }
+
+.panel__seccion-enlace:hover { color: var(--color-primario); }
 
 .panel__seccion p { margin: 0 0 var(--espacio-3); color: var(--color-texto-suave); }
 

@@ -1,0 +1,27 @@
+/* Diálogo de confirmación propio (F1.4). Solo variables de tokens.css. */
+.dialogo__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: var(--espacio-4);
+  /* tokens.css no tiene un token de "fondo de diálogo": se deriva del color oscuro con transparencia */
+  background: color-mix(in srgb, var(--color-oscuro) 55%, transparent);
+  animation: aparecer 0.2s ease;
+}
+
+.dialogo {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--espacio-6);
+  border-radius: var(--radio-xl);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-lg);
+}
+
+.dialogo__titulo { font-size: var(--texto-xl); font-weight: 700; }
+
+.dialogo__mensaje { margin: var(--espacio-3) 0 var(--espacio-6); color: var(--color-texto-suave); }
+
+.dialogo__acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--espacio-3); }
