@@ -2,7 +2,7 @@ const pedidosService = require('../services/pedidos.services');
 const { ok } = require('../utils/respuesta');
 
 async function crear(req, res) {
-  const data = await pedidosService.crearDesdeCarrito(req.user.id_usuario, req.body ?? {});
+  const data = await pedidosService.confirmarCarrito(req.user.id_usuario, req.body ?? {});
   ok(res, data, { status: 201, message: 'Pedido creado. Continúa con el pago' });
 }
 
