@@ -270,7 +270,7 @@ OBJETIVO: que el carrito deje de usar localStorage y viva en la base de datos a 
 ESPECIFICACIONES:
 - CarritoContext usa GET /carrito, POST /carrito/items, PUT /carrito/items/:id_producto y DELETE /carrito/items/:id_producto. Contratos: sección "Carrito · cliente" de API_CONTRATOS.md (adjunto).
 - D1: el carrito exige sesión de cliente. Si alguien sin sesión pulsa "Agregar", llevarlo a /login y volver después. Los admin no tienen carrito (la API responde 403).
-- El estado del carrito es la respuesta del backend: no recalcular totales en el frontend. El carrito trae id_pedido (es un pedido en estado 'carrito'), no id_carrito.
+- El estado del carrito es la respuesta del backend: no recalcular totales en el frontend. El carrito trae id_pedido (es un pedido en estado 'carrito'), no id_carrito; id_pedido es null si el cliente todavía no tiene carrito (GET /carrito no lo crea).
 - Mostrar los ítems con disponible = false según su `motivo` (INACTIVO, SIN_STOCK, SUPERA_STOCK), como pide D4.
 - STOCK_MAXIMO → toast "Este es el máximo de producto disponible en stock". CANTIDAD_MINIMA → toast con botón "Sí, eliminar" que llama a DELETE.
 - El botón "Comprar" lleva a /checkout y queda deshabilitado si puede_comprar = false.
