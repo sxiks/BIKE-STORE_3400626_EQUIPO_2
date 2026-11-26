@@ -1,4 +1,5 @@
-// Capa de Negocio: tablero de control (CU-16, CU-17). La exportación (CU-18) queda pendiente de D11.
+// Capa de Negocio: tablero de control (CU-16, CU-17). La exportación (CU-18) está decidida (D11) y se
+// implementa en el Sprint 4 (tarea B4.1).
 const env = require('../config/env');
 const dashboardRepository = require('../repositories/dashboard.repository');
 const AppError = require('../utils/AppError');

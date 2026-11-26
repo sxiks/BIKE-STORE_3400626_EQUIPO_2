@@ -144,11 +144,15 @@ Request: `{ "estado": "inactivo" }`. Es borrado lógico: el producto nunca se el
 
 Requiere sesión con rol `cliente` (D1, K): sin sesión responde `401`; con rol `admin`, `403`. Cada cliente tiene un carrito guardado en la base (CU-06).
 
-El carrito **no es una entidad propia**: es el pedido del cliente en estado `carrito` (decisión D12 del [ROADMAP](../ROADMAP.md#resueltas)), y sus ítems son líneas de `detalle_pedido`. No tiene número de pedido ni fecha de pedido mientras no se confirme. Cada cliente tiene como máximo un carrito; al confirmarlo con `POST /pedidos` se crea uno nuevo, vacío, la próxima vez que se necesite.
+El carrito **no es una entidad propia**: es el pedido del cliente en estado `carrito` (decisión D12 del [ROADMAP](../ROADMAP.md#resueltas)), y sus ítems son líneas de `detalle_pedido`. No tiene número de pedido ni fecha de pedido mientras no se confirme. Cada cliente tiene como máximo un carrito.
+
+- **El carrito se crea al agregar el primer producto.** Consultarlo no lo crea: si el cliente todavía no tiene, `GET /carrito` responde un carrito vacío con `id_pedido: null`.
+- Al confirmarlo con `POST /pedidos` deja de ser carrito; el siguiente producto que se agregue crea uno nuevo.
+- Agregar, modificar y eliminar se hacen en una transacción que bloquea el carrito: si el cliente confirma la compra al mismo tiempo (dos pestañas, doble clic), una operación espera a la otra y nunca se modifica un pedido ya confirmado.
 
 ```jsonc
 Carrito = {
-  "id_pedido": 7,            // id del pedido en estado carrito
+  "id_pedido": 7,            // id del pedido en estado carrito; null si el cliente todavía no tiene carrito
   "items": [{
     "id_producto": 2, "nombre": "MTB Páramo 27.5", "imagen": "mtb-paramo-275.jpg",
     "precio": 2350000, "existencias": 3, "estado": "activo",
@@ -165,10 +169,10 @@ Carrito = {
 
 | Endpoint | Request | Éxito | Errores |
 |----------|---------|-------|---------|
-| `GET /carrito` | – | `200 data: Carrito` | – |
-| `POST /carrito/items` · CU-03 | `{ "id_producto": 2, "cantidad": 1 }` (por defecto 1). Si ya está, **se suman** las cantidades (R2). | `200 data: Carrito` | `400 PRODUCTO_INACTIVO`, `SIN_STOCK`, `STOCK_MAXIMO` (`data.maximo`, `data.en_carrito`) · `404` |
-| `PUT /carrito/items/:id_producto` · CU-05 | `{ "cantidad": 3 }` (fija la cantidad) | `200 data: Carrito` | `400 CANTIDAD_MINIMA` (si es 0), `STOCK_MAXIMO`, decimal o negativo · `404` si no está en el carrito |
-| `DELETE /carrito/items/:id_producto` | – | `200 data: Carrito` | `404`. Siempre se permite eliminar, incluso un producto inactivo (D4). |
+| `GET /carrito` | – | `200 data: Carrito` (vacío con `id_pedido: null` si no hay carrito; no lo crea) | – |
+| `POST /carrito/items` · CU-03 | `{ "id_producto": 2, "cantidad": 1 }` (por defecto 1). Si ya está, **se suman** las cantidades (R2). Si el cliente no tiene carrito, lo crea. | `200 data: Carrito` | `400 PRODUCTO_INACTIVO`, `SIN_STOCK`, `STOCK_MAXIMO` (`data.maximo`, `data.en_carrito`) · `404` |
+| `PUT /carrito/items/:id_producto` · CU-05 | `{ "cantidad": 3 }` (fija la cantidad) | `200 data: Carrito` | `400 CANTIDAD_MINIMA` (si es 0), `STOCK_MAXIMO`, decimal o negativo · `404` si no está en el carrito o el cliente no tiene carrito |
+| `DELETE /carrito/items/:id_producto` | – | `200 data: Carrito` | `404` si no está en el carrito o el cliente no tiene carrito. Siempre se permite eliminar, incluso un producto inactivo (D4). |
 
 ## Pedidos y pago · cliente · Sprint 3
 
