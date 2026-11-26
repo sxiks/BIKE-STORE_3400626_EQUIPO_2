@@ -47,9 +47,9 @@ Es el único sprint sin definir. Se planifica cuando termine el Sprint 4.
 
 | # | Decisión | Dónde se aplica |
 |---|----------|-----------------|
-| D1 | El carrito exige sesión | `carritos.id_usuario NOT NULL`; `/carrito` con `authenticate` |
+| D1 | El carrito exige sesión | `pedidos.id_usuario NOT NULL` (el carrito es un pedido, D12); `/carrito` con `authenticate` |
 | D2 | La cantidad 0 se rechaza y se ofrece eliminar | `CANTIDAD_MINIMA` en `carrito.services` |
-| D3 | El carrito se guarda en la base, por cliente | Tablas `carritos` y `carrito_items` |
+| D3 | El carrito se guarda en la base, por cliente | Pedido en estado `carrito` con sus líneas en `detalle_pedido`; índice único parcial `uq_pedidos_carrito_usuario` (uno por cliente). Antes: tablas `carritos` y `carrito_items`, eliminadas por D12 |
 | D4 | Un producto inactivo queda en el carrito, marcado, y bloquea la compra | `motivo: INACTIVO`, `puede_comprar`, `CARRITO_NO_DISPONIBLE` |
 | D5 / D6 | Un admin no puede cambiarse su propio rol ni desactivarse | `ACCION_SOBRE_SI_MISMO` en `usuarios.services` |
 | D7 | Contraseña de mínimo 8 caracteres, con mayúscula, minúscula y número | `validators.validarPassword` (registro, restablecer y admin inicial) |
@@ -57,6 +57,7 @@ Es el único sprint sin definir. Se planifica cuando termine el Sprint 4.
 | D9 | Del pago solo se guardan los últimos 4 dígitos | `pagos.ultimos4` |
 | D10 | El stock se descuenta al confirmar el pago, en una transacción | `pedidos.services.pagar` |
 | D11 | Excel y PDF se generan **en el backend** con `exceljs` y `pdfkit`, en memoria, en `GET /api/dashboard/exportar?formato=xlsx\|pdf`; el frontend solo descarga. **Por implementar en el Sprint 4.** | Tareas [B4.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf) y [F4.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes); contrato en [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md#get-dashboardexportarformatoxlsxpdf--admin--cu-18--por-implementar) |
+| D12 | **El carrito es un pedido en borrador.** Se eliminan `carritos` y `carrito_items`; el carrito es el pedido del cliente con `estado = 'carrito'` y sus líneas son filas de `detalle_pedido`. Al confirmar (`POST /pedidos`) pasa a `pendiente` en un solo `UPDATE`: el trigger asigna `fecha_pedido` y `numero_pedido`, y se refresca `precio_unitario` (R3). El carrito queda vacío al confirmar, no al pagar. El tablero filtra por `fecha_pedido` | Migraciones `004_estado_pedido_carrito.sql` y `005_carrito_como_pedido.sql`; `pedidos.repository`, `carrito.services`, `pedidos.services.confirmarCarrito`, `dashboard.repository`; contrato en [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md#carrito--cliente--sprint-3) |
 | L | La semilla no trae imágenes reales; el frontend muestra una imagen de reemplazo cuando la imagen no existe | Tarea [F2.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api) (Sprint 2) |
 | Diseño | Sistema de diseño "Montaña Clara" (opción C): azul `#1e40af`, amarillo `#fbbf24`, Outfit + Nunito Sans. Todo color sale de `frontend/src/assets/tokens.css` | Tarea F2.1, adelantada al Sprint 1 |
 | Node | Versión mínima Node.js 22; recomendada 24 LTS (Node 20 terminó su soporte el 30-04-2026) | [GUIA_EJECUCION_LOCAL](GUIA_EJECUCION_LOCAL.md#1-verificar-los-requisitos) |

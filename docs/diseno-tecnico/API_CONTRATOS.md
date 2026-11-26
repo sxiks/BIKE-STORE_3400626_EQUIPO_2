@@ -144,9 +144,11 @@ Request: `{ "estado": "inactivo" }`. Es borrado lógico: el producto nunca se el
 
 Requiere sesión con rol `cliente` (D1, K): sin sesión responde `401`; con rol `admin`, `403`. Cada cliente tiene un carrito guardado en la base (CU-06).
 
+El carrito **no es una entidad propia**: es el pedido del cliente en estado `carrito` (decisión D12 del [ROADMAP](../ROADMAP.md#resueltas)), y sus ítems son líneas de `detalle_pedido`. No tiene número de pedido ni fecha de pedido mientras no se confirme. Cada cliente tiene como máximo un carrito; al confirmarlo con `POST /pedidos` se crea uno nuevo, vacío, la próxima vez que se necesite.
+
 ```jsonc
 Carrito = {
-  "id_carrito": 1,
+  "id_pedido": 7,            // id del pedido en estado carrito
   "items": [{
     "id_producto": 2, "nombre": "MTB Páramo 27.5", "imagen": "mtb-paramo-275.jpg",
     "precio": 2350000, "existencias": 3, "estado": "activo",
@@ -173,10 +175,11 @@ Carrito = {
 ```jsonc
 Pedido = {
   "id_pedido": 1, "numero_pedido": "BS-2026-000001", "id_usuario": 2,
-  "estado": "pendiente",     // pendiente | pagado | fallido
+  "estado": "pendiente",     // pendiente | pagado | fallido (un carrito nunca se devuelve como Pedido)
   "envio_nombre": "Ana", "envio_telefono": "3001234567", "envio_departamento": "Valle del Cauca",
   "envio_ciudad": "Palmira", "envio_direccion": "Calle 1 # 2-3",
-  "created_at": "...",
+  "fecha_pedido": "...",     // momento de confirmación (carrito -> pendiente): es la fecha del pedido
+  "created_at": "...",       // auditoría: cuándo se empezó el carrito
   "total": 2350000,          // calculado: SUM(cantidad * precio_unitario)
   "items": [{ "id_producto": 2, "nombre": "MTB Páramo 27.5", "cantidad": 1, "precio_unitario": 2350000, "subtotal": 2350000 }],
   "pagos": [{ "id_pago": 1, "medio_pago": "tarjeta_debito", "ultimos4": "1111", "valor": 2350000, "estado": "aprobado", "created_at": "..." }]
@@ -184,10 +187,11 @@ Pedido = {
 ```
 
 ### `POST /pedidos` · CU-07, CU-08
-Crea el pedido **pendiente** a partir del carrito. Copia el precio actual de cada producto (R3) y **no** descuenta stock. El carrito no se vacía hasta que se paga.
+**Confirma el carrito**: en una transacción valida que no esté vacío y que todos sus productos estén activos y con existencias, refresca el precio de cada línea al precio vigente (R3), guarda los datos de envío y lo pasa a **pendiente**. La base le asigna `fecha_pedido` y `numero_pedido` en ese momento. **No** descuenta stock (se descuenta al pagar).
+Como el carrito se convierte en el pedido, **el carrito queda vacío al confirmar**, no al pagar. Si el pago se rechaza, se reintenta sobre el mismo pedido (decisión F).
 Request: `{ "envio_nombre", "envio_telefono", "envio_departamento", "envio_ciudad", "envio_direccion" }`, todos obligatorios.
 - `201` → `data: Pedido`
-- `400` datos de envío incompletos o `CARRITO_VACIO` · `409` `CARRITO_NO_DISPONIBLE` (`data.items`: `[{ id_producto, nombre, motivo }]`)
+- `400` datos de envío incompletos o `CARRITO_VACIO` · `409` `CARRITO_NO_DISPONIBLE` (`data.items`: `[{ id_producto, nombre, motivo }]`). En ambos errores el carrito queda como estaba.
 
 ### `POST /pedidos/:id/pagos` · CU-08
 Request: `{ "medio_pago": "tarjeta_credito" | "tarjeta_debito" | "cuenta_bancaria", "numero": "4111 1111 1111 1111" }`
@@ -195,13 +199,13 @@ Request: `{ "medio_pago": "tarjeta_credito" | "tarjeta_debito" | "cuenta_bancari
 - **Simulación:** un número que termina en `0000` se rechaza.
 
 Respuestas:
-- `201` aprobado → `{ "ok": true, "message": "Pago aprobado", "data": { "numero_pedido", "estado": "pagado", "valor_pagado", "pago": { ... } } }`. Se descuenta el stock y se vacía el carrito.
+- `201` aprobado → `{ "ok": true, "message": "Pago aprobado", "data": { "numero_pedido", "estado": "pagado", "valor_pagado", "pago": { ... } } }`. Se descuenta el stock. El carrito no se toca: ya se vació al confirmar, y si el cliente empezó otro, ese se conserva.
 - `402` rechazado → `{ "ok": false, "code": "PAGO_RECHAZADO", "message", "data": { "numero_pedido", "estado": "fallido", "pago": { ... } } }`. El pedido se puede **volver a pagar** (decisión F).
 - `409` `SIN_STOCK` → algún producto ya no tiene existencias o se inactivó. **No se registra ningún pago** y el pedido sigue como estaba (decisión E). `data.items` trae el detalle.
-- `409` `PEDIDO_YA_PAGADO` · `400` datos de pago inválidos · `404` el pedido no existe o no es tuyo
+- `409` `PEDIDO_YA_PAGADO` · `400` datos de pago inválidos · `404` el pedido no existe, no es tuyo o todavía es un carrito (hay que confirmarlo primero)
 
 ### `GET /pedidos` · cliente
-- `200` → `data: [Pedido sin items ni pagos]`, del más reciente al más antiguo
+- `200` → `data: [Pedido sin items ni pagos]`, solo los confirmados (nunca el carrito), del más reciente al más antiguo por `fecha_pedido`
 
 ### `GET /pedidos/:numero` · dueño del pedido o admin
 Ejemplo: `GET /pedidos/BS-2026-000001`
@@ -210,7 +214,7 @@ Ejemplo: `GET /pedidos/BS-2026-000001`
 ## Tablero · admin · Sprint 4
 
 ### `GET /dashboard/metricas?desde=AAAA-MM-DD&hasta=AAAA-MM-DD&categoria=` · CU-16, CU-17
-Solo cuenta pedidos **pagados**. El rango es inclusivo y se interpreta en hora de Colombia. Todos los filtros son opcionales.
+Solo cuenta pedidos **pagados** y filtra por **`fecha_pedido`** (fecha de confirmación). Los carritos nunca cuentan. El rango es inclusivo y se interpreta en hora de Colombia. Todos los filtros son opcionales.
 ```jsonc
 { "filtros": { "desde": "2026-11-01", "hasta": "2026-11-30", "categoria": null },
   "ventas_totales": 2350000, "cantidad_pedidos": 1, "unidades_vendidas": 1,
@@ -223,8 +227,8 @@ Solo cuenta pedidos **pagados**. El rango es inclusivo y se interpreta en hora d
 { "umbral_stock_bajo": 5,
   "stock_bajo": [{ "id_producto", "nombre", "existencias" }],   // activos con 0 < existencias <= umbral
   "agotados": [{ "id_producto", "nombre" }],
-  "inactivos_en_carritos": [{ "id_producto", "nombre", "carritos" }],
-  "pedidos_pendientes": [{ "id_pedido", "numero_pedido", "created_at" }],  // últimos 50
+  "inactivos_en_carritos": [{ "id_producto", "nombre", "carritos" }],  // carritos = pedidos en estado carrito que lo contienen
+  "pedidos_pendientes": [{ "id_pedido", "numero_pedido", "fecha_pedido" }],  // últimos 50; nunca incluye carritos
   "pedidos_fallidos": [ ... ] }
 ```
 

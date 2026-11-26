@@ -270,7 +270,7 @@ OBJETIVO: que el carrito deje de usar localStorage y viva en la base de datos a 
 ESPECIFICACIONES:
 - CarritoContext usa GET /carrito, POST /carrito/items, PUT /carrito/items/:id_producto y DELETE /carrito/items/:id_producto. Contratos: sección "Carrito · cliente" de API_CONTRATOS.md (adjunto).
 - D1: el carrito exige sesión de cliente. Si alguien sin sesión pulsa "Agregar", llevarlo a /login y volver después. Los admin no tienen carrito (la API responde 403).
-- El estado del carrito es la respuesta del backend: no recalcular totales en el frontend.
+- El estado del carrito es la respuesta del backend: no recalcular totales en el frontend. El carrito trae id_pedido (es un pedido en estado 'carrito'), no id_carrito.
 - Mostrar los ítems con disponible = false según su `motivo` (INACTIVO, SIN_STOCK, SUPERA_STOCK), como pide D4.
 - STOCK_MAXIMO → toast "Este es el máximo de producto disponible en stock". CANTIDAD_MINIMA → toast con botón "Sí, eliminar" que llama a DELETE.
 - El botón "Comprar" lleva a /checkout y queda deshabilitado si puede_comprar = false.
@@ -297,8 +297,8 @@ TAREA F3.2 · Sprint 3 · CU-08 · Rama: feature/front-mis-pedidos (ya creada de
 OBJETIVO: que el cliente vea su historial de pedidos y el detalle de cada uno. El detalle también sirve como página de confirmación tras pagar (F3.3).
 
 ESPECIFICACIONES:
-- /cuenta/pedidos (solo cliente): listado con GET /pedidos con número de pedido, fecha (en hora local), estado y total en COP.
-- /cuenta/pedidos/:numero: detalle con GET /pedidos/:numero (por ejemplo BS-2026-000001): productos con cantidad, precio unitario y subtotal, dirección de envío, total y pagos (medio, últimos 4 dígitos, valor, estado y fecha). 404 → "Pedido no encontrado".
+- /cuenta/pedidos (solo cliente): listado con GET /pedidos con número de pedido, fecha_pedido (en hora local), estado y total en COP. La API nunca incluye el carrito en esta lista.
+- /cuenta/pedidos/:numero: detalle con GET /pedidos/:numero (por ejemplo BS-2026-000001): fecha_pedido, productos con cantidad, precio unitario y subtotal, dirección de envío, total y pagos (medio, últimos 4 dígitos, valor, estado y fecha). 404 → "Pedido no encontrado".
 - Si el pedido está en estado fallido o pendiente, mostrar un botón "Pagar" que lleve al paso de pago de F3.3. Mientras F3.3 no exista, déjalo preparado.
 - Contratos: sección "Pedidos y pago · cliente" de API_CONTRATOS.md (adjunto).
 
@@ -323,7 +323,7 @@ OBJETIVO: flujo de compra completo: resumen, dirección de envío, pago simulado
 
 ESPECIFICACIONES:
 - /checkout (solo cliente). Paso 1, resumen: datos de GET /carrito; si puede_comprar = false, volver al carrito con el aviso correspondiente (CU-07).
-- Paso 2, envío: formulario con envio_nombre, envio_telefono, envio_departamento, envio_ciudad y envio_direccion (todos obligatorios) → POST /pedidos. Con 409 CARRITO_NO_DISPONIBLE, volver al carrito mostrando data.items.
+- Paso 2, envío: formulario con envio_nombre, envio_telefono, envio_departamento, envio_ciudad y envio_direccion (todos obligatorios) → POST /pedidos, que confirma el carrito: el carrito queda vacío en ese momento (refrescar CarritoContext) y la respuesta es el pedido 'pendiente' con su numero_pedido. Con 409 CARRITO_NO_DISPONIBLE, volver al carrito mostrando data.items.
 - Paso 3, pago: medio_pago (tarjeta_credito, tarjeta_debito o cuenta_bancaria) y número → POST /pedidos/:id/pagos.
   · 201 → ir al detalle del pedido de F3.2 (/cuenta/pedidos/:numero).
   · 402 PAGO_RECHAZADO → mostrar el rechazo y permitir reintentar con el mismo pedido (decisión F).
@@ -333,9 +333,9 @@ ESPECIFICACIONES:
 - Para probar: un número terminado en 0000 simula el rechazo (sección 2 de docs/GUIA_PRUEBAS_LOCALES.md).
 - Contratos: sección "Pedidos y pago · cliente" de API_CONTRATOS.md (adjunto).
 
-ARCHIVOS PROBABLES: pages/cuenta/CheckoutPage.jsx, components/ (pasos, formularios), services/pedidos.service.js, context/CarritoContext.jsx (refrescar tras pagar), test/.
+ARCHIVOS PROBABLES: pages/cuenta/CheckoutPage.jsx, components/ (pasos, formularios), services/pedidos.service.js, context/CarritoContext.jsx (refrescar tras confirmar), test/.
 
-CRITERIOS DE ACEPTACIÓN: compra aprobada, rechazo con reintento y falta de stock funcionan contra la API local; el carrito queda vacío tras pagar; npm test y npm run build pasan.
+CRITERIOS DE ACEPTACIÓN: compra aprobada, rechazo con reintento y falta de stock funcionan contra la API local; el carrito queda vacío tras confirmar (antes de pagar); un pago rechazado se reintenta sobre el mismo pedido; npm test y npm run build pasan.
 
 FUERA DE ALCANCE: pasarela de pago real.
 
@@ -356,7 +356,7 @@ ESPECIFICACIONES:
 - Ruta solo para admin.
 - Filtros: rango de fechas (desde y hasta, formato AAAA-MM-DD) y categoría (GET /categorias). Validar en el formulario que desde ≤ hasta.
 - GET /dashboard/metricas?desde=&hasta=&categoria=: tarjetas con ventas totales (COP), cantidad de pedidos y unidades vendidas, y tabla de los 5 más vendidos.
-- GET /dashboard/alertas: stock bajo (mostrar el umbral), agotados, productos inactivos dentro de carritos, pedidos pendientes y fallidos.
+- GET /dashboard/alertas: stock bajo (mostrar el umbral), agotados, productos inactivos dentro de carritos, pedidos pendientes y fallidos (con fecha_pedido).
 - Estados de carga, error y "sin ventas en el periodo".
 - Contratos: sección "Tablero · admin" de API_CONTRATOS.md (adjunto).
 

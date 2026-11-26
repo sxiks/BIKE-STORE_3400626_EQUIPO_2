@@ -99,7 +99,7 @@ curl -s $API/productos                                                       # 1
 curl -s -X POST $API/carrito/items -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" -d '{"id_producto":1,"cantidad":1}'   # 2. agregar al carrito
 curl -s -X POST $API/pedidos -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"envio_nombre":"Ana","envio_telefono":"3001234567","envio_departamento":"Valle del Cauca","envio_ciudad":"Palmira","envio_direccion":"Calle 1 # 2-3"}'   # 3. crear pedido
+  -d '{"envio_nombre":"Ana","envio_telefono":"3001234567","envio_departamento":"Valle del Cauca","envio_ciudad":"Palmira","envio_direccion":"Calle 1 # 2-3"}'   # 3. confirmar el carrito
 curl -s -X POST $API/pedidos/1/pagos -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"medio_pago":"tarjeta_debito","numero":"4111111111111111"}'           # 4. pagar
 ```
@@ -115,12 +115,17 @@ Invoke-RestMethod "$API/productos"                                              
 Invoke-RestMethod -Method Post "$API/carrito/items" -Headers $H -ContentType "application/json" `
   -Body '{"id_producto":1,"cantidad":1}'                                                 # 2. agregar al carrito
 Invoke-RestMethod -Method Post "$API/pedidos" -Headers $H -ContentType "application/json" `
-  -Body '{"envio_nombre":"Ana","envio_telefono":"3001234567","envio_departamento":"Valle del Cauca","envio_ciudad":"Palmira","envio_direccion":"Calle 1 # 2-3"}'   # 3. crear pedido
+  -Body '{"envio_nombre":"Ana","envio_telefono":"3001234567","envio_departamento":"Valle del Cauca","envio_ciudad":"Palmira","envio_direccion":"Calle 1 # 2-3"}'   # 3. confirmar el carrito
 Invoke-RestMethod -Method Post "$API/pedidos/1/pagos" -Headers $H -ContentType "application/json" `
   -Body '{"medio_pago":"tarjeta_debito","numero":"4111111111111111"}'                    # 4. pagar
 ```
 
 Cambia el `1` de `/pedidos/1/pagos` por el `id_pedido` que devolvió el paso 3.
+
+Qué pasa en la base en cada paso (el carrito es un pedido en estado `carrito`, decisión D12):
+- **Paso 2:** se crea (o se reutiliza) el pedido `carrito` del cliente, sin número ni fecha, y se agrega una línea en `detalle_pedido`.
+- **Paso 3:** ese mismo pedido pasa a `pendiente`, recibe `numero_pedido` y `fecha_pedido`, y el carrito queda vacío. El precio de cada línea se actualiza al vigente.
+- **Paso 4:** se descuenta el stock y el pedido pasa a `pagado`. Si pagas con un número terminado en `0000`, queda `fallido` y puedes repetir el paso 4.
 
 ---
 

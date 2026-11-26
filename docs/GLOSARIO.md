@@ -92,7 +92,8 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="ddl"></a>**DDL:** instrucciones SQL que crean o cambian la estructura (`CREATE TABLE`, `ALTER TABLE`).
 - <a name="mer"></a>**MER (Modelo Entidad-Relación):** diagrama conceptual con entidades, relaciones y atributos. Ver [MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md).
 - <a name="mr"></a>**MR (Modelo Relacional):** el MER convertido en tablas, columnas y llaves.
-- <a name="entidad-asociativa"></a>**Entidad asociativa:** entidad que resuelve una relación muchos a muchos y guarda datos propios de esa relación (`carrito_items`, `detalle_pedido`).
+- <a name="carrito-pedido"></a>**Carrito (pedido en borrador):** en la base el carrito no es una tabla propia: es el pedido del cliente con `estado = 'carrito'`, y sus productos son líneas de `detalle_pedido`. Al confirmarlo pasa a `pendiente` y recibe número y fecha de pedido (decisión D12 del [ROADMAP](ROADMAP.md#resueltas)).
+- <a name="entidad-asociativa"></a>**Entidad asociativa:** entidad que resuelve una relación muchos a muchos y guarda datos propios de esa relación. En el proyecto es `detalle_pedido` (cantidad y precio de cada producto en un pedido).
 - <a name="cardinalidad"></a>**Cardinalidad:** cuántos elementos de una entidad se relacionan con otra: 1:1, 1:N o N:M.
 - <a name="atributo-derivado"></a>**Atributo derivado:** dato que se calcula en lugar de guardarse, como el total del pedido.
 - <a name="atributo-compuesto"></a>**Atributo compuesto:** dato formado por partes, como la dirección de envío (nombre, teléfono, departamento, ciudad, dirección).
