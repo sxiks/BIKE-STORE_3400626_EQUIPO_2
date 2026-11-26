@@ -51,9 +51,9 @@ npm test             # corre todas las pruebas una vez
 npm run test:watch   # las repite al guardar cambios
 ```
 
-- Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`.
+- Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`. El script aplica de la `002` a la `005`.
 - Protección: si `.env.test` no existe o su `DB_NAME` no termina en `_test`, las pruebas y `test:db` se niegan a ejecutarse.
-- Las pruebas están en `tests/`: un archivo por módulo (`auth.test.js`, …) y utilidades en `tests/helpers/`.
+- Las pruebas están en `tests/`: un archivo por módulo (`auth.test.js`, `carrito-pedido.test.js`, …) y utilidades en `tests/helpers/`.
 
 ## Estructura
 

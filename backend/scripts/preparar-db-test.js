@@ -1,5 +1,5 @@
 // npm run test:db
-// Deja la base de PRUEBAS como recién creada: borra todo y aplica las migraciones 002 y 003.
+// Deja la base de PRUEBAS como recién creada: borra todo y aplica las migraciones 002 a 005.
 // Usa el rol de la aplicación (dueño de la base), sin sudo ni superusuario.
 // Solo acepta bases cuyo nombre termine en _test (ver tests/helpers/cargarEnvTest.js).
 const fs = require('fs');
@@ -7,7 +7,13 @@ const path = require('path');
 const { Client } = require('pg');
 const { cargarEnvTest } = require('../tests/helpers/cargarEnvTest');
 
-const MIGRACIONES = ['002_modelo_bike_store.sql', '003_datos_semilla.sql'];
+// La 004 va sola en su archivo: agrega un valor al ENUM que la 005 usa (PostgreSQL exige confirmarlo antes).
+const MIGRACIONES = [
+  '002_modelo_bike_store.sql',
+  '003_datos_semilla.sql',
+  '004_estado_pedido_carrito.sql',
+  '005_carrito_como_pedido.sql'
+];
 const CARPETA_MIGRACIONES = path.resolve(__dirname, '..', '..', 'database', 'migrations');
 
 async function main() {

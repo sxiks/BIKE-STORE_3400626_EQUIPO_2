@@ -2,7 +2,7 @@
 // para PREPARAR datos (la regla de capas aplica al código de src/, no a tests/).
 const pool = require('../../src/config/db');
 
-// Borra usuarios y todo lo que depende de ellos (tokens, carritos, pedidos, pagos).
+// Borra usuarios y todo lo que depende de ellos (tokens, pedidos —incluidos los carritos—, detalle y pagos).
 // Categorías y productos de la semilla se conservan.
 async function limpiarUsuarios() {
   await pool.query('TRUNCATE usuarios RESTART IDENTITY CASCADE');

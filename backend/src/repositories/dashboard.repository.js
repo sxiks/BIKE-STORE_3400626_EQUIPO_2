@@ -1,5 +1,6 @@
-// Consultas del tablero (CU-16, CU-17). Solo cuentan los pedidos en estado 'pagado'.
-// Las fechas 'YYYY-MM-DD' se interpretan en la zona horaria de la sesión (DB_TIMEZONE).
+// Consultas del tablero (CU-16, CU-17). Solo cuentan los pedidos en estado 'pagado' y se filtran por
+// fecha_pedido (momento de confirmación). Las fechas 'YYYY-MM-DD' se interpretan en la zona horaria
+// de la sesión (DB_TIMEZONE).
 const pool = require('../config/db');
 
 function filtros({ desde, hasta, idCategoria }) {
@@ -7,11 +8,11 @@ function filtros({ desde, hasta, idCategoria }) {
   const condiciones = ["pe.estado = 'pagado'"];
   if (desde) {
     valores.push(desde);
-    condiciones.push(`pe.created_at >= $${valores.length}::date`);
+    condiciones.push(`pe.fecha_pedido >= $${valores.length}::date`);
   }
   if (hasta) {
     valores.push(hasta);
-    condiciones.push(`pe.created_at < ($${valores.length}::date + 1)`);
+    condiciones.push(`pe.fecha_pedido < ($${valores.length}::date + 1)`);
   }
   if (idCategoria) {
     valores.push(idCategoria);
@@ -71,10 +72,13 @@ async function productosAgotados(db = pool) {
   return rows;
 }
 
+// Productos inactivos que siguen en carritos (D4): líneas de pedidos en estado 'carrito'.
 async function inactivosEnCarritos(db = pool) {
   const { rows } = await db.query(
-    `SELECT p.id_producto, p.nombre, COUNT(DISTINCT ci.id_carrito) AS carritos
-     FROM carrito_items ci JOIN productos p ON p.id_producto = ci.id_producto
+    `SELECT p.id_producto, p.nombre, COUNT(DISTINCT pe.id_pedido) AS carritos
+     FROM detalle_pedido d
+     JOIN pedidos pe  ON pe.id_pedido = d.id_pedido AND pe.estado = 'carrito'
+     JOIN productos p ON p.id_producto = d.id_producto
      WHERE p.estado = 'inactivo'
      GROUP BY p.id_producto, p.nombre ORDER BY carritos DESC`
   );
@@ -83,8 +87,8 @@ async function inactivosEnCarritos(db = pool) {
 
 async function pedidosPorEstado(estado, db = pool) {
   const { rows } = await db.query(
-    `SELECT id_pedido, numero_pedido, created_at FROM pedidos
-     WHERE estado = $1 ORDER BY created_at DESC LIMIT 50`,
+    `SELECT id_pedido, numero_pedido, fecha_pedido FROM pedidos
+     WHERE estado = $1 ORDER BY fecha_pedido DESC LIMIT 50`,
     [estado]
   );
   return rows;
