@@ -64,9 +64,20 @@ describe("Acceso", () => {
     conSesion(ADMIN);
     renderApp("/admin");
 
-    fireEvent.click(await screen.findByRole("link", { name: "Usuarios" }));
+    fireEvent.click(within(await screen.findByRole("main")).getByRole("link", { name: "Usuarios" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Usuarios" })).toBeInTheDocument();
+  });
+
+  it("la barra lateral también lleva a Usuarios y marca la sección activa", async () => {
+    conSesion(ADMIN);
+    renderApp("/admin");
+
+    const lateral = within(await screen.findByRole("navigation", { name: "Administración" }));
+    fireEvent.click(lateral.getByRole("link", { name: "Usuarios" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Usuarios" })).toBeInTheDocument();
+    expect(lateral.getByRole("link", { name: "Usuarios" })).toHaveAttribute("aria-current", "page");
   });
 });
 
@@ -93,10 +104,16 @@ describe("Listado y filtros", () => {
   it("filtrar por rol y por estado envía rol y estado a la API", async () => {
     await abrirPanel();
 
-    fireEvent.change(screen.getByLabelText("Rol"), { target: { value: "cliente" } });
-    await waitFor(() => expect(listarUsuarios).toHaveBeenLastCalledWith({ q: "", rol: "cliente", estado: "" }));
+    const rol = within(screen.getByRole("group", { name: "Rol" }));
+    const estado = within(screen.getByRole("group", { name: "Estado" }));
+    expect(rol.getByRole("button", { name: "Todos" })).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.change(screen.getByLabelText("Estado"), { target: { value: "inactivo" } });
+    fireEvent.click(rol.getByRole("button", { name: "Clientes" }));
+    await waitFor(() => expect(listarUsuarios).toHaveBeenLastCalledWith({ q: "", rol: "cliente", estado: "" }));
+    expect(rol.getByRole("button", { name: "Clientes" })).toHaveAttribute("aria-pressed", "true");
+    expect(rol.getByRole("button", { name: "Todos" })).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(estado.getByRole("button", { name: "Inactivos" }));
     await waitFor(() => expect(listarUsuarios).toHaveBeenLastCalledWith({ q: "", rol: "cliente", estado: "inactivo" }));
   });
 
