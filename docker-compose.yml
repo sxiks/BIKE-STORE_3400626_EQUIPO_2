@@ -1,5 +1,6 @@
 # Base de datos local de Bike Store con Docker (decisión D13 del ROADMAP).
-# Uso: docker compose up -d   (ver docs/GUIA_EJECUCION_LOCAL.md, paso 4)
+# Uso: cp .env.example .env (y elige las contraseñas), luego docker compose up -d
+# (ver docs/GUIA_EJECUCION_LOCAL.md, paso 4). El .env de la raíz no se sube a GitHub.
 #
 # La primera vez que se crea el volumen, database/docker/initdb/01-crear-bases.sh
 # crea el rol bike_store_app, las bases bike_store y bike_store_test, y aplica
@@ -15,16 +16,18 @@ services:
     restart: unless-stopped
     environment:
       # Superusuario interno del contenedor. Solo se usa para crear el rol y las bases.
+      # Su contraseña sale del .env de la raíz: no está escrita en el repositorio.
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_local
-      # Rol de la aplicación: deben coincidir con DB_USER y DB_PASSWORD de backend/.env.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD. Copia .env.example como .env en la raiz del repositorio y elige una contrasena}
+      # Rol de la aplicación: DB_PASSWORD debe ser igual a la de backend/.env.
       APP_DB_USER: bike_store_app
-      APP_DB_PASSWORD: cambia_esta_clave
+      APP_DB_PASSWORD: ${DB_PASSWORD:-cambia_esta_clave}
       TZ: America/Bogota
       PGTZ: America/Bogota
     ports:
-      # 5433 en tu PC -> 5432 dentro del contenedor. Así no choca con un PostgreSQL ya instalado.
-      - "5433:5432"
+      # 5433 en tu PC -> 5432 dentro del contenedor (no choca con un PostgreSQL ya instalado).
+      # 127.0.0.1: la base solo acepta conexiones desde este mismo PC, no desde la red.
+      - "127.0.0.1:5433:5432"
     volumes:
       - bike_store_datos:/var/lib/postgresql/data
       - ./database/migrations:/migraciones:ro
