@@ -56,7 +56,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 2 ✅ | [F2.4 Categorías, eliminar, galería y detalle](#f24--categorías-eliminar-productos-galería-y-detalle) | `feature/front-categorias-galeria` | 12–15 (extensión, decisión M) | F2.3 y la tarea B2.2 del backend |
 | 3 ✅ | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
 | 3 ✅ | [F3.2 Mis pedidos y detalle](#f32--mis-pedidos-y-detalle-del-pedido) | `feature/front-mis-pedidos` | 08 | F1.2 |
-| 3 | [F3.3 Checkout y pago](#f33--checkout-y-pago-simulado) | `feature/front-checkout` | 07, 08 | F3.1, F3.2 |
+| 3 ✅ | [F3.3 Checkout y pago](#f33--checkout-y-pago-simulado) | `feature/front-checkout` | 07, 08 | F3.1, F3.2 |
 | 4 | [F4.1 Tablero](#f41--tablero-de-control-admin) | `feature/front-dashboard` | 16, 17 | F1.2 |
 | 4 | [F4.2 Exportar informes](#f42--exportar-informes) | `feature/front-exportar-informes` | 18 | F4.1 y la tarea B4.1 del backend |
 
@@ -354,6 +354,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F3.3 · Checkout y pago simulado
+
+> ✅ **Hecha.** Resultado: `pages/cuenta/CheckoutPage.jsx` (resumen, envío y pago), `components/FormularioPago.jsx`, `pages/cuenta/PagarPedidoPage.jsx` (`/cuenta/pedidos/:numero/pagar`), "Pagar" activo y confirmación en `PedidoDetallePage.jsx`, `utils/departamentos.js` y `validarEnvio` / `validarPago` en `utils/validaciones.js`. Pruebas en `checkout.test.jsx` con el carrito y los pedidos simulados juntos (`pedidosSimulado({ carrito })`). Este prompt queda como referencia.
 
 ```
 TAREA F3.3 · Sprint 3 · CU-07, CU-08 · Rama: feature/front-checkout (ya creada desde develop actualizado; si no, dame primero los comandos).

@@ -39,8 +39,9 @@ npm run build      # versión de producción en dist/
 | `/admin/categorias` | Solo `admin` | Crear, renombrar y eliminar categorías sin productos (decisión M) |
 | `/cuenta` | Solo `cliente` | Mi cuenta, con el enlace a "Mis pedidos" |
 | `/cuenta/pedidos` | Solo `cliente` | Mis pedidos: número, fecha (hora del navegador), estado y total, del más reciente al más antiguo (F3.2) |
-| `/cuenta/pedidos/:numero` | Solo `cliente` | Detalle del pedido: productos al precio con que se confirmó (R3), envío y cada intento de pago (medio, últimos 4 dígitos, estado). Si está pendiente o rechazado muestra "Pagar" (se activa en F3.3). También será la confirmación después de pagar |
-| `/checkout` | Solo `cliente` | Finalizar compra. Provisional en F3.1 (resumen del carrito); F3.3 agrega envío y pago. Un visitante que pulsa "Comprar" pasa antes por el login y vuelve aquí |
+| `/cuenta/pedidos/:numero` | Solo `cliente` | Detalle del pedido: productos al precio con que se confirmó (R3), envío y cada intento de pago (medio, últimos 4 dígitos, estado). Si está pendiente o rechazado muestra "Pagar". También es la confirmación después de pagar ("¡Gracias por tu compra!") |
+| `/cuenta/pedidos/:numero/pagar` | Solo `cliente` | Pagar un pedido pendiente o reintentar uno rechazado (decisión F), con el mismo formulario de pago del checkout |
+| `/checkout` | Solo `cliente` | Finalizar compra en tres pasos (F3.3): resumen del carrito, envío (`POST /pedidos`, que vacía el carrito y crea el pedido) y pago simulado. Al aprobarse, lleva al detalle del pedido. Un visitante que pulsa "Comprar" pasa antes por el login y vuelve aquí |
 
 Estructura (rediseño):
 - **Cliente y público:** barra superior `components/BarraCliente.jsx`. La tienda la usa directamente (le pasa el carrito y la búsqueda); las páginas de acceso y Mi cuenta van dentro de `ClienteLayout`.
@@ -80,6 +81,7 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 - **Cliente:** el carrito vive en la API (`services/carrito.service.js`): es su pedido en estado `carrito` (D12). Cada operación se envía a la API y el carrito se reemplaza con la respuesta; totales, unidades y `puede_comprar` los calcula el backend. Las operaciones van en cola (una detrás de otra) para que un doble clic no mande dos peticiones que se crucen. Los errores se manejan por `code`: `STOCK_MAXIMO` → toast de máximo; `CANTIDAD_MINIMA` → toast con "Sí, eliminar".
 - **Al iniciar sesión un cliente**, lo que había en el navegador pasa a su carrito de la API (se suma sin superar el stock, con aviso si algo no cabe) y el navegador queda vacío. Si no hay conexión, los productos se conservan en el navegador para el siguiente intento.
 - El panel marca los ítems no disponibles según su `motivo` (D4: `INACTIVO`, `SIN_STOCK`, `SUPERA_STOCK`) y deshabilita "Comprar" mientras `puede_comprar` sea `false`.
+- **Pago (F3.3):** `components/FormularioPago.jsx` lo usan el checkout y `/cuenta/pedidos/:numero/pagar`. El número de tarjeta o cuenta solo vive en el estado local de ese formulario: no va al contexto, ni a `localStorage`, ni a la consola, y se borra después de cada intento (R5). Para probar un rechazo, un número que termine en `0000`.
 - Pruebas: `carrito.test.jsx` (casos del instructor, modo visitante) y `carrito-api.test.jsx` (modo cliente y paso del carrito al iniciar sesión, con `carritoSimulado()` del fixture).
 
 ## Flujo de sesión
