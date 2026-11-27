@@ -5,7 +5,7 @@ SPA en React 19 + Vite 7 + React Router 7. Es la capa de presentación y consume
 ## Requisitos
 
 - Node.js 22.12+ (recomendado 26 LTS)
-- Backend corriendo en `http://localhost:3000`, con PostgreSQL: [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md). La tienda funciona sin backend porque aún usa datos simulados, pero el login y el registro lo necesitan.
+- Backend corriendo en `http://localhost:3000`, con PostgreSQL: [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md). Desde F2.2 la tienda también lo necesita: el catálogo viene de la API.
 
 ## Instalar y ejecutar
 
@@ -26,7 +26,7 @@ npm run build      # versión de producción en dist/
 
 | Ruta | Acceso | Vista |
 |------|--------|-------|
-| `/` | Pública (no admin) | Tienda: producto destacado, búsqueda, catálogo y carrito (aún con datos simulados en `src/data/productos.js`) |
+| `/?categoria=&orden=` | Pública (no admin) | Tienda: catálogo de la API con filtro por categoría y orden por precio (`precio_asc` / `precio_desc`) guardados en la URL para compartirlos, producto destacado, búsqueda por nombre y carrito (local hasta F3.1) |
 | `/login`, `/registro` | Pública (no admin) | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
 | `/recuperar` | Pública (no admin) | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
 | `/restablecer?token=...` | Pública (no admin) | Crea la contraseña nueva con el token del enlace (CU-11) |
@@ -60,6 +60,7 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
   - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento|destacado`, `.alerta--error` y `.solo-lector`.
   - Cada vista tiene su `.css` con clases BEM propias: `barra-cliente.css`, `barra-admin.css`, `toast.css`, `tienda.css`, `auth.css`, `panel.css`, `usuarios.css` y `dialogo.css`.
   - Tipografía Inter, cargada desde Google Fonts en `index.html`.
+- Pruebas de la tienda: simulan `services/productos.service.js` con `test/fixtures/catalogo.js`, que tiene los productos de la semilla con la forma de la API. Las pruebas no escriben nombres ni precios a mano: eligen productos con sus selectores (`conStockMinimo`, `conPocoStock`, `masCaroDisponible`…). Si la semilla cambia o crece, solo se actualiza ese archivo.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Flujo de sesión

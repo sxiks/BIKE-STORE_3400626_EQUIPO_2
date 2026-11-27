@@ -1,8 +1,13 @@
 // Rediseño (PR 2): tienda con destacado y búsqueda, y barra lateral del admin.
+// Desde F2.2 la tienda usa el catálogo de prueba con los productos reales de la semilla (fixtures/catalogo.js).
 // La API se simula con un fetch falso: estas pruebas no necesitan el backend encendido.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
 import { renderApp, respuesta } from "./utils";
+import { PRODUCTOS, agotado, conMasStock, conPocoStock, masCaroDisponible } from "./fixtures/catalogo";
+
+// La tienda pide el catálogo a la API: se simula para que estas pruebas solo vean las llamadas de sesión.
+vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
 
 const ADMIN = { id_usuario: 1, nombre: "Admin Tienda", email: "admin@prueba.local", rol: "admin", estado: "activo" };
 
@@ -19,44 +24,54 @@ afterEach(() => {
 });
 
 describe("Tienda", () => {
-  it("muestra el producto destacado y lo agrega al carrito", () => {
+  const destacado = masCaroDisponible();
+  const cargar = async () => {
     renderApp("/");
+    await screen.findByRole("region", { name: destacado.nombre });
+  };
 
-    const destacado = within(screen.getByRole("region", { name: "Café de Huila 500 g" }));
-    expect(destacado.getByText("Destacado")).toBeInTheDocument();
+  it("muestra como destacado el producto disponible más caro y lo agrega al carrito", async () => {
+    await cargar();
 
-    fireEvent.click(destacado.getByRole("button", { name: /agregar café de huila 500 g al carrito desde destacados/i }));
+    const bloque = within(screen.getByRole("region", { name: destacado.nombre }));
+    expect(bloque.getByText("Destacado")).toBeInTheDocument();
+
+    fireEvent.click(bloque.getByRole("button", { name: `Agregar ${destacado.nombre} al carrito desde destacados` }));
 
     expect(screen.getByTestId("contador-carrito")).toHaveTextContent("1");
     expect(screen.getByRole("button", { name: "Abrir carrito (1 unidades)" })).toBeInTheDocument();
   });
 
-  it("la búsqueda filtra el catálogo por nombre, sin importar mayúsculas ni tildes", () => {
-    renderApp("/");
+  it("la búsqueda filtra el catálogo por nombre, sin importar mayúsculas ni tildes", async () => {
+    await cargar();
+    const conTilde = PRODUCTOS.find((p) => p.disponible && /[áéíóú]/i.test(p.nombre)); // ej. "MTB Páramo 27.5"
+    const termino = conTilde.nombre.split(" ")[1].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 
-    fireEvent.change(screen.getByRole("searchbox", { name: "Buscar productos" }), { target: { value: "cafe" } });
+    fireEvent.change(screen.getByRole("searchbox", { name: "Buscar productos" }), { target: { value: termino } });
 
-    expect(screen.getByRole("heading", { name: 'Resultados para "cafe"' })).toBeInTheDocument();
-    expect(screen.getByTestId("producto-1")).toBeInTheDocument();
-    expect(screen.queryByTestId("producto-2")).not.toBeInTheDocument();
-    expect(screen.getByText("1 producto")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: `Resultados para "${termino}"` })).toBeInTheDocument();
+    expect(screen.getByTestId(`producto-${conTilde.id_producto}`)).toBeInTheDocument();
     // Mientras se busca, el destacado se oculta para dejar a la vista los resultados
     expect(screen.queryByText("Destacado")).not.toBeInTheDocument();
   });
 
-  it("si la búsqueda no encuentra nada, lo explica", () => {
-    renderApp("/");
+  it("si la búsqueda no encuentra nada, lo explica", async () => {
+    await cargar();
 
     fireEvent.change(screen.getByRole("searchbox", { name: "Buscar productos" }), { target: { value: "bicicleta voladora" } });
 
     expect(screen.getByText(/ningún producto coincide con tu búsqueda/i)).toBeInTheDocument();
   });
 
-  it("marca con una insignia los productos con pocas unidades", () => {
-    renderApp("/");
+  it("marca con una insignia los productos con pocas unidades y los agotados", async () => {
+    await cargar();
+    const poco = conPocoStock();
+    const sinStock = agotado();
+    const amplio = conMasStock();
 
-    expect(within(screen.getByTestId("producto-2")).getByText("Últimas 3")).toBeInTheDocument(); // Panela, stock 3
-    expect(within(screen.getByTestId("producto-3")).queryByText(/últimas/i)).not.toBeInTheDocument(); // Arepa, stock 12
+    expect(within(screen.getByTestId(`producto-${poco.id_producto}`)).getByText(`Últimas ${poco.existencias}`)).toBeInTheDocument();
+    expect(within(screen.getByTestId(`producto-${sinStock.id_producto}`)).getAllByText("Agotado").length).toBeGreaterThan(0);
+    expect(within(screen.getByTestId(`producto-${amplio.id_producto}`)).queryByText(/últimas/i)).not.toBeInTheDocument();
   });
 });
 

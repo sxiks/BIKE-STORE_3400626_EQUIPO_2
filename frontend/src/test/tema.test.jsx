@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderApp } from "./utils";
 
+// La tienda pide el catálogo a la API: se simula para que estas pruebas solo vean las llamadas de sesión.
+vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
+
 const html = () => document.documentElement;
 
 beforeEach(() => {
