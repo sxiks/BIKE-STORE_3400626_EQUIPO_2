@@ -1,5 +1,5 @@
 // Pruebas del carrito como pedido en estado 'carrito' (migraciones 004 y 005).
-// Cubren el modelo nuevo; las tareas B3.1 (carrito) y B3.2 (pedidos y pago) amplían estos casos.
+// Cubren el modelo nuevo; B3.1 (carrito.test.js) y B3.2 (pedidos.test.js) amplían estos casos sin repetirlos.
 // Contratos: docs/diseno-tecnico/API_CONTRATOS.md, secciones "Carrito", "Pedidos y pago" y "Tablero".
 import { createRequire } from 'node:module';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
