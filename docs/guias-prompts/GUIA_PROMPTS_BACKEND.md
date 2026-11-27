@@ -52,7 +52,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | Sprint | Tarea | Rama | CU | Depende de |
 |---|---|---|---|---|
 | 1 ✅ | [B1.1 Base de pruebas automatizadas y autenticación](#b11--base-de-pruebas-automatizadas-y-autenticación) | `feature/back-tests-auth` | 09, 10, 11 | — |
-| 1 | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
+| 1 · Hecha | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
 | 2 | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
 | 3 | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito` | 03–07 | B1.1 |
 | 3 | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-pedidos-pagos` | 07, 08 | B3.1 |
@@ -94,6 +94,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### B1.2 · Pruebas de usuarios y control de acceso
+
+> **Hecha.** Resultado: `tests/usuarios.test.js` (29 pruebas) y el helper compartido `tests/helpers/sesion.js` (`registrarYEntrar`, `conToken`). Reveló que la búsqueda trataba `%` y `_` como comodines; se corrigió en `usuarios.repository.buscar`. Este prompt queda como referencia.
 
 ```
 TAREA B1.2 · Sprint 1 · CU-19, CU-20, CU-21, CU-22 · Rama: feature/back-tests-usuarios (ya creada desde develop actualizado; si no, dame primero los comandos).
