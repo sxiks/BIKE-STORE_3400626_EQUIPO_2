@@ -36,3 +36,25 @@ export function clearSession() {
 export function limpiarClavesAntiguas() {
   CLAVES_ANTIGUAS.forEach((clave) => localStorage.removeItem(clave));
 }
+
+// Tema de la interfaz (rediseño): 'oscuro' o 'claro'. Es una preferencia del navegador, no de la cuenta.
+// Con try/catch: en algunos navegadores (modo privado, bloqueo de almacenamiento) localStorage falla.
+const TEMA_KEY = 'bikestore_tema';
+export const TEMAS = ['oscuro', 'claro'];
+
+export function getTema() {
+  try {
+    const tema = localStorage.getItem(TEMA_KEY);
+    return TEMAS.includes(tema) ? tema : 'oscuro';
+  } catch {
+    return 'oscuro';
+  }
+}
+
+export function setTema(tema) {
+  try {
+    localStorage.setItem(TEMA_KEY, tema);
+  } catch {
+    // sin almacenamiento: el tema dura mientras la pestaña esté abierta
+  }
+}

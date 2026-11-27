@@ -6,8 +6,7 @@
   display: grid;
   place-items: center;
   padding: var(--espacio-4);
-  /* tokens.css no tiene un token de "fondo de diálogo": se deriva del color oscuro con transparencia */
-  background: color-mix(in srgb, var(--color-oscuro) 55%, transparent);
+  background: var(--color-velo);
   animation: aparecer 0.2s ease;
 }
 
@@ -17,6 +16,7 @@
   padding: var(--espacio-6);
   border-radius: var(--radio-xl);
   background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
   box-shadow: var(--sombra-lg);
 }
 

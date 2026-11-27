@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { LayoutDashboard, LogIn, LogOut, Mountain, ShoppingBag, UserPlus, UserRound } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
+import BotonTema from './BotonTema';
 import '../assets/navbar.css';
 
 // Barra de navegación única de la aplicación (F1.1).
@@ -61,6 +62,9 @@ export default function Navbar({ carrito = null }) {
             </>
           )}
         </div>
+
+        {/* Tema claro u oscuro (rediseño). Antes del carrito: el carrito sigue siendo el último a la derecha. */}
+        <BotonTema />
 
         {carrito && (
           <button

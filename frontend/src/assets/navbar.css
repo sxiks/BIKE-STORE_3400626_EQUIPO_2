@@ -1,4 +1,4 @@
-/* Barra de navegación única (F1.1), con el sistema de diseño (F2.1). */
+/* Barra de navegación única (F1.1), con el sistema de diseño (F2.1, rediseño con temas). */
 .nav-principal {
   position: sticky;
   top: 0;
@@ -22,16 +22,15 @@
   align-items: center;
   gap: var(--espacio-2);
   margin-right: auto; /* empuja la sesión y el carrito a la derecha */
-  color: var(--color-primario);
+  color: var(--color-texto);
   text-decoration: none;
   font-family: var(--fuente-titulos);
-  font-weight: 800;
-  font-size: var(--texto-xl);
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  font-size: var(--texto-lg);
   white-space: nowrap;
 }
 
-.nav-principal__marca:hover { color: var(--color-primario-hover); }
+.nav-principal__marca:hover { color: var(--color-texto); }
 
 .nav-principal__sesion {
   display: flex;
@@ -52,17 +51,17 @@
 .nav-principal__rol {
   padding: 2px 10px;
   border-radius: var(--radio-pildora);
-  background: var(--color-primario-suave);
-  color: var(--color-primario);
+  background: var(--color-destacado-fondo);
+  color: var(--color-destacado-texto);
   font-size: var(--texto-xs);
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .nav-principal__rol--admin {
   background: var(--color-acento);
-  color: var(--color-texto);
+  color: var(--color-sobre-acento);
 }
 
 .nav-principal__boton {
@@ -74,26 +73,26 @@
   border: 0;
   border-radius: var(--radio-md);
   background: transparent;
-  color: var(--color-primario);
-  font-weight: 700;
+  color: var(--color-texto);
+  font-weight: 600;
   font-size: 0.95rem;
   text-decoration: none;
   cursor: pointer;
 }
 
 .nav-principal__boton:hover {
-  background: var(--color-primario-suave);
-  color: var(--color-primario-hover);
+  background: var(--color-superficie-2);
+  color: var(--color-texto);
 }
 
 .nav-principal__boton--resaltado {
   background: var(--color-primario);
-  color: #ffffff;
+  color: var(--color-sobre-primario);
 }
 
 .nav-principal__boton--resaltado:hover {
   background: var(--color-primario-hover);
-  color: #ffffff;
+  color: var(--color-sobre-primario);
 }
 
 .nav-principal__carrito {
@@ -102,14 +101,14 @@
   place-items: center;
   width: 46px;
   height: 46px;
-  border: 0;
-  border-radius: var(--radio-lg);
-  background: var(--color-primario-suave);
-  color: var(--color-primario);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  color: var(--color-texto);
   cursor: pointer;
 }
 
-.nav-principal__carrito:hover { background: #e0e7f8; }
+.nav-principal__carrito:hover { background: var(--color-superficie-2); }
 
 .nav-principal__contador {
   position: absolute;
@@ -122,7 +121,7 @@
   place-items: center;
   border-radius: var(--radio-pildora);
   background: var(--color-acento);
-  color: var(--color-texto);
+  color: var(--color-sobre-acento);
   font-size: var(--texto-xs);
   font-weight: 800;
   animation: pop 0.25s ease;
