@@ -4,7 +4,7 @@
 > **Cuándo usarlo:** cuando necesites saber qué tabla o columna guarda un dato. El porqué de cada decisión está en [JUSTIFICACION_MODELO_DATOS](JUSTIFICACION_MODELO_DATOS.md).
 > ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
 
-Diseñado y aprobado en el chat de modelado (fases A–D). [PostgreSQL](../GLOSARIO.md#postgresql) 15+. La implementación física está en [`database/migrations/002_modelo_bike_store.sql`](../../database/migrations/002_modelo_bike_store.sql), con el cambio de la decisión 6 aplicado por las migraciones `004_estado_pedido_carrito.sql` y `005_carrito_como_pedido.sql` (decisión D12 del [ROADMAP](../ROADMAP.md#resueltas)) y la galería de imágenes de la `006_producto_imagenes.sql` (decisión M).
+Diseñado y aprobado en el chat de modelado (fases A–D). [PostgreSQL](../GLOSARIO.md#postgresql) 15+. La implementación física está en [`database/migrations/002_modelo_bike_store.sql`](../../database/migrations/002_modelo_bike_store.sql), con el cambio de la decisión 6 aplicado por las migraciones `004_estado_pedido_carrito.sql` y `005_carrito_como_pedido.sql` (decisión D12 del [ROADMAP](../ROADMAP.md#resueltas)) la galería de imágenes de la `006_producto_imagenes.sql` (decisión M) y la columna `usuarios.password_cambiada_en` de la `007_password_cambiada_en.sql` (auditoría H-04).
 
 ## Decisiones de diseño
 
@@ -45,7 +45,7 @@ Diseñado y aprobado en el chat de modelado (fases A–D). [PostgreSQL](../GLOSA
     - carrito: único parcial `pedidos (id_usuario) WHERE estado = 'carrito'`;
     - además, un índice en cada FK.
 13. **Dirección de envío:** atributo compuesto copiado en el pedido (no hay libreta de direcciones).
-14. **Recuperación de contraseña:** `tokens_recuperacion` guarda el SHA-256 del token, `expira_en` y `usado_en`.
+14. **Recuperación de contraseña:** `tokens_recuperacion` guarda el SHA-256 del token, `expira_en` y `usado_en`. Al restablecer, `usuarios.password_cambiada_en` guarda el momento (migración 007) y el backend rechaza los tokens de sesión emitidos antes: se cierran todas las sesiones abiertas.
 15. **Alertas del tablero:** se calculan por consulta, sin tablas propias. Las métricas cuentan solo pedidos `pagado` filtrados por `fecha_pedido`; "productos inactivos en carritos" consulta `detalle_pedido` unido a `pedidos` con `estado = 'carrito'`.
 
 ## MER (Mermaid)
@@ -69,6 +69,7 @@ erDiagram
         string password "hash bcrypt"
         string rol "admin o cliente"
         string estado "activo o inactivo"
+        datetime password_cambiada_en "ultimo restablecimiento, NULL si nunca"
         datetime created_at
     }
 
@@ -131,7 +132,7 @@ erDiagram
 
 | Tabla | Columnas principales | Claves |
 |-------|----------------------|--------|
-| `usuarios` | nombre, email, password, rol, estado | PK `id_usuario`; único `lower(email)` |
+| `usuarios` | nombre, email, password, rol, estado, password_cambiada_en | PK `id_usuario`; único `lower(email)`. `password_cambiada_en` admite NULL (nunca restableció) |
 | `categorias` | nombre | PK `id_categoria`; único `lower(nombre)` |
 | `productos` | id_categoria, nombre, descripcion, precio, existencias, imagen, estado | FK → categorias; único `(id_categoria, lower(nombre))`. `imagen` es la portada |
 | `producto_imagenes` | id_producto, imagen, orden | FK → productos (`ON DELETE CASCADE`); índice `(id_producto, orden)`. Imágenes adicionales (máximo 4; el límite lo aplica el backend) |
@@ -140,4 +141,4 @@ erDiagram
 | `pagos` | id_pedido, medio_pago, ultimos4, valor, estado | FK → pedidos; único parcial `(id_pedido) WHERE estado='aprobado'` |
 | `tokens_recuperacion` | id_usuario, token_hash, expira_en, usado_en | FK → usuarios; único `token_hash` |
 
-El DDL completo, con tipos, CHECK, índices y trigger, es la fuente de verdad: `database/migrations/002_modelo_bike_store.sql` más las migraciones posteriores (`004`, `005` y `006`), que se aplican en orden.
+El DDL completo, con tipos, CHECK, índices y trigger, es la fuente de verdad: `database/migrations/002_modelo_bike_store.sql` más las migraciones posteriores (`004`, `005`, `006` y `007`), que se aplican en orden.
