@@ -20,6 +20,15 @@ async function findById(id, db = pool) {
   return rows[0] || null;
 }
 
+// Sesión (CU-22): además de los datos públicos, cuándo se restableció la contraseña por última vez (H-04).
+async function findSesion(id, db = pool) {
+  const { rows } = await db.query(
+    `SELECT ${COLUMNAS_PUBLICAS}, password_cambiada_en FROM usuarios WHERE id_usuario = $1`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 async function existsByEmail(email, db = pool) {
   const { rowCount } = await db.query(
     'SELECT 1 FROM usuarios WHERE lower(email) = lower($1)',
@@ -80,13 +89,18 @@ async function updateEstado(id, estado, db = pool) {
   return rows[0] || null;
 }
 
-async function updatePassword(id, passwordHash, db = pool) {
-  await db.query('UPDATE usuarios SET password = $2 WHERE id_usuario = $1', [id, passwordHash]);
+// cambiadaEn sale del reloj del backend, el mismo que firma los tokens (ver auth.middleware).
+async function updatePassword(id, passwordHash, cambiadaEn, db = pool) {
+  await db.query(
+    'UPDATE usuarios SET password = $2, password_cambiada_en = $3 WHERE id_usuario = $1',
+    [id, passwordHash, cambiadaEn]
+  );
 }
 
 module.exports = {
   findByEmail,
   findById,
+  findSesion,
   existsByEmail,
   create,
   buscar,

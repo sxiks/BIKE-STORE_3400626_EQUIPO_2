@@ -18,13 +18,19 @@ async function buscarObjetivo(id) {
 
 // Usado por el middleware authenticate en CADA solicitud (decisión G):
 // un usuario desactivado o con rol cambiado pierde el acceso de inmediato.
-async function obtenerSesionActiva(idUsuario) {
-  const usuario = await usuariosRepository.findById(idUsuario);
+// emitidoMs: cuándo se firmó el token, en milisegundos. Un token anterior al último
+// restablecimiento de contraseña ya no sirve, aunque no haya vencido (H-04).
+async function obtenerSesionActiva(idUsuario, emitidoMs) {
+  const usuario = await usuariosRepository.findSesion(idUsuario);
   if (!usuario) throw new AppError('Sesión inválida', 401);
   if (usuario.estado !== 'activo') {
     throw new AppError('Tu cuenta está desactivada. Contacta al administrador', 403, 'CUENTA_DESACTIVADA');
   }
-  return usuario;
+  const { password_cambiada_en: cambiadaEn, ...sesion } = usuario;
+  if (cambiadaEn && !(emitidoMs >= cambiadaEn.getTime())) {
+    throw new AppError('Tu contraseña cambió. Inicia sesión de nuevo', 401, 'SESION_REVOCADA');
+  }
+  return sesion;
 }
 
 async function listar({ q, rol, estado } = {}) {
