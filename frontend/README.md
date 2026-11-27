@@ -84,7 +84,12 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 
 - **Visitante** (sin sesión): el carrito vive en el navegador (`localStorage`, clave `bikestore_carrito`), como antes.
 - **Cliente:** el carrito vive en la API (`services/carrito.service.js`): es su pedido en estado `carrito` (D12). Cada operación se envía a la API y el carrito se reemplaza con la respuesta; totales, unidades y `puede_comprar` los calcula el backend. Las operaciones van en cola (una detrás de otra) para que un doble clic no mande dos peticiones que se crucen. Los errores se manejan por `code`: `STOCK_MAXIMO` → toast de máximo; `CANTIDAD_MINIMA` → toast con "Sí, eliminar".
-- **Al iniciar sesión un cliente**, lo que había en el navegador pasa a su carrito de la API (se suma sin superar el stock, con aviso si algo no cabe) y el navegador queda vacío. Si no hay conexión, los productos se conservan en el navegador para el siguiente intento.
+- **Al iniciar sesión un cliente**, lo que había en el navegador pasa a su carrito de la API (se suma sin superar el stock, con aviso si algo no cabe). Cada línea se resuelve por separado (auditoría, H-01):
+  - la que llega a la API sale del navegador;
+  - la que la API rechaza por una regla de negocio (`PRODUCTO_INACTIVO`, `SIN_STOCK`, `STOCK_MAXIMO` sin cupo, o un 404) no se pasa, y se avisa;
+  - la que falla por otra causa (sin conexión, error del servidor) vuelve al navegador y se intenta la próxima vez que el cliente entre.
+
+  Así nunca se pierde un producto ni se envía dos veces.
 - El panel marca los ítems no disponibles según su `motivo` (D4: `INACTIVO`, `SIN_STOCK`, `SUPERA_STOCK`) y deshabilita "Comprar" mientras `puede_comprar` sea `false`.
 - **Pago (F3.3):** `components/FormularioPago.jsx` lo usan el checkout y `/cuenta/pedidos/:numero/pagar`. El número de tarjeta o cuenta solo vive en el estado local de ese formulario: no va al contexto, ni a `localStorage`, ni a la consola, y se borra después de cada intento (R5). Para probar un rechazo, un número que termine en `0000`.
 - Pruebas: `carrito.test.jsx` (casos del instructor, modo visitante) y `carrito-api.test.jsx` (modo cliente y paso del carrito al iniciar sesión, con `carritoSimulado()` del fixture).

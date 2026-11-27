@@ -33,6 +33,13 @@ function conSesion() {
   fetchMock.mockImplementation(() => respuesta(200, { ok: true, data: CLIENTE }));
 }
 
+const linea = (p, cantidad) => ({ id: p.id_producto, nombre: p.nombre, precio: p.precio, stock: p.existencias, cantidad });
+const guardarCarritoLocal = (lineas) => localStorage.setItem("bikestore_carrito", JSON.stringify(lineas));
+const carritoLocal = () => JSON.parse(localStorage.getItem("bikestore_carrito") ?? "[]");
+const avisoConservados = (productos, motivo = "No se pudo conectar con el servidor.") =>
+  `${motivo} No pudimos pasar a tu cuenta: ${productos.map((p) => p.nombre).join(", ")}. ` +
+  "Siguen guardados en este navegador y se pasarán la próxima vez que entres.";
+
 const contador = () => screen.getByRole("button", { name: /abrir carrito/i });
 const abrirCarrito = () => fireEvent.click(contador());
 const panel = () => within(screen.getByRole("dialog", { name: "Tu carrito" }));
@@ -256,7 +263,48 @@ describe("Visitante: carrito en el navegador y login al comprar", () => {
     conSesion();
     renderApp("/");
 
-    expect(await screen.findByText("No se pudo conectar con el servidor.")).toBeInTheDocument();
+    expect(await screen.findByText(avisoConservados([A]))).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem("bikestore_carrito"))).toEqual([expect.objectContaining({ id: A.id_producto, cantidad: 2 })]);
+  });
+
+  // Auditoría H-01: cada línea se resuelve por separado; nada se pierde ni se envía dos veces.
+  it("si la conexión se corta a mitad del paso, solo vuelven al navegador las líneas que no llegaron", async () => {
+    const real = servicio.agregarAlCarrito.getMockImplementation();
+    servicio.agregarAlCarrito
+      .mockImplementationOnce(real)
+      .mockRejectedValueOnce(new ApiError("No se pudo conectar con el servidor."));
+    guardarCarritoLocal([linea(A, 1), linea(B, 2)]);
+    conSesion();
+    renderApp("/");
+
+    expect(await screen.findByText(avisoConservados([B]))).toBeInTheDocument();
+    expect(sim.cantidades()).toEqual({ [A.id_producto]: 1 });
+    expect(carritoLocal()).toEqual([expect.objectContaining({ id: B.id_producto, cantidad: 2 })]);
+  });
+
+  it("si la API falla con un error del servidor, el producto no se pierde: queda en el navegador", async () => {
+    servicio.agregarAlCarrito.mockRejectedValueOnce(new ApiError("Error interno del servidor", { status: 500 }));
+    guardarCarritoLocal([linea(A, 2)]);
+    conSesion();
+    renderApp("/");
+
+    expect(await screen.findByText(avisoConservados([A], "Error interno del servidor"))).toBeInTheDocument();
+    expect(sim.cantidades()).toEqual({});
+    expect(carritoLocal()).toEqual([expect.objectContaining({ id: A.id_producto, cantidad: 2 })]);
+    expect(screen.queryByText(/no cabían todas las unidades/)).not.toBeInTheDocument();
+  });
+
+  it("un producto que ya no está disponible no se pasa y se avisa; los demás sí pasan", async () => {
+    const real = servicio.agregarAlCarrito.getMockImplementation();
+    servicio.agregarAlCarrito
+      .mockRejectedValueOnce(new ApiError("El producto no está disponible", { status: 400, code: "PRODUCTO_INACTIVO" }))
+      .mockImplementationOnce(real);
+    guardarCarritoLocal([linea(A, 1), linea(B, 1)]);
+    conSesion();
+    renderApp("/");
+
+    expect(await screen.findByText(`Estos productos ya no están disponibles y no se pasaron a tu cuenta: ${A.nombre}.`)).toBeInTheDocument();
+    await waitFor(() => expect(sim.cantidades()).toEqual({ [B.id_producto]: 1 }));
+    expect(carritoLocal()).toEqual([]);
   });
 });
