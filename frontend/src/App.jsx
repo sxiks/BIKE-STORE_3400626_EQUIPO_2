@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { TemaProvider } from './context/TemaContext';
 import { ToastProvider } from './context/ToastContext';
@@ -17,6 +18,8 @@ import UsuariosPage from './pages/admin/UsuariosPage';
 import ProductosPage from './pages/admin/ProductosPage';
 import ProductoFormPage from './pages/admin/ProductoFormPage';
 import CategoriasPage from './pages/admin/CategoriasPage';
+import PedidosAdminPage from './pages/admin/PedidosAdminPage';
+import PedidoAdminPage from './pages/admin/PedidoAdminPage';
 import ProductoPage from './pages/ProductoPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import CheckoutPage from './pages/cuenta/CheckoutPage';
@@ -24,6 +27,10 @@ import PedidosPage from './pages/cuenta/PedidosPage';
 import PedidoDetallePage from './pages/cuenta/PedidoDetallePage';
 import PagarPedidoPage from './pages/cuenta/PagarPedidoPage';
 import './assets/base.css';
+
+// F4: el tablero se carga aparte (React.lazy) porque trae recharts, que la tienda no necesita.
+// Así el archivo principal no crece para los clientes; el admin lo descarga al abrir el tablero.
+const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 
 // Orden de los proveedores: Router → Tema → Toasts → Sesión → Carrito. El tema va por fuera de todo lo visual.
 // F3.1: el carrito va dentro de la sesión, porque según quién entre vive en el navegador (visitante) o en la API (cliente).
@@ -88,6 +95,23 @@ export function AppRutas() {
                   <Route path="/admin/productos/:id" element={<ProductoFormPage key="editar" />} />
                   {/* Categorías (F2.4 · decisión M) */}
                   <Route path="/admin/categorias" element={<CategoriasPage />} />
+                  {/* F4 · decisión N y CU-16 a CU-18 */}
+                  <Route path="/admin/pedidos" element={<PedidosAdminPage />} />
+                  <Route path="/admin/pedidos/:numero" element={<PedidoAdminPage />} />
+                  <Route
+                    path="/admin/dashboard"
+                    element={
+                      <Suspense
+                        fallback={
+                          <p className="ruta-verificando" role="status">
+                            Cargando el tablero…
+                          </p>
+                        }
+                      >
+                        <DashboardPage />
+                      </Suspense>
+                    }
+                  />
                 </Route>
               </Route>
 

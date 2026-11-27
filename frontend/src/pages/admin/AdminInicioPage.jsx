@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import '../../assets/panel.css';
 
-// Inicio provisional del panel de administración (F1.2).
-// Cada sección se convierte en un enlace (campo `ruta`) cuando su tarea esté integrada.
+// Inicio del panel de administración (F1.2): una tarjeta por sección, cada una con su página (desde F4).
 const SECCIONES = [
   { nombre: 'Usuarios', detalle: 'Buscar usuarios, cambiar rol y estado', ruta: '/admin/usuarios' },
   { nombre: 'Productos', detalle: 'Crear, editar e inactivar productos, con su galería de imágenes', ruta: '/admin/productos' },
   { nombre: 'Categorías', detalle: 'Crear, renombrar y eliminar categorías sin productos', ruta: '/admin/categorias' },
-  { nombre: 'Tablero', detalle: 'Métricas de ventas, alertas e informes', tarea: 'F4.1 · Sprint 4' }
+  { nombre: 'Pedidos', detalle: 'Ver y buscar los pedidos de todos los clientes', ruta: '/admin/pedidos' },
+  { nombre: 'Tablero', detalle: 'Métricas de ventas, alertas e informes en Excel y PDF', ruta: '/admin/dashboard' }
 ];
 
 export default function AdminInicioPage() {
@@ -24,20 +24,11 @@ export default function AdminInicioPage() {
         {SECCIONES.map((seccion) => (
           <li key={seccion.nombre} className="panel__seccion tarjeta">
             <h2>
-              {seccion.ruta ? (
-                <Link to={seccion.ruta} className="panel__seccion-enlace">
-                  {seccion.nombre}
-                </Link>
-              ) : (
-                seccion.nombre
-              )}
+              <Link to={seccion.ruta} className="panel__seccion-enlace">
+                {seccion.nombre}
+              </Link>
             </h2>
             <p>{seccion.detalle}</p>
-            {seccion.ruta ? (
-              <span className="etiqueta etiqueta--exito">Disponible</span>
-            ) : (
-              <span className="etiqueta etiqueta--aviso">Próximamente · {seccion.tarea}</span>
-            )}
           </li>
         ))}
       </ul>

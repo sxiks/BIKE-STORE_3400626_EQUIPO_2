@@ -30,11 +30,9 @@ function esSesionInvalida(error) {
   return error.status === 401 || (error.status === 403 && error.code === 'CUENTA_DESACTIVADA');
 }
 
-/**
- * Llama a la API y devuelve el cuerpo { ok: true, data, message? }.
- * Opciones extra: manejarSesion (default true) desactiva el manejo global de sesión inválida.
- */
-export async function api(endpoint, { manejarSesion = true, ...options } = {}) {
+// Hace la petición con el token y, si la API responde un error (JSON del contrato), lanza ApiError y
+// aplica el manejo global de sesión inválida. Devuelve la Response para que quien llama lea el cuerpo.
+async function pedir(endpoint, { manejarSesion = true, ...options } = {}) {
   const token = getToken();
   const isFormData = options.body instanceof FormData;
 
@@ -54,9 +52,8 @@ export async function api(endpoint, { manejarSesion = true, ...options } = {}) {
     throw new ApiError('No se pudo conectar con el servidor. Verifica que la API esté encendida.');
   }
 
-  const data = await response.json().catch(() => ({}));
-
   if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
     const error = new ApiError(data.message || 'Error en la solicitud', {
       status: response.status,
       code: data.code ?? null,
@@ -69,5 +66,29 @@ export async function api(endpoint, { manejarSesion = true, ...options } = {}) {
     throw error;
   }
 
-  return data;
+  return response;
+}
+
+/**
+ * Llama a la API y devuelve el cuerpo { ok: true, data, message? }.
+ * Opciones extra: manejarSesion (default true) desactiva el manejo global de sesión inválida.
+ */
+export async function api(endpoint, options) {
+  const response = await pedir(endpoint, options);
+  return response.json().catch(() => ({}));
+}
+
+// Nombre que el servidor puso en Content-Disposition: attachment; filename="…".
+function nombreDeArchivo(response) {
+  const cabecera = response.headers?.get?.('Content-Disposition') ?? '';
+  return /filename="([^"]+)"/.exec(cabecera)?.[1] ?? null;
+}
+
+/**
+ * Variante para respuestas que son un archivo (F4 · CU-18): devuelve { blob, nombre }.
+ * Los errores siguen llegando en JSON y se lanzan como ApiError, igual que en api().
+ */
+export async function apiArchivo(endpoint, options) {
+  const response = await pedir(endpoint, options);
+  return { blob: await response.blob(), nombre: nombreDeArchivo(response) };
 }
