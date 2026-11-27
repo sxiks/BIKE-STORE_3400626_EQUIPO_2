@@ -23,11 +23,12 @@ for archivo in \
   002_modelo_bike_store.sql \
   003_datos_semilla.sql \
   004_estado_pedido_carrito.sql \
-  005_carrito_como_pedido.sql
+  005_carrito_como_pedido.sql \
+  006_producto_imagenes.sql
 do
   echo "[bike-store] Aplicando ${archivo}..."
   psql -v ON_ERROR_STOP=1 \
     --username "$APP_DB_USER" --dbname bike_store --file "/migraciones/${archivo}"
 done
 
-echo "[bike-store] Listo: base bike_store con las migraciones 002 a 005."
+echo "[bike-store] Listo: base bike_store con las migraciones 002 a 006."
