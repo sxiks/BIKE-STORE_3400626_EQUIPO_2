@@ -1,7 +1,7 @@
 # Arquitectura en capas · Bike Store
 
 > **Para qué sirve:** explica cómo está organizado el código en [capas](../GLOSARIO.md#arquitectura-capas) y qué puede importar cada una.
-> **Cuándo usarlo:** antes de crear un archivo nuevo, y antes de abrir un PR (comprobación de la sección 2). La versión formal, con diagrama, está en [INFORME_ARQUITECTURA.pdf](INFORME_ARQUITECTURA.pdf) y [DIAGRAMA_ARQUITECTURA.png](DIAGRAMA_ARQUITECTURA.png).
+> **Cuándo usarlo:** antes de crear un archivo nuevo, y antes de abrir un PR (comprobación de la sección 2).
 > ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
 
 ## 1. Vista general
@@ -117,12 +117,11 @@ grep -rn "middlewares" backend/src/services
 | El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
 | La tienda usa datos simulados (`data/productos.js`) y el carrito vive en `localStorage` (clave heredada `tienda-palmira-carrito`) | El backend ya ofrece catálogo y carrito reales | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) y Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
 | Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
+| Versiones mayores nuevas de dependencias, sin vulnerabilidades: Vite 8, `@vitejs/plugin-react` 6, `@testing-library/jest-dom` 8 (frontend) y `dotenv` 18 (backend) | `npm audit` en 0; se actualizan cuando haga falta, cada una en su propio PR porque pueden traer cambios incompatibles | Sin sprint fijo |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Pruebas automatizadas del backend incompletas | Base lista y `auth` cubierto (32 pruebas, B1.1). Faltan `usuarios`, `productos`, `carrito`, `pedidos` y `tablero`; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 1–4: [B1.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b12--pruebas-de-usuarios-y-control-de-acceso), [B2.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b21--pruebas-de-catálogo-y-productos), [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
+| Pruebas automatizadas del backend incompletas | 82 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), y el carrito como pedido con su concurrencia (D12). Faltan `productos` y la cobertura completa de carrito, pedidos, pago y tablero; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 2–4: [B2.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b21--pruebas-de-catálogo-y-productos), [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
 
 **Resuelto en el Sprint 1:**
 - Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.
 - Claves de `localStorage` con prefijo `labcrud_`: ahora son `bikestore_token` y `bikestore_user` (F1.1).
 - `ProtectedRoute` sin uso: ahora protege `/admin` y `/cuenta` por rol (F1.2).
-
-> El diagrama y el informe de arquitectura de esta carpeta reflejan el estado anterior a estos cambios; se actualizan al cerrar el Sprint 1.

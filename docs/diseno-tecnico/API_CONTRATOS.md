@@ -33,7 +33,7 @@
 | `PRODUCTO_INACTIVO` / `SIN_STOCK` | 400 al agregar al carrito; 409 al pagar | Mostrar el mensaje; al pagar, `data.items` lista los productos con problema |
 | `STOCK_MAXIMO` | 400: la cantidad supera las existencias | Toast "máximo disponible"; `data.maximo` trae el tope |
 | `CANTIDAD_MINIMA` | 400: cantidad 0 en el carrito | Toast con la opción "Sí, eliminar" |
-| `CARRITO_VACIO` / `CARRITO_NO_DISPONIBLE` | 400/409 al crear el pedido | Volver al carrito; `data.items` lista los no disponibles |
+| `CARRITO_VACIO` / `CARRITO_NO_DISPONIBLE` | 400/409 al confirmar el carrito (`POST /pedidos`) | Volver al carrito; `data.items` lista los no disponibles |
 | `PEDIDO_YA_PAGADO` | 409 | Ir a la confirmación del pedido |
 | `PAGO_RECHAZADO` | 402 | Ofrecer reintentar con otro medio de pago |
 

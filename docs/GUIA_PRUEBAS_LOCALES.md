@@ -1,6 +1,6 @@
 # Guía de pruebas locales · Bike Store
 
-> **Para qué sirve:** probar a mano los flujos de la API que todavía no tienen pantalla, y resolver los problemas más comunes del entorno.
+> **Para qué sirve:** probar a mano los flujos de la API (con o sin pantalla) y resolver los problemas más comunes del entorno.
 > **Cuándo usarla:** después de levantar el proyecto con la [guía de ejecución local](GUIA_EJECUCION_LOCAL.md), al construir o revisar pantallas que usan estos flujos, o cuando algo falla.
 > ← Volver al [índice de la documentación](README.md) · Términos desconocidos: [GLOSARIO](GLOSARIO.md)
 
@@ -8,7 +8,7 @@
 
 | Sección | Útil para |
 |---|---|
-| [1. Recuperación de contraseña](#1-recuperación-de-contraseña-cu-11) | Dev Frontend (pantallas de recuperar y restablecer) y Dev Backend (pruebas) |
+| [1. Recuperación de contraseña](#1-recuperación-de-contraseña-cu-11) | Ambos: desde las pantallas `/recuperar` y `/restablecer` (F1.3) o directo contra la API |
 | [2. Pago simulado](#2-pago-simulado-cu-08) | Ambos (checkout, Sprint 3) |
 | [3. Flujo de compra completo](#3-flujo-de-compra-completo-cliente) | Ambos (verificar la API de punta a punta) |
 | [4. Problemas frecuentes](#4-problemas-frecuentes) | Ambos |
@@ -56,9 +56,11 @@ Invoke-RestMethod -Method Post http://localhost:3000/api/auth/restablecer `
   -ContentType "application/json" -Body '{"token":"<el token de 64 caracteres>","password":"Nueva1234"}'
 ```
 
-**Para el Dev Frontend: cómo usarlo en las pantallas**
+**Cómo lo usan las pantallas (F1.3)**
 
-- La pantalla "Olvidé mi contraseña" llama a `POST /auth/recuperar` y **siempre** muestra el `message` del backend.
+Las pruebas con `curl` sirven para revisar la API sin el frontend. Las pantallas ya implementadas hacen lo siguiente:
+
+- La pantalla `/recuperar` (enlace "¿Olvidaste tu contraseña?" del login) llama a `POST /auth/recuperar` y **siempre** muestra el `message` del backend.
 - Si la respuesta trae `data.token_desarrollo`, muestra además un aviso visible **solo en desarrollo** con un enlace a `/restablecer?token=<token>`. Comprueba también `import.meta.env.DEV`, para que el aviso nunca aparezca en un [build](GLOSARIO.md#build) de producción.
 - La pantalla `/restablecer` lee `token` de la URL, pide la nueva contraseña dos veces, valida las reglas de contraseña (D7) en el formulario y llama a `POST /auth/restablecer`.
 - Si el token no sirve, el error trae [`code`](GLOSARIO.md#code-error) `"TOKEN_INVALIDO"`. Muestra el mensaje y un enlace para pedir uno nuevo.

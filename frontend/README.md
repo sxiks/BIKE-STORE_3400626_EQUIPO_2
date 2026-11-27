@@ -4,7 +4,7 @@ SPA en React 19 + Vite 7 + React Router 7. Es la capa de presentación y consume
 
 ## Requisitos
 
-- Node.js 22+ (recomendado 24 LTS)
+- Node.js 22.12+ (recomendado 26 LTS)
 - Backend corriendo en `http://localhost:3000`, con PostgreSQL: [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md). La tienda funciona sin backend porque aún usa datos simulados, pero el login y el registro lo necesitan.
 
 ## Instalar y ejecutar
