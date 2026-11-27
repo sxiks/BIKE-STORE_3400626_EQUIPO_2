@@ -47,7 +47,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 |---|---|---|---|---|
 | 1 ✅ | [F1.1 Sesión y navbar unificada](#f11--sesión-y-navbar-unificada) | `feature/front-navbar-sesion` | 10, 22 | — |
 | 1 ✅ | [F1.2 Rutas protegidas por rol](#f12--rutas-protegidas-por-rol) | `feature/front-rutas-por-rol` | 22 | F1.1 |
-| 1 | [F1.3 Recuperar contraseña y validar registro](#f13--recuperar-contraseña-y-validar-registro) | `feature/front-recuperar-password` | 09, 11 | F1.1 |
+| 1 ✅ | [F1.3 Recuperar contraseña y validar registro](#f13--recuperar-contraseña-y-validar-registro) | `feature/front-recuperar-password` | 09, 11 | F1.1 |
 | 1 | [F1.4 Panel de usuarios](#f14--panel-de-usuarios-admin) | `feature/front-panel-usuarios` | 19, 20, 21 | F1.2 |
 | 1 ✅ | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) (adelantada al Sprint 1) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
 | 2 | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
@@ -123,6 +123,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F1.3 · Recuperar contraseña y validar registro
+
+> ✅ **Hecha.** Resultado: `pages/RecuperarPage.jsx`, `pages/RestablecerPage.jsx`, validaciones de correo y D7 en `utils/validaciones.js` (las mismas reglas del backend) y la lista de reglas `components/ReglasPassword.jsx`, usada en el registro y al restablecer. Pruebas en `test/validaciones.test.js` y `test/recuperacion.test.jsx`. Este prompt queda como referencia.
 
 ```
 TAREA F1.3 · Sprint 1 · CU-09, CU-11 · Rama: feature/front-recuperar-password (ya creada desde develop actualizado; si no, dame primero los comandos).

@@ -101,6 +101,7 @@ export default function LoginPage() {
               {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
             </button>
           </div>
+          <Link to="/recuperar" className="auth__enlace-secundario">¿Olvidaste tu contraseña?</Link>
         </div>
 
         <button type="submit" className="btn btn--primario btn--bloque" disabled={submitting}>

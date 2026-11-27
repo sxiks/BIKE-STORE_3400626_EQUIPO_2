@@ -19,3 +19,21 @@ export function login(data) {
 export function me() {
   return api('/auth/me', { manejarSesion: false });
 }
+
+// CU-11 · D8. Rutas públicas: sin manejo global de sesión. Devuelven el cuerpo completo
+// porque las páginas muestran el message del backend.
+export function recuperar(email) {
+  return api('/auth/recuperar', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+    manejarSesion: false
+  });
+}
+
+export function restablecer(token, password) {
+  return api('/auth/restablecer', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+    manejarSesion: false
+  });
+}

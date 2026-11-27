@@ -7,6 +7,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import TiendaPage from './pages/TiendaPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import RecuperarPage from './pages/RecuperarPage';
+import RestablecerPage from './pages/RestablecerPage';
 import AdminInicioPage from './pages/admin/AdminInicioPage';
 import UsuariosPage from './pages/admin/UsuariosPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
@@ -37,6 +39,8 @@ export function AppRutas() {
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/registro" element={<RegisterPage />} />
+            <Route path="/recuperar" element={<RecuperarPage />} />
+            <Route path="/restablecer" element={<RestablecerPage />} />
           </Route>
 
           {/* Privadas: la navbar (PanelLayout) se ve también en "Verificando…" y "No autorizado" */}
