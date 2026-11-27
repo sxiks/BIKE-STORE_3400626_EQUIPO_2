@@ -31,12 +31,15 @@ npm run build      # versión de producción en dist/
 | `/login`, `/registro` | Pública (no admin) | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
 | `/recuperar` | Pública (no admin) | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
 | `/restablecer?token=...` | Pública (no admin) | Crea la contraseña nueva con el token del enlace (CU-11) |
-| `/admin` | Solo `admin` | Panel de administración: tarjetas de las secciones (el tablero llega en F4.1) |
+| `/admin` | Solo `admin` | Panel de administración: tarjetas de las secciones |
 | `/admin/usuarios` | Solo `admin` | Buscar usuarios y cambiar su rol o su estado (CU-19 a CU-21) |
 | `/admin/productos` | Solo `admin` | Buscar productos (incluye los inactivos) por nombre, categoría y estado; activarlos o inactivarlos (CU-14, CU-15) |
 | `/admin/productos/nuevo` | Solo `admin` | Crear un producto con su imagen (CU-12) |
 | `/admin/productos/:id` | Solo `admin` | Editar un producto: solo se envían los campos que cambian, y la imagen solo si se elige otra (CU-13). Debajo: la galería (agregar, quitar, hacer portada y ordenar arrastrando; se guarda al momento) y "Eliminar producto" (solo si nunca se usó) |
 | `/admin/categorias` | Solo `admin` | Crear, renombrar y eliminar categorías sin productos (decisión M) |
+| `/admin/pedidos?q=&estado=&desde=&hasta=` | Solo `admin` | Pedidos de todos los clientes (decisión N): buscar por número, cliente o correo y filtrar por estado y fechas. Los filtros van en la URL; el tablero enlaza aquí ya filtrado |
+| `/admin/pedidos/:numero` | Solo `admin` | Detalle de solo lectura del pedido (productos, envío y pagos). "Volver" conserva los filtros del listado |
+| `/admin/dashboard?desde=&hasta=&categoria=` | Solo `admin` | Tablero (F4.1, CU-16 y CU-17): métricas, gráfica y tabla de los más vendidos, y alertas. Exporta el informe en Excel y PDF con los filtros aplicados (F4.2, CU-18) |
 | `/cuenta` | Solo `cliente` | Mi cuenta, con el enlace a "Mis pedidos" |
 | `/cuenta/pedidos` | Solo `cliente` | Mis pedidos: número, fecha (hora del navegador), estado y total, del más reciente al más antiguo (F3.2) |
 | `/cuenta/pedidos/:numero` | Solo `cliente` | Detalle del pedido: productos al precio con que se confirmó (R3), envío y cada intento de pago (medio, últimos 4 dígitos, estado). Si está pendiente o rechazado muestra "Pagar". También es la confirmación después de pagar ("¡Gracias por tu compra!") |
@@ -71,6 +74,7 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
   - Tipografía Inter, cargada desde Google Fonts en `index.html`.
 - Pruebas de la tienda: simulan `services/productos.service.js` con `test/fixtures/catalogo.js`, que tiene los productos de la semilla con la forma de la API. Las pruebas no escriben nombres ni precios a mano: eligen productos con sus selectores (`conStockMinimo`, `conPocoStock`, `masCaroDisponible`…). Si la semilla cambia o crece, solo se actualiza ese archivo. Las pruebas del panel de productos (`test/productos-admin.test.jsx`) usan el mismo archivo: `catalogoAdmin`, `productoPorId`, `unActivo` y `unInactivo`.
 - Arrastrar y soltar (galería de productos): [dnd-kit](https://dndkit.com) (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`). Funciona con mouse, pantalla táctil y teclado; los anuncios para el lector de pantalla están en español en `GaleriaProducto.jsx`. jsdom no tiene medidas de pantalla, así que en las pruebas se reordena con los botones de mover.
+- Gráficas (tablero): [recharts](https://recharts.org), junto con `react-is` en la misma versión de React (lo pide recharts para reconocer sus componentes). La página del tablero se carga aparte con `React.lazy`, así que recharts no pesa en la tienda. La gráfica es solo visual (`aria-hidden`): los mismos datos están en una tabla. En las pruebas, `ResponsiveContainer` se reemplaza por un contenedor de tamaño fijo, porque jsdom no mide la pantalla.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Carrito (F3.1, decisión D1)

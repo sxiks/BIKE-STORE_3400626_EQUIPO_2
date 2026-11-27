@@ -55,8 +55,6 @@
 }
 a.barra-admin__enlace:hover { color: var(--color-texto); background: var(--color-superficie-2); }
 .barra-admin__enlace--activo { color: var(--color-texto); background: var(--color-superficie-2); font-weight: 600; }
-.barra-admin__enlace--pronto { color: var(--color-texto-tenue); cursor: default; }
-.barra-admin__sprint { margin-left: auto; font-size: 11px; color: var(--color-texto-tenue); }
 
 .barra-admin__pie { margin-top: auto; display: flex; flex-direction: column; gap: var(--espacio-2); }
 .barra-admin__tema {

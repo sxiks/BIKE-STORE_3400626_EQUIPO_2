@@ -128,7 +128,7 @@ function desdeFormData(base, datos) {
 }
 
 // Error con la forma de ApiError (sin importar services/api.js, para no cargar la app en el fixture).
-function errorApi(message, status, code, data) {
+export function errorApi(message, status, code, data) {
   return Object.assign(new Error(message), { name: "ApiError", status, code: code ?? null, data: data ?? null });
 }
 

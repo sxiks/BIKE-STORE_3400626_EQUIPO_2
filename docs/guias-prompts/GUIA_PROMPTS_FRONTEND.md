@@ -57,8 +57,8 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 3 ✅ | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
 | 3 ✅ | [F3.2 Mis pedidos y detalle](#f32--mis-pedidos-y-detalle-del-pedido) | `feature/front-mis-pedidos` | 08 | F1.2 |
 | 3 ✅ | [F3.3 Checkout y pago](#f33--checkout-y-pago-simulado) | `feature/front-checkout` | 07, 08 | F3.1, F3.2 |
-| 4 | [F4.1 Tablero](#f41--tablero-de-control-admin) | `feature/front-dashboard` | 16, 17 | F1.2 |
-| 4 | [F4.2 Exportar informes](#f42--exportar-informes) | `feature/front-exportar-informes` | 18 | F4.1 y la tarea B4.1 del backend |
+| 4 ✅ | [F4.1 Tablero](#f41--tablero-de-control-admin) | `feature/front-dashboard` (junto con F4.2 y los pedidos del admin) | 16, 17 | F1.2 |
+| 4 ✅ | [F4.2 Exportar informes](#f42--exportar-informes) | `feature/front-dashboard` (junto con F4.1) | 18 | F4.1 y la tarea B4.1 del backend |
 
 Todos los prompts de esta sección terminan con el mismo **bloque de cierre**: explicación de cómo, por qué y para qué se hizo, cómo probarlo y pasos para el PR. Está incluido en cada uno para que se copien completos.
 
@@ -388,6 +388,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### F4.1 · Tablero de control (admin)
 
+> ✅ **Hecha** (en un solo PR con F4.2 y las pantallas de pedidos del admin, decisión N). Resultado: `pages/admin/DashboardPage.jsx` (cargada con `React.lazy`), `components/FiltrosTablero.jsx` (filtros en la URL, atajos "Este mes" y "Últimos 30 días"), `GraficaMasVendidos.jsx` (recharts) y `AlertasTablero.jsx`, `services/dashboard.service.js` y `utils/fechas.js`. Pedidos del admin: `pages/admin/PedidosAdminPage.jsx` y `PedidoAdminPage.jsx`, con `components/DetallePedido.jsx` y `hooks/usePedido.js` compartidos con el detalle del cliente. Pruebas en `tablero.test.jsx`, `pedidos-admin.test.jsx` y `servicios-tablero.test.js` con `fixtures/tablero.js`. Este prompt queda como referencia.
+
 ```
 TAREA F4.1 · Sprint 4 · CU-16, CU-17 · Rama: feature/front-dashboard (ya creada desde develop actualizado; si no, dame primero los comandos).
 
@@ -414,6 +416,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F4.2 · Exportar informes
+
+> ✅ **Hecha** (en un solo PR con F4.1). Resultado: `apiArchivo` en `services/api.js` (misma sesión y errores que `api`, pero devuelve `{ blob, nombre }` con el nombre de `Content-Disposition`), `descargarInforme` en `services/dashboard.service.js` y `utils/descarga.js` (URL temporal + enlace con `download`). Este prompt queda como referencia.
 
 ```
 TAREA F4.2 · Sprint 4 · CU-18 · Rama: feature/front-exportar-informes (ya creada desde develop actualizado; si no, dame primero los comandos).
