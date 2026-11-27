@@ -8,7 +8,8 @@ const PG_ERRORES = {
   23505: { status: 409, message: 'El registro ya existe' },
   23503: { status: 409, message: 'La operación viola una relación con otro registro' },
   23514: { status: 400, message: 'Los datos no cumplen las reglas de validación' },
-  '22P02': { status: 400, message: 'Formato de dato inválido' }
+  '22P02': { status: 400, message: 'Formato de dato inválido' },
+  22003: { status: 400, message: 'Un valor numérico está fuera del rango permitido' }
 };
 
 function errorHandler(error, req, res, next) {
@@ -26,6 +27,11 @@ function errorHandler(error, req, res, next) {
 
   if (error.type === 'entity.parse.failed') {
     return res.status(400).json({ ok: false, message: 'El cuerpo de la solicitud no es JSON válido' });
+  }
+
+  // express.json({ limit: '100kb' }) rechaza cuerpos más grandes con este tipo (H-05).
+  if (error.type === 'entity.too.large') {
+    return res.status(413).json({ ok: false, message: 'El cuerpo de la solicitud supera el tamaño permitido (100 kB)' });
   }
 
   const pg = PG_ERRORES[error.code];
