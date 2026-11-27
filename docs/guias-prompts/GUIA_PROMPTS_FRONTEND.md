@@ -52,7 +52,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 1 ✅ | [F1.4 Panel de usuarios](#f14--panel-de-usuarios-admin) | `feature/front-panel-usuarios` | 19, 20, 21 | F1.2 |
 | 1 ✅ | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) (adelantada al Sprint 1) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
 | 2 ✅ | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
-| 2 | [F2.3 Panel de productos](#f23--panel-de-productos-admin) | `feature/front-admin-productos` | 12–15 | F1.2, F2.1 |
+| 2 ✅ | [F2.3 Panel de productos](#f23--panel-de-productos-admin) | `feature/front-admin-productos` | 12–15 | F1.2, F2.1 |
 | 3 | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
 | 3 | [F3.2 Mis pedidos y detalle](#f32--mis-pedidos-y-detalle-del-pedido) | `feature/front-mis-pedidos` | 08 | F1.2 |
 | 3 | [F3.3 Checkout y pago](#f33--checkout-y-pago-simulado) | `feature/front-checkout` | 07, 08 | F3.1, F3.2 |
@@ -259,7 +259,7 @@ ARCHIVOS PROBABLES: pages/admin/ProductosPage.jsx, pages/admin/ProductoFormPage.
 
 CRITERIOS DE ACEPTACIÓN: crear con imagen, editar sin cambiar la imagen, editar cambiándola e inactivar funcionan contra la API local; pruebas con services mockeados; npm test y npm run build pasan.
 
-FUERA DE ALCANCE: administrar categorías (no está en los requerimientos).
+FUERA DE ALCANCE: administrar categorías, eliminar productos y varias imágenes por producto. Se decidió hacerlos después, en B2.2 (backend) y F2.4 (frontend), cada uno con su plan.
 
 AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 1. EXPLICACIÓN: para cada archivo creado o modificado, cómo se hizo, por qué se hizo así (y qué alternativa se descartó, si la hubo) y para qué sirve dentro del proyecto. Directo y al grano, pero sin omitir ningún concepto ni término técnico importante; si usas uno que no esté en docs/GLOSARIO.md, defínelo en una línea.

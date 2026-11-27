@@ -135,6 +135,9 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="ruta-protegida"></a>**Ruta protegida:** página que solo se muestra con sesión iniciada o con un rol concreto, mediante `<ProtectedRoute roles={['admin']} />`. Sin sesión lleva a `/login` y con otro rol muestra "No autorizado". No reemplaza la seguridad del backend.
 - <a name="apierror"></a>**ApiError:** error que lanza `services/api.js` cuando la API responde con fallo. Trae `message`, `status` (código HTTP), `code` y `data`, para que cada pantalla reaccione según el `code`.
 - <a name="fetch"></a>**fetch:** función del navegador para hacer peticiones HTTP. En el proyecto solo se usa dentro de `services/api.js`.
+- <a name="formdata"></a>**FormData:** objeto del navegador que arma un cuerpo [`multipart/form-data`](#multipart) con campos y archivos. El formulario de productos lo usa para enviar la imagen junto con los datos.
+- <a name="vista-previa"></a>**Vista previa (`URL.createObjectURL`):** URL temporal que el navegador crea para un archivo elegido, sin subirlo, para mostrarlo en pantalla. Se libera con `URL.revokeObjectURL` cuando ya no se usa.
+- <a name="debounce"></a>**Debounce (retraso):** esperar a que el usuario deje de escribir (350 ms en el proyecto, `hooks/useDebounce.js`) antes de llamar a la API, en lugar de llamarla en cada tecla.
 - <a name="localstorage"></a>**localStorage:** almacenamiento del navegador donde el frontend guarda la sesión.
 - <a name="toast"></a>**Toast:** mensaje emergente breve en una esquina de la pantalla (éxito, error o aviso).
 - <a name="mock"></a>**Mock (datos simulados):** datos falsos con la misma forma que la API real, para trabajar sin backend.

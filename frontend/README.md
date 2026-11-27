@@ -30,8 +30,11 @@ npm run build      # versión de producción en dist/
 | `/login`, `/registro` | Pública (no admin) | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
 | `/recuperar` | Pública (no admin) | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
 | `/restablecer?token=...` | Pública (no admin) | Crea la contraseña nueva con el token del enlace (CU-11) |
-| `/admin` | Solo `admin` | Panel de administración (inicio provisional: las secciones llegan en F2.3 y F4.1) |
+| `/admin` | Solo `admin` | Panel de administración: tarjetas de las secciones (el tablero llega en F4.1) |
 | `/admin/usuarios` | Solo `admin` | Buscar usuarios y cambiar su rol o su estado (CU-19 a CU-21) |
+| `/admin/productos` | Solo `admin` | Buscar productos (incluye los inactivos) por nombre, categoría y estado; activarlos o inactivarlos (CU-14, CU-15) |
+| `/admin/productos/nuevo` | Solo `admin` | Crear un producto con su imagen (CU-12) |
+| `/admin/productos/:id` | Solo `admin` | Editar un producto: solo se envían los campos que cambian, y la imagen solo si se elige otra (CU-13) |
 | `/cuenta` | Solo `cliente` | Mi cuenta (inicio provisional: "Mis pedidos" llega en F3.2) |
 
 Estructura (rediseño):
@@ -58,9 +61,9 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
   - Texto sobre un fondo de color: usa la variable `--color-sobre-…` de ese fondo (`--color-sobre-primario`, `--color-sobre-acento`, `--color-sobre-error`), nunca `#ffffff`. Enlaces: `--color-enlace`.
   - El tema lo maneja `context/TemaContext.jsx` (`useTema()` → `tema`, `alternarTema`) y lo cambia `components/BotonTema.jsx`. Se guarda en `localStorage` (`bikestore_tema`); `index.html` lo aplica antes de que React arranque para evitar un destello del otro tema.
   - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento|destacado`, `.alerta--error` y `.solo-lector`.
-  - Cada vista tiene su `.css` con clases BEM propias: `barra-cliente.css`, `barra-admin.css`, `toast.css`, `tienda.css`, `auth.css`, `panel.css`, `usuarios.css` y `dialogo.css`.
+  - Cada vista tiene su `.css` con clases BEM propias: `barra-cliente.css`, `barra-admin.css`, `toast.css`, `tienda.css`, `auth.css`, `panel.css`, `usuarios.css`, `productos.css` y `dialogo.css`. Los botones segmentados de los filtros son el componente `Segmentado.jsx` (con `segmentado.css`), compartido por usuarios y productos.
   - Tipografía Inter, cargada desde Google Fonts en `index.html`.
-- Pruebas de la tienda: simulan `services/productos.service.js` con `test/fixtures/catalogo.js`, que tiene los productos de la semilla con la forma de la API. Las pruebas no escriben nombres ni precios a mano: eligen productos con sus selectores (`conStockMinimo`, `conPocoStock`, `masCaroDisponible`…). Si la semilla cambia o crece, solo se actualiza ese archivo.
+- Pruebas de la tienda: simulan `services/productos.service.js` con `test/fixtures/catalogo.js`, que tiene los productos de la semilla con la forma de la API. Las pruebas no escriben nombres ni precios a mano: eligen productos con sus selectores (`conStockMinimo`, `conPocoStock`, `masCaroDisponible`…). Si la semilla cambia o crece, solo se actualiza ese archivo. Las pruebas del panel de productos (`test/productos-admin.test.jsx`) usan el mismo archivo: `catalogoAdmin`, `productoPorId`, `unActivo` y `unInactivo`.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Flujo de sesión
