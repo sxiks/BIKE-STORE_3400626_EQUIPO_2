@@ -10,7 +10,7 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "node --watch server.js",
     "start": "node server.js",
     "test:db": "node scripts/preparar-db-test.js",
     "test": "vitest run",
@@ -26,7 +26,6 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
     "supertest": "^7.3.2",
     "vitest": "^5.1.2"
   }
