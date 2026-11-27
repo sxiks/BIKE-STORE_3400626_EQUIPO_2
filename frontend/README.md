@@ -28,7 +28,10 @@ npm run build      # versión de producción en dist/
 |------|--------|-------|
 | `/` | Pública | Tienda: catálogo + carrito (aún con datos simulados en `src/data/productos.js`) |
 | `/login`, `/registro` | Pública | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
-| `/admin` | Solo `admin` | Panel de administración (inicio provisional: las secciones llegan en F1.4, F2.3 y F4.1) |
+| `/recuperar` | Pública | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
+| `/restablecer?token=...` | Pública | Crea la contraseña nueva con el token del enlace (CU-11) |
+| `/admin` | Solo `admin` | Panel de administración (inicio provisional: las secciones llegan en F2.3 y F4.1) |
+| `/admin/usuarios` | Solo `admin` | Buscar usuarios y cambiar su rol o su estado (CU-19 a CU-21) |
 | `/cuenta` | Solo `cliente` | Mi cuenta (inicio provisional: "Mis pedidos" llega en F3.2) |
 
 Las rutas privadas usan `components/ProtectedRoute.jsx` (`<ProtectedRoute roles={['admin']} />`):
