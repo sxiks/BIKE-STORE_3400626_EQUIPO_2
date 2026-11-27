@@ -87,8 +87,8 @@ grep -rn "middlewares" backend/src/services
 | Usuarios (admin) | `/api/usuarios` | `usuarios.services` | `usuarios` | 19, 20, 21 |
 | Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services`, `categorias.services` | `categorias`, `productos`, `producto_imagenes` (galería, decisión M) | 01, 02, 12–15 |
 | Carrito | `/api/carrito` | `carrito.services` | `pedidos` (el carrito es un pedido en estado `carrito`, D12), `productos` | 03–07 |
-| Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos` | 07, 08 |
-| Tablero | `/api/dashboard` | `dashboard.services` | `dashboard` | 16, 17 (18 pendiente) |
+| Pedidos y pagos | `/api/pedidos` (incluye `/api/pedidos/admin`, decisión N) | `pedidos.services` | `pedidos`, `pagos`, `productos` | 07, 08 |
+| Tablero | `/api/dashboard` | `dashboard.services` (el informe se arma en `utils/informe/`, D11) | `dashboard`, `categorias` | 16, 17, 18 |
 
 ## 5. Convenciones del frontend
 
@@ -114,11 +114,9 @@ grep -rn "middlewares" backend/src/services
 
 | Tema | Situación | Se resuelve en |
 |------|-----------|----------------|
-| El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
 | Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
 | Versiones mayores nuevas de dependencias, sin vulnerabilidades: Vite 8, `@vitejs/plugin-react` 6, `@testing-library/jest-dom` 8 (frontend) y `dotenv` 18 (backend) | `npm audit` en 0; se actualizan cuando haga falta, cada una en su propio PR porque pueden traer cambios incompatibles | Sin sprint fijo |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Pruebas automatizadas del backend incompletas | 209 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), el carrito como pedido con su concurrencia (D12), catálogo, productos e imágenes (B2.1), categorías, eliminación de productos y galería (B2.2), y carrito, pedidos y pago con su concurrencia (B3.1, B3.2). Falta la cobertura completa del tablero; para él sigue valiendo la verificación manual | Sprint 4: [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
 
 **Resuelto en el Sprint 1:**
 - Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.
