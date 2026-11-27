@@ -26,20 +26,24 @@ npm run build      # versión de producción en dist/
 
 | Ruta | Acceso | Vista |
 |------|--------|-------|
-| `/` | Pública | Tienda: catálogo + carrito (aún con datos simulados en `src/data/productos.js`) |
-| `/login`, `/registro` | Pública | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
-| `/recuperar` | Pública | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
-| `/restablecer?token=...` | Pública | Crea la contraseña nueva con el token del enlace (CU-11) |
+| `/` | Pública (no admin) | Tienda: producto destacado, búsqueda, catálogo y carrito (aún con datos simulados en `src/data/productos.js`) |
+| `/login`, `/registro` | Pública (no admin) | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
+| `/recuperar` | Pública (no admin) | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
+| `/restablecer?token=...` | Pública (no admin) | Crea la contraseña nueva con el token del enlace (CU-11) |
 | `/admin` | Solo `admin` | Panel de administración (inicio provisional: las secciones llegan en F2.3 y F4.1) |
 | `/admin/usuarios` | Solo `admin` | Buscar usuarios y cambiar su rol o su estado (CU-19 a CU-21) |
 | `/cuenta` | Solo `cliente` | Mi cuenta (inicio provisional: "Mis pedidos" llega en F3.2) |
 
+Estructura (rediseño):
+- **Cliente y público:** barra superior `components/BarraCliente.jsx`. La tienda la usa directamente (le pasa el carrito y la búsqueda); las páginas de acceso y Mi cuenta van dentro de `ClienteLayout`.
+- **Administrador:** `components/AdminLayout.jsx`, con la barra lateral `BarraAdmin.jsx` (en pantallas angostas pasa arriba, con el botón "Abrir menú"). **El admin solo ve su panel:** `components/SinAdmin.jsx` envuelve las rutas del cliente y lo lleva a `/admin`, y al iniciar sesión siempre termina en `/admin`. "(no admin)" en la tabla significa esto.
+
 Las rutas privadas usan `components/ProtectedRoute.jsx` (`<ProtectedRoute roles={['admin']} />`):
 - mientras se valida la sesión muestra "Verificando sesión…";
 - sin sesión lleva a `/login`;
-- con otro rol muestra "No autorizado" en la misma URL.
+- con otro rol muestra "No autorizado" en la misma URL (en la práctica, un cliente que abre `/admin`).
 
-Para agregar una página privada, ponla dentro del grupo de su rol en `App.jsx`.
+Para agregar una página privada, ponla dentro del grupo de su rol en `App.jsx`. Si es de admin, convierte también su sección de `BarraAdmin.jsx` en enlace (campo `ruta`).
 
 Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar contraseña, secciones de los paneles) se construyen por sprints: [ROADMAP](../docs/ROADMAP.md). El backend de todas ya existe: [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
 
@@ -48,13 +52,13 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 - Los componentes no hacen `fetch`: todo pasa por `src/services/`, y `api.js` agrega el token Bearer.
 - La API responde `{ ok, data, message, code }`: los datos se leen en `respuesta.data`. Los errores llegan como `ApiError` (`message`, `status`, `code`, `data`) y se manejan por `code`.
 - Proveedores globales en `App.jsx`, en este orden: Router → `TemaProvider` → `ToastProvider` → `AuthProvider`. Los mensajes al usuario van con `useToast().mostrar()`, nunca con `alert()`.
-- Una sola barra de navegación: `components/Navbar.jsx`. El carrito solo aparece cuando la página le pasa la prop `carrito`.
+- Dos barras, una por tipo de usuario: `BarraCliente.jsx` (superior) y `BarraAdmin.jsx` (lateral). El carrito y la búsqueda solo aparecen cuando la tienda se los pasa a `BarraCliente` (`carrito`, `busqueda`); el carrito siempre es el último elemento a la derecha (pruebas del instructor).
 - **Sistema de diseño "Noche"**, con tema oscuro (por defecto) y claro:
   - `assets/tokens.css` es la única fuente de colores, tipografía, espacios, radios y sombras. Tiene un bloque por tema (`:root[data-tema="oscuro"]` y `:root[data-tema="claro"]`) con **los mismos nombres de variables**. Nunca escribas un color a mano: usa `var(--…)`, y el componente funcionará en los dos temas.
   - Texto sobre un fondo de color: usa la variable `--color-sobre-…` de ese fondo (`--color-sobre-primario`, `--color-sobre-acento`, `--color-sobre-error`), nunca `#ffffff`. Enlaces: `--color-enlace`.
   - El tema lo maneja `context/TemaContext.jsx` (`useTema()` → `tema`, `alternarTema`) y lo cambia `components/BotonTema.jsx`. Se guarda en `localStorage` (`bikestore_tema`); `index.html` lo aplica antes de que React arranque para evitar un destello del otro tema.
   - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento|destacado`, `.alerta--error` y `.solo-lector`.
-  - Cada vista tiene su `.css` con clases BEM propias: `navbar.css`, `toast.css`, `tienda.css`, `auth.css` y `panel.css`.
+  - Cada vista tiene su `.css` con clases BEM propias: `barra-cliente.css`, `barra-admin.css`, `toast.css`, `tienda.css`, `auth.css`, `panel.css`, `usuarios.css` y `dialogo.css`.
   - Tipografía Inter, cargada desde Google Fonts en `index.html`.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 

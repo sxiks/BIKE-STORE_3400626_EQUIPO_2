@@ -126,6 +126,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="react"></a>**React:** librería con la que se construye la interfaz a partir de componentes.
 - <a name="vite"></a>**Vite:** herramienta que arranca el frontend en desarrollo (`npm run dev`) y genera la versión de producción (`npm run build`).
 - <a name="componente"></a>**Componente:** pieza reutilizable de la interfaz, como una tarjeta de producto. Recibe datos por *props*.
+- <a name="layout"></a>**Layout:** componente que pone la estructura común de un grupo de pantallas (barras, márgenes) y muestra la página del momento en su `<Outlet />`. En el proyecto: `ClienteLayout` (barra superior) y `AdminLayout` (barra lateral).
 - <a name="props"></a>**Props:** datos que un componente recibe de quien lo usa.
 - <a name="pagina"></a>**Página (page):** componente que representa una pantalla completa asociada a una ruta, como `/login`.
 - <a name="contexto"></a>**Contexto (React Context):** estado compartido por muchos componentes, como la sesión (`AuthContext`) o el carrito (`CarritoContext`).

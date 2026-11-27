@@ -101,13 +101,14 @@ grep -rn "middlewares" backend/src/services
 | `services/` | Único lugar que llama a la API. `api.js` agrega el token Bearer, lanza `ApiError` (`message`, `status`, `code`, `data`) y avisa al `AuthContext` cuando una petición con token recibe 401 o 403 `CUENTA_DESACTIVADA`. |
 | `utils/` | Funciones puras (`formatoCOP`, `urlImagen`, `localStorage`). |
 | `data/` | Datos simulados mientras se conecta la API real. |
-| `assets/` | Sistema de diseño "Noche": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras, con un bloque por tema: oscuro y claro), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`navbar`, `toast`, `tienda`, `auth`, `panel`). |
+| `assets/` | Sistema de diseño "Noche": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras, con un bloque por tema: oscuro y claro), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`barra-cliente`, `barra-admin`, `toast`, `tienda`, `auth`, `panel`, `usuarios`, `dialogo`). |
 | `test/` | Pruebas con Vitest y Testing Library. |
 
 - Un componente **nunca** llama a `fetch` directamente: usa una función de `services/`.
 - Las URLs del backend salen de `config/env.js` (`VITE_API_URL`); nunca se escriben a mano.
 - Las respuestas se leen como `respuesta.data`. Los errores llegan como `ApiError` y se manejan por su `code` (ver contratos), nunca comparando textos.
 - Las secciones privadas usan `components/ProtectedRoute.jsx` con roles: `/admin` solo `admin` y `/cuenta` solo `cliente`. Ocultar o proteger una pantalla no es seguridad: el backend valida el rol en cada petición.
+- Dos estructuras de pantalla (rediseño): el cliente y el público usan la barra superior `BarraCliente` (`ClienteLayout`); el admin usa `AdminLayout` con la barra lateral `BarraAdmin` y solo ve su panel (`SinAdmin` lo redirige a `/admin` desde cualquier ruta del cliente).
 - Ningún `.css` escribe colores a mano: todo sale de `var(--…)` en `tokens.css`.
 
 ## 6. Estado actual (deuda técnica conocida)

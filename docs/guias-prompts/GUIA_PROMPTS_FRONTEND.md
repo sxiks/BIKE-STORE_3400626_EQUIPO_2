@@ -31,6 +31,7 @@ Reglas del frontend que debes respetar:
 - URL base desde config/env.js (VITE_API_URL). Nada de URLs a mano.
 - Mensajes al usuario con ToastContext (mostrar), nunca alert() ni confirm().
 - Sistema de diseño "Noche" con tema oscuro y claro: colores, tipografía (Inter), espacios, radios y sombras SOLO con las variables de assets/tokens.css (nunca un color a mano; texto sobre un fondo de color con su --color-sobre-…). Todo debe verse bien en los dos temas. Reutiliza las clases de assets/base.css (.contenedor, .btn + .btn--primario/--suave/--acento/--peligro, .icono-btn, .campo, .input, .tarjeta, .etiqueta--exito/--aviso/--error, .alerta--error, .solo-lector) y crea clases BEM propias por componente en su .css.
+- Estructura (rediseño): el cliente y las páginas públicas usan components/BarraCliente.jsx (ClienteLayout); el admin usa components/AdminLayout.jsx con la barra lateral BarraAdmin.jsx y solo ve su panel (SinAdmin lo lleva a /admin). Una página nueva de admin va dentro del grupo ProtectedRoute(admin) → AdminLayout en App.jsx, y su sección de BarraAdmin pasa de "Sprint N" a enlace (campo `ruta`).
 - Solo trabajo dentro de frontend/. No propongas cambios en backend/ ni database/: si algo falta en la API, ayúdame a redactar el pedido para el Dev Backend.
 - El flujo de trabajo es el de CONTRIBUTING.md: una rama por tarea desde develop, commits con Conventional Commits, PR hacia develop con la plantilla .github/pull_request_template.md y 1 aprobación.
 Adjunto: docs/diseno-tecnico/ARQUITECTURA.md, docs/diseno-tecnico/API_CONTRATOS.md, CONTRIBUTING.md, frontend/src/assets/tokens.css, frontend/src/assets/base.css y los archivos que voy a tocar.
@@ -62,7 +63,7 @@ Todos los prompts de esta sección terminan con el mismo **bloque de cierre**: e
 
 ### F1.1 · Sesión y navbar unificada
 
-> ✅ **Hecha.** Resultado: `components/Navbar.jsx`, `AuthContext` (con `isAdmin` y `verificando`) y `ApiError` en `services/api.js`. Este prompt queda como referencia.
+> ✅ **Hecha.** Resultado: `components/Navbar.jsx` (después reemplazado por `BarraCliente` y `BarraAdmin` en el rediseño), `AuthContext` (con `isAdmin` y `verificando`) y `ApiError` en `services/api.js`. Este prompt queda como referencia.
 
 ```
 TAREA F1.1 · Sprint 1 · CU-10, CU-22 · Rama: feature/front-navbar-sesion (ya creada desde develop actualizado; si no, dame primero los comandos).
@@ -95,7 +96,7 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### F1.2 · Rutas protegidas por rol
 
-> ✅ **Hecha.** Resultado: `ProtectedRoute` con roles, grupos `/admin` y `/cuenta` en `App.jsx` y `PanelLayout`. Las páginas nuevas de admin o de cliente se agregan dentro de su grupo. Este prompt queda como referencia.
+> ✅ **Hecha.** Resultado: `ProtectedRoute` con roles, grupos `/admin` y `/cuenta` en `App.jsx` y `PanelLayout`. Las páginas nuevas de admin o de cliente se agregan dentro de su grupo. Después, el rediseño reemplazó `PanelLayout` por `AdminLayout` (admin) y `ClienteLayout` (cliente). Este prompt queda como referencia.
 
 ```
 TAREA F1.2 · Sprint 1 · CU-22 · Rama: feature/front-rutas-por-rol (ya creada desde develop actualizado; si no, dame primero los comandos).
@@ -244,7 +245,7 @@ TAREA F2.3 · Sprint 2 · CU-12, CU-13, CU-14, CU-15 · Rama: feature/front-admi
 OBJETIVO: página /admin/productos para listar, crear, editar e inactivar productos.
 
 ESPECIFICACIONES:
-- Ruta solo para admin (ProtectedRoute de F1.2).
+- Ruta solo para admin, dentro de AdminLayout en App.jsx. En components/BarraAdmin.jsx, la sección "Productos" pasa de "Sprint 2" a enlace (ruta: '/admin/productos').
 - Listado con GET /productos/admin?q=&categoria=&estado= (incluye inactivos): buscador por nombre y filtros por categoría y estado. Columnas: nombre, categoría, precio, existencias, estado y acciones.
 - Crear con POST /productos (multipart/form-data, FormData con el campo `imagen`): nombre, descripción (opcional), precio > 0, existencias (entero ≥ 0), categoría e imagen obligatoria (jpg, png o webp de hasta 2 MB), validados en el formulario.
 - Editar con GET /productos/admin/:id y PUT /productos/:id: actualización parcial; la imagen solo se envía si se elige una nueva.
@@ -252,7 +253,7 @@ ESPECIFICACIONES:
 - Errores: code PRODUCTO_DUPLICADO marca el campo nombre; mostrar los mensajes de imagen inválida o demasiado grande.
 - Contratos: sección "Catálogo y productos" de API_CONTRATOS.md (adjunto).
 
-ARCHIVOS PROBABLES: pages/admin/ProductosPage.jsx, pages/admin/ProductoFormPage.jsx, components/, services/productos.service.js, App.jsx, test/.
+ARCHIVOS PROBABLES: pages/admin/ProductosPage.jsx, pages/admin/ProductoFormPage.jsx, components/, components/BarraAdmin.jsx, services/productos.service.js, App.jsx, test/.
 
 CRITERIOS DE ACEPTACIÓN: crear con imagen, editar sin cambiar la imagen, editar cambiándola e inactivar funcionan contra la API local; pruebas con services mockeados; npm test y npm run build pasan.
 
@@ -357,14 +358,14 @@ TAREA F4.1 · Sprint 4 · CU-16, CU-17 · Rama: feature/front-dashboard (ya crea
 OBJETIVO: página /admin/dashboard con las métricas de ventas y las alertas operativas.
 
 ESPECIFICACIONES:
-- Ruta solo para admin.
+- Ruta solo para admin, dentro de AdminLayout en App.jsx. En components/BarraAdmin.jsx, la sección "Tablero" pasa de "Sprint 4" a enlace (ruta: '/admin/dashboard').
 - Filtros: rango de fechas (desde y hasta, formato AAAA-MM-DD) y categoría (GET /categorias). Validar en el formulario que desde ≤ hasta.
 - GET /dashboard/metricas?desde=&hasta=&categoria=: tarjetas con ventas totales (COP), cantidad de pedidos y unidades vendidas, y tabla de los 5 más vendidos.
 - GET /dashboard/alertas: stock bajo (mostrar el umbral), agotados, productos inactivos dentro de carritos, pedidos pendientes y fallidos (con fecha_pedido).
 - Estados de carga, error y "sin ventas en el periodo".
 - Contratos: sección "Tablero · admin" de API_CONTRATOS.md (adjunto).
 
-ARCHIVOS PROBABLES: pages/admin/DashboardPage.jsx, components/ (tarjetas, tablas, filtros), services/dashboard.service.js, test/.
+ARCHIVOS PROBABLES: pages/admin/DashboardPage.jsx, components/ (tarjetas, tablas, filtros), components/BarraAdmin.jsx, services/dashboard.service.js, App.jsx, test/.
 
 CRITERIOS DE ACEPTACIÓN: las cifras coinciden con las de la API para el mismo filtro; npm test y npm run build pasan.
 
