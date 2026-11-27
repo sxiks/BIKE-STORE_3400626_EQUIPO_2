@@ -112,6 +112,63 @@ export function validarProducto(
   });
 }
 
+// ---------- Checkout (F3.3 · CU-07, CU-08) ----------
+// Mismas longitudes que pedidos.services.js del backend (validarEnvio y validarPago).
+
+const ENVIO_MAX = { envio_nombre: 100, envio_telefono: 20, envio_departamento: 100, envio_ciudad: 100, envio_direccion: 255 };
+const ENVIO_VACIO = {
+  envio_nombre: 'Escribe el nombre de quien recibe',
+  envio_telefono: 'Escribe un teléfono de contacto',
+  envio_departamento: 'Elige el departamento',
+  envio_ciudad: 'Escribe la ciudad o el municipio',
+  envio_direccion: 'Escribe la dirección de entrega'
+};
+
+// Datos de envío: { campo: mensaje } solo con los que fallan. El teléfono admite dígitos, espacios, + y -,
+// con al menos 7 dígitos (el backend solo exige texto de hasta 20 caracteres: aquí se ayuda a escribirlo bien).
+export function validarEnvio(envio = {}) {
+  return soloErrores(
+    Object.fromEntries(
+      Object.keys(ENVIO_MAX).map((campo) => {
+        const valor = String(envio[campo] ?? '').trim();
+        if (!valor) return [campo, ENVIO_VACIO[campo]];
+        if (valor.length > ENVIO_MAX[campo]) return [campo, `Admite máximo ${ENVIO_MAX[campo]} caracteres`];
+        if (campo === 'envio_telefono' && (!/^[\d\s+-]+$/.test(valor) || valor.replace(/\D/g, '').length < 7)) {
+          return [campo, 'El teléfono debe tener al menos 7 dígitos (puede llevar espacios, + o -)'];
+        }
+        return [campo, null];
+      })
+    )
+  );
+}
+
+export const MEDIOS_PAGO = [
+  { valor: 'tarjeta_credito', texto: 'Tarjeta de crédito' },
+  { valor: 'tarjeta_debito', texto: 'Tarjeta de débito' },
+  { valor: 'cuenta_bancaria', texto: 'Cuenta bancaria' }
+];
+
+// Solo los dígitos del número (se ignoran espacios y guiones, como en el backend).
+export const digitosPago = (numero = '') => String(numero).replace(/[\s-]/g, '');
+// "•••• 1111": lo único que se muestra del número.
+export const enmascararNumero = (numero = '') => `•••• ${digitosPago(numero).slice(-4)}`;
+
+// Pago: { campo: mensaje }. Tarjetas de 13 a 19 dígitos; cuenta bancaria de 6 a 20.
+export function validarPago({ medio_pago = '', numero = '' } = {}) {
+  const digitos = digitosPago(numero);
+  const [min, max] = medio_pago === 'cuenta_bancaria' ? [6, 20] : [13, 19];
+  return soloErrores({
+    medio_pago: MEDIOS_PAGO.some((m) => m.valor === medio_pago) ? null : 'Elige el medio de pago',
+    numero: !digitos
+      ? 'Escribe el número'
+      : !/^\d+$/.test(digitos)
+        ? 'El número solo puede tener dígitos'
+        : digitos.length < min || digitos.length > max
+          ? `El número debe tener entre ${min} y ${max} dígitos`
+          : null
+  });
+}
+
 // Restablecer (CU-11): la nueva contraseña cumple D7 y la confirmación coincide.
 export function validarRestablecer({ password = '', confirmacion = '' } = {}) {
   return soloErrores({

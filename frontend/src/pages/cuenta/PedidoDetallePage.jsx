@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CreditCard, PackageX } from 'lucide-react';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, CreditCard, PackageX } from 'lucide-react';
 import { obtenerPedido } from '../../services/pedidos.service';
 import { formatoCOP } from '../../utils/formato';
 import { estadoPago, estadoPedido, formatoFechaHora, nombreMedio, sePuedePagar } from '../../utils/pedidos';
@@ -8,10 +8,12 @@ import '../../assets/panel.css';
 import '../../assets/pedidos.css';
 
 // Detalle de un pedido (F3.2 · CU-08) con GET /pedidos/:numero: productos (al precio con que se confirmó, R3),
-// envío y pagos. Si está pendiente o el pago se rechazó, ofrece "Pagar" (se activa en F3.3).
-// F3.3 también usa esta página como confirmación después de pagar.
+// envío y pagos. Si está pendiente o el pago se rechazó, ofrece "Pagar" (/cuenta/pedidos/:numero/pagar, F3.3).
+// También es la confirmación después de pagar: el checkout llega aquí con state.pagado.
 export default function PedidoDetallePage() {
   const { numero } = useParams();
+  const location = useLocation();
+  const recienPagado = Boolean(location.state?.pagado);
   const [pedido, setPedido] = useState(null);
   const [estadoCarga, setEstadoCarga] = useState({ cargando: true, error: null, status: 0 });
   const [version, setVersion] = useState(0);
@@ -98,21 +100,29 @@ export default function PedidoDetallePage() {
         <span className={`etiqueta etiqueta--${estado.estilo} pedido__estado`}>{estado.texto}</span>
       </header>
 
+      {recienPagado && pedido.estado === 'pagado' && (
+        <p className="alerta alerta--exito pedido__confirmacion" role="status">
+          <CheckCircle2 size={20} aria-hidden="true" />
+          <span>
+            <strong>¡Gracias por tu compra!</strong> El pago fue aprobado y tu pedido está pagado.
+          </span>
+        </p>
+      )}
+
       {sePuedePagar(pedido.estado) && (
         <section className="pedido__pagar tarjeta" aria-labelledby="pedido-pagar">
           <div>
             <h2 id="pedido-pagar">{pedido.estado === 'fallido' ? 'El pago fue rechazado' : 'Falta el pago'}</h2>
             <p id="pedido-pagar-nota">
               {pedido.estado === 'fallido'
-                ? 'Puedes intentarlo de nuevo con otro medio de pago. '
-                : 'Tu pedido está reservado hasta que lo pagues. '}
-              El pago llega en la siguiente tarea (F3.3).
+                ? 'Puedes intentarlo de nuevo con otro medio de pago.'
+                : 'Tu pedido está reservado hasta que lo pagues.'}
             </p>
           </div>
-          <button type="button" className="btn btn--primario" disabled aria-describedby="pedido-pagar-nota">
+          <Link to={`/cuenta/pedidos/${pedido.numero_pedido}/pagar`} className="btn btn--primario" aria-describedby="pedido-pagar-nota">
             <CreditCard size={18} aria-hidden="true" />
             Pagar {formatoCOP(pedido.total)}
-          </button>
+          </Link>
         </section>
       )}
 

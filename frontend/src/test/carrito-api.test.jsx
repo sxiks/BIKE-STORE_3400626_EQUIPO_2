@@ -178,7 +178,8 @@ describe("Cliente con sesión: el carrito vive en la API", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Finalizar compra" })).toBeInTheDocument();
     expect(screen.getByText(A.nombre)).toBeInTheDocument();
-    expect(screen.getByText(/el envío y el pago llegan en la siguiente tarea/i)).toBeInTheDocument();
+    expect(screen.getByText("Resumen", { selector: "li" })).toHaveAttribute("aria-current", "step");
+    expect(screen.getByRole("button", { name: "Continuar con el envío" })).toBeEnabled();
   });
 
   it("al cerrar sesión el contador vuelve al carrito del navegador (vacío)", async () => {

@@ -161,15 +161,14 @@ describe("Detalle · /cuenta/pedidos/:numero", () => {
   it.each([
     ["pendiente", "Falta el pago"],
     ["fallido", "El pago fue rechazado"],
-  ])("un pedido %s ofrece 'Pagar' (deshabilitado hasta F3.3)", async (estado, titulo) => {
+  ])("un pedido %s ofrece 'Pagar', que lleva al paso de pago de ese pedido (F3.3)", async (estado, titulo) => {
     const p = pedidoEn(estado);
     await abrir(`/cuenta/pedidos/${p.numero_pedido}`);
 
     expect(await screen.findByRole("heading", { name: titulo })).toBeInTheDocument();
-    const boton = screen.getByRole("button", { name: /^Pagar/ });
-    expect(boton).toHaveTextContent(formatoCOP(p.total));
-    expect(boton).toBeDisabled();
-    expect(boton).toHaveAccessibleDescription(/el pago llega en la siguiente tarea/i);
+    const enlace = screen.getByRole("link", { name: /^Pagar/ });
+    expect(enlace).toHaveTextContent(formatoCOP(p.total));
+    expect(enlace).toHaveAttribute("href", `/cuenta/pedidos/${p.numero_pedido}/pagar`);
   });
 
   it("un pedido pendiente sin pagos lo dice", async () => {
