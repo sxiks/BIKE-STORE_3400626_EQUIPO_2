@@ -14,8 +14,9 @@ Arquitectura en capas: `routes → middlewares → controllers → services → 
 3. Instalar y ejecutar:
    ```bash
    npm install
-   npm run dev        # con nodemon → http://localhost:3000
+   npm run dev        # node --watch → http://localhost:3000
    ```
+   `npm run dev` usa `node --watch`, incluido en Node: reinicia la API al guardar un archivo de código. Un cambio en `.env` necesita reiniciarla a mano (Ctrl+C y `npm run dev`).
 
 Al arrancar, la API comprueba la conexión a PostgreSQL y crea el admin de `ADMIN_*` si no existe. La carpeta `uploads/productos/` se crea sola y está ignorada por Git.
 
