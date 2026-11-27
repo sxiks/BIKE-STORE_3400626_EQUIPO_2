@@ -181,3 +181,7 @@
   .destacado__nombre { font-size: var(--texto-2xl); }
   .destacado__imagen { height: 140px; }
 }
+
+/* F2.4: el nombre del producto (tarjeta y destacado) lleva al detalle */
+.producto__enlace { color: inherit; text-decoration: none; }
+.producto__enlace:hover { color: var(--color-enlace); text-decoration: underline; }

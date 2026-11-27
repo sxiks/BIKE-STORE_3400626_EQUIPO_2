@@ -6,7 +6,8 @@ import '../../assets/panel.css';
 // Cada sección se convierte en un enlace (campo `ruta`) cuando su tarea esté integrada.
 const SECCIONES = [
   { nombre: 'Usuarios', detalle: 'Buscar usuarios, cambiar rol y estado', ruta: '/admin/usuarios' },
-  { nombre: 'Productos', detalle: 'Crear, editar e inactivar productos', ruta: '/admin/productos' },
+  { nombre: 'Productos', detalle: 'Crear, editar e inactivar productos, con su galería de imágenes', ruta: '/admin/productos' },
+  { nombre: 'Categorías', detalle: 'Crear, renombrar y eliminar categorías sin productos', ruta: '/admin/categorias' },
   { nombre: 'Tablero', detalle: 'Métricas de ventas, alertas e informes', tarea: 'F4.1 · Sprint 4' }
 ];
 

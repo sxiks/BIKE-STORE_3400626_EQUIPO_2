@@ -138,6 +138,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="fetch"></a>**fetch:** función del navegador para hacer peticiones HTTP. En el proyecto solo se usa dentro de `services/api.js`.
 - <a name="formdata"></a>**FormData:** objeto del navegador que arma un cuerpo [`multipart/form-data`](#multipart) con campos y archivos. El formulario de productos lo usa para enviar la imagen junto con los datos.
 - <a name="vista-previa"></a>**Vista previa (`URL.createObjectURL`):** URL temporal que el navegador crea para un archivo elegido, sin subirlo, para mostrarlo en pantalla. Se libera con `URL.revokeObjectURL` cuando ya no se usa.
+- <a name="arrastrar-soltar"></a>**Arrastrar y soltar (drag and drop):** mover un elemento con el mouse, el dedo o el teclado y dejarlo en otra posición. La galería de productos lo usa para ordenar las imágenes, con la librería dnd-kit.
 - <a name="debounce"></a>**Debounce (retraso):** esperar a que el usuario deje de escribir (350 ms en el proyecto, `hooks/useDebounce.js`) antes de llamar a la API, en lugar de llamarla en cada tecla.
 - <a name="localstorage"></a>**localStorage:** almacenamiento del navegador donde el frontend guarda la sesión.
 - <a name="toast"></a>**Toast:** mensaje emergente breve en una esquina de la pantalla (éxito, error o aviso).

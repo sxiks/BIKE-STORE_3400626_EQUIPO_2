@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Bike, ChartColumn, House, LogOut, Menu, Package, ReceiptText, Users, X } from 'lucide-react';
+import { Bike, ChartColumn, House, LogOut, Menu, Package, ReceiptText, Tags, Users, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import BotonTema from './BotonTema';
@@ -12,6 +12,7 @@ const SECCIONES = [
   { nombre: 'Inicio', icono: House, ruta: '/admin', exacta: true },
   { nombre: 'Usuarios', icono: Users, ruta: '/admin/usuarios' },
   { nombre: 'Productos', icono: Package, ruta: '/admin/productos' },
+  { nombre: 'Categorías', icono: Tags, ruta: '/admin/categorias' },
   { nombre: 'Pedidos', icono: ReceiptText, sprint: 'Sprint 3' },
   { nombre: 'Tablero', icono: ChartColumn, sprint: 'Sprint 4' }
 ];

@@ -23,7 +23,7 @@
 ## Prompt 0 · Contexto (pegar siempre primero)
 
 ```
-Soy el Dev Frontend de Bike Store (SENA). Monorepo: backend Express 5 + PostgreSQL ya implementado; frontend React 19 + Vite 7 + React Router 7 + Vitest, CSS puro, íconos lucide-react. Node.js 26 LTS.
+Soy el Dev Frontend de Bike Store (SENA). Monorepo: backend Express 5 + PostgreSQL ya implementado; frontend React 19 + Vite 7 + React Router 7 + Vitest, CSS puro, íconos lucide-react, arrastrar y soltar con dnd-kit. Node.js 26 LTS.
 Reglas del frontend que debes respetar:
 - pages/ orquesta; components/ solo recibe props y no hace fetch; services/ es el único que llama a la API usando api.js (agrega el Bearer token); context/ para estado global (AuthContext, CarritoContext, ToastContext); utils/ funciones puras (formatoCOP, urlImagen); data/ mocks.
 - Respuestas de la API: éxito { ok: true, data, message? }; error { ok: false, message, code?, data? }. Reacciono a errores por `code` (tabla de códigos en API_CONTRATOS.md), nunca comparando textos.
@@ -53,6 +53,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 1 ✅ | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) (adelantada al Sprint 1) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
 | 2 ✅ | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
 | 2 ✅ | [F2.3 Panel de productos](#f23--panel-de-productos-admin) | `feature/front-admin-productos` | 12–15 | F1.2, F2.1 |
+| 2 ✅ | [F2.4 Categorías, eliminar, galería y detalle](#f24--categorías-eliminar-productos-galería-y-detalle) | `feature/front-categorias-galeria` | 12–15 (extensión, decisión M) | F2.3 y la tarea B2.2 del backend |
 | 3 | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
 | 3 | [F3.2 Mis pedidos y detalle](#f32--mis-pedidos-y-detalle-del-pedido) | `feature/front-mis-pedidos` | 08 | F1.2 |
 | 3 | [F3.3 Checkout y pago](#f33--checkout-y-pago-simulado) | `feature/front-checkout` | 07, 08 | F3.1, F3.2 |
@@ -260,6 +261,33 @@ ARCHIVOS PROBABLES: pages/admin/ProductosPage.jsx, pages/admin/ProductoFormPage.
 CRITERIOS DE ACEPTACIÓN: crear con imagen, editar sin cambiar la imagen, editar cambiándola e inactivar funcionan contra la API local; pruebas con services mockeados; npm test y npm run build pasan.
 
 FUERA DE ALCANCE: administrar categorías, eliminar productos y varias imágenes por producto. Se decidió hacerlos después, en B2.2 (backend) y F2.4 (frontend), cada uno con su plan.
+
+AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
+1. EXPLICACIÓN: para cada archivo creado o modificado, cómo se hizo, por qué se hizo así (y qué alternativa se descartó, si la hubo) y para qué sirve dentro del proyecto. Directo y al grano, pero sin omitir ningún concepto ni término técnico importante; si usas uno que no esté en docs/GLOSARIO.md, defínelo en una línea.
+2. CÓMO PROBARLO: comandos (npm test, npm run build) y qué revisar en el navegador.
+3. PASOS PARA SUBIRLO según CONTRIBUTING.md, con comandos exactos: commits sugeridos (Conventional Commits), git fetch origin y git merge origin/develop, volver a probar, git push -u origin <rama>, y el título y la descripción del PR hacia develop llenando .github/pull_request_template.md. Indica qué hace el Dev Backend (revisar y aprobar) y los comandos para después del merge (git switch develop, git pull, git branch -d <rama>).
+```
+
+### F2.4 · Categorías, eliminar productos, galería y detalle
+
+> ✅ **Hecha.** Resultado: `pages/admin/CategoriasPage.jsx`, `components/GaleriaProducto.jsx` (arrastrar y soltar con dnd-kit, más botones de mover), sección "Eliminar producto" en `ProductoFormPage.jsx` y `pages/ProductoPage.jsx` (detalle en la tienda). Pruebas en `categorias-admin.test.jsx`, `galeria.test.jsx`, `detalle.test.jsx` y `productos-admin.test.jsx`. Este prompt queda como referencia.
+
+```
+TAREA F2.4 · Sprint 2 · Extensión de CU-12 a CU-15 (decisión M) · Rama: feature/front-categorias-galeria (ya creada desde develop actualizado; si no, dame primero los comandos).
+REQUISITO PREVIO: F2.3 y la tarea B2.2 del backend integradas.
+
+OBJETIVO: interfaz para gestionar categorías, eliminar productos nunca usados, manejar la galería de cada producto y ver el detalle del producto en la tienda.
+
+ESPECIFICACIONES (contratos en la sección "Catálogo y productos" de API_CONTRATOS.md, adjunto):
+- /admin/categorias (solo admin, enlace en BarraAdmin): lista con total_productos; crear; renombrar en la misma fila (Enter guarda, Escape cancela); eliminar con DialogoConfirmacion, deshabilitado si tiene productos. CATEGORIA_DUPLICADA marca el campo; CATEGORIA_CON_PRODUCTOS avisa y refresca.
+- Eliminar producto: sección al final de la edición, con confirmación. Si responde PRODUCTO_CON_PEDIDOS, ofrecer "Inactivar en su lugar".
+- Galería en la edición: portada + hasta 4 imágenes (contador "N de 5"); agregar (validación de tipo y tamaño en el navegador), quitar con confirmación, hacer portada y reordenar arrastrando (dnd-kit: mouse, táctil y teclado, con anuncios en español) o con botones de mover. Cada acción se guarda al momento; reordenar se ve de inmediato y vuelve atrás si la API falla. Después de crear un producto se pasa a su edición.
+- /producto/:id (pública, no admin): portada y miniaturas, datos, descripción y agregar al carrito local; "Producto no disponible" si es 404. La imagen y el nombre de cada tarjeta, y el destacado, llevan al detalle.
+- La dependencia nueva (dnd-kit) va en un commit aparte.
+
+ARCHIVOS PROBABLES: pages/admin/CategoriasPage.jsx, pages/ProductoPage.jsx, components/GaleriaProducto.jsx, pages/admin/ProductoFormPage.jsx, services/, App.jsx, BarraAdmin.jsx, test/.
+
+CRITERIOS DE ACEPTACIÓN: todo funciona contra la API local, incluido arrastrar con mouse y teclado; las pruebas del carrito del instructor siguen pasando; npm test y npm run build pasan.
 
 AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 1. EXPLICACIÓN: para cada archivo creado o modificado, cómo se hizo, por qué se hizo así (y qué alternativa se descartó, si la hubo) y para qué sirve dentro del proyecto. Directo y al grano, pero sin omitir ningún concepto ni término técnico importante; si usas uno que no esté en docs/GLOSARIO.md, defínelo en una línea.

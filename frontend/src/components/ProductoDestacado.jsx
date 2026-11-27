@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useCarrito } from '../context/CarritoContext';
 import { formatoCOP } from '../utils/formato';
 import ImagenProducto from './ImagenProducto';
@@ -16,7 +17,9 @@ export default function ProductoDestacado({ producto }) {
         <span className="etiqueta etiqueta--destacado">Destacado</span>
         <span className="destacado__categoria">{producto.categoria}</span>
         <h1 id="titulo-destacado" className="destacado__nombre">
-          {producto.nombre}
+          <Link to={`/producto/${producto.id_producto}`} className="producto__enlace">
+            {producto.nombre}
+          </Link>
         </h1>
         {producto.descripcion && <p className="destacado__descripcion">{producto.descripcion}</p>}
         <div className="destacado__compra">

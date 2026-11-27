@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useToast } from "../context/ToastContext";
 import { formatoCOP } from "../utils/formato";
@@ -27,17 +28,23 @@ export default function ProductCard({ producto }) {
 
   return (
     <article className="producto tarjeta" data-testid={`producto-${producto.id_producto}`}>
-      <div className="producto__imagen">
+      {/* F2.4: la imagen y el nombre llevan al detalle. El enlace de la imagen queda fuera del orden del
+          teclado (tabIndex -1) para no pasar dos veces por el mismo destino; el lector de pantalla sí lo lee. */}
+      <Link to={`/producto/${producto.id_producto}`} className="producto__imagen" tabIndex={-1}>
         <ImagenProducto producto={producto} className="producto__foto" />
         {agotado ? (
           <span className="producto__insignia producto__insignia--agotado">Agotado</span>
         ) : libres <= 3 ? (
           <span className="producto__insignia producto__insignia--pocas">Últimas {libres}</span>
         ) : null}
-      </div>
+      </Link>
       <div className="producto__cuerpo">
         <span className="producto__categoria">{producto.categoria}</span>
-        <h3 className="producto__nombre">{producto.nombre}</h3>
+        <h3 className="producto__nombre">
+          <Link to={`/producto/${producto.id_producto}`} className="producto__enlace">
+            {producto.nombre}
+          </Link>
+        </h3>
         <p className="producto__precio">{formatoCOP(producto.precio)}</p>
         <p className={`producto__stock${agotado ? " producto__stock--agotado" : ""}`}>
           {agotado ? "Sin unidades disponibles" : `Stock disponible: ${libres}`}

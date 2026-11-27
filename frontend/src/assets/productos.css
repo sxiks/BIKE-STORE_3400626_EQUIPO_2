@@ -124,6 +124,21 @@
   .producto-form__par { grid-template-columns: 1fr; }
 }
 
+/* Galería y "Eliminar producto" van debajo del formulario de edición (F2.4) */
+.producto-form + .galeria,
+.galeria + .producto-form__peligro { margin-top: var(--espacio-5); }
+.producto-form__peligro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5) var(--espacio-6);
+  border-color: var(--color-error);
+}
+.producto-form__peligro h2 { margin: 0 0 var(--espacio-1); font-size: var(--texto-lg); font-weight: 700; color: var(--color-error-texto); }
+.producto-form__peligro p { margin: 0; max-width: 620px; font-size: var(--texto-sm); color: var(--color-texto-suave); }
+
 /* Campo de imagen con vista previa (components/CampoImagen.jsx) */
 .campo-imagen__cuerpo { display: grid; gap: var(--espacio-3); }
 .campo-imagen__vista {
