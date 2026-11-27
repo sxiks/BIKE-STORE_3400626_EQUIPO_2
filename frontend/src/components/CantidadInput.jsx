@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
  * - onChange(n) recibe n >= 1 y puede devolver la cantidad realmente aplicada (p. ej. corregida al stock).
  * - onMinimo() se llama cuando el usuario escribe 0 (el valor anterior se conserva).
  */
-export default function CantidadInput({ value, max, onChange, onMinimo, label }) {
+export default function CantidadInput({ value, max, onChange, onMinimo, label, disabled = false }) {
   const [texto, setTexto] = useState(String(value));
 
   useEffect(() => {
@@ -54,6 +54,7 @@ export default function CantidadInput({ value, max, onChange, onMinimo, label })
       step={1}
       value={texto}
       aria-label={label}
+      disabled={disabled}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
       onChange={handleChange}

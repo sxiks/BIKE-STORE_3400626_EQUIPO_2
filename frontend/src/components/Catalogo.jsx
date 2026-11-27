@@ -1,30 +1,35 @@
-import { PRODUCTOS } from "../data/productos";
 import ProductCard from "./ProductCard";
 
-// Catálogo de la tienda (aún con datos simulados; F2.2 lo conecta a la API).
-// `busqueda` filtra por nombre, sin distinguir mayúsculas ni tildes.
+// Lista de productos del catálogo (F2.2). Solo props: la página trae los datos de la API.
+//   productos: [Producto] ya filtrados por categoría y orden desde la API
+//   busqueda: texto de la barra; filtra por nombre los productos cargados (la API pública no busca por texto)
+//   titulo: encabezado de la sección
 const normalizar = (texto) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
-export default function Catalogo({ busqueda = "" }) {
+export default function Catalogo({ productos, busqueda = "", titulo = "Bicicletas y accesorios" }) {
   const termino = normalizar(busqueda);
-  const productos = termino ? PRODUCTOS.filter((p) => normalizar(p.nombre).includes(termino)) : PRODUCTOS;
+  const visibles = termino ? productos.filter((p) => normalizar(p.nombre).includes(termino)) : productos;
 
   return (
     <section aria-labelledby="titulo-catalogo">
       <div className="catalogo__cabecera">
         <h2 id="titulo-catalogo" className="catalogo__titulo">
-          {termino ? `Resultados para "${busqueda.trim()}"` : "Productos típicos de la región"}
+          {termino ? `Resultados para "${busqueda.trim()}"` : titulo}
         </h2>
         <span className="catalogo__conteo" role="status">
-          {productos.length} {productos.length === 1 ? "producto" : "productos"}
+          {visibles.length} {visibles.length === 1 ? "producto" : "productos"}
         </span>
       </div>
-      {productos.length === 0 ? (
-        <p className="catalogo__vacio tarjeta">Ningún producto coincide con tu búsqueda. Prueba con otra palabra.</p>
+      {visibles.length === 0 ? (
+        <p className="catalogo__vacio tarjeta">
+          {termino
+            ? "Ningún producto coincide con tu búsqueda. Prueba con otra palabra."
+            : "No hay productos en esta categoría por ahora."}
+        </p>
       ) : (
         <div className="catalogo__grid">
-          {productos.map((p) => (
-            <ProductCard key={p.id} producto={p} />
+          {visibles.map((p) => (
+            <ProductCard key={p.id_producto} producto={p} />
           ))}
         </div>
       )}
