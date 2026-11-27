@@ -9,6 +9,7 @@ router.use(authenticate);
 router.post('/', authorize('cliente'), controller.crear);           // CU-07 / CU-08
 router.get('/', authorize('cliente'), controller.listarMios);
 router.post('/:id/pagos', authorize('cliente'), controller.pagar);  // CU-08
+router.get('/admin', authorize('admin'), controller.listarAdmin);   // decisión N (antes de /:numero)
 router.get('/:numero', controller.obtener);                         // dueño o admin
 
 module.exports = router;

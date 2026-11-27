@@ -10,6 +10,10 @@ async function listarMios(req, res) {
   ok(res, await pedidosService.listarMios(req.user.id_usuario));
 }
 
+async function listarAdmin(req, res) {
+  ok(res, await pedidosService.listarAdmin(req.query));
+}
+
 async function obtener(req, res) {
   ok(res, await pedidosService.obtenerPorNumero(req.user, req.params.numero));
 }
@@ -29,4 +33,4 @@ async function pagar(req, res) {
   ok(res, data, { status: 201, message: 'Pago aprobado' });
 }
 
-module.exports = { crear, listarMios, obtener, pagar };
+module.exports = { crear, listarMios, listarAdmin, obtener, pagar };

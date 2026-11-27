@@ -73,6 +73,21 @@ async function listarMios(idUsuario) {
   return pedidosRepository.listarPorUsuario(idUsuario);
 }
 
+// Decisión N (B4): listado de pedidos para el admin. Filtros opcionales y validados.
+const ESTADOS_ADMIN = ['pendiente', 'pagado', 'fallido'];
+async function listarAdmin(query = {}) {
+  const filtros = {
+    q: v.textoOpcional(query.q, 'q', 100),
+    estado: query.estado ? v.enLista(query.estado, ESTADOS_ADMIN, 'estado') : null,
+    desde: v.fechaOpcional(query.desde, 'desde'),
+    hasta: v.fechaOpcional(query.hasta, 'hasta')
+  };
+  if (filtros.desde && filtros.hasta && filtros.desde > filtros.hasta) {
+    throw new AppError('La fecha "desde" no puede ser posterior a "hasta"', 400);
+  }
+  return pedidosRepository.listarAdmin(filtros);
+}
+
 // El dueño ve su pedido; el admin puede ver cualquiera.
 async function obtenerPorNumero(usuario, numero) {
   const pedido = await pedidosRepository.findByNumero(String(numero || ''));
@@ -138,4 +153,4 @@ async function pagar(idUsuario, idPedidoParam, datos) {
   return resultado;
 }
 
-module.exports = { confirmarCarrito, listarMios, obtenerPorNumero, pagar, MEDIOS_PAGO };
+module.exports = { confirmarCarrito, listarMios, listarAdmin, obtenerPorNumero, pagar, MEDIOS_PAGO };
