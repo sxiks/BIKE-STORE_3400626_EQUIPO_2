@@ -84,6 +84,11 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 
 - <a name="postgresql"></a>**PostgreSQL:** el motor de base de datos relacional del proyecto (versión 15 o superior).
 - <a name="psql"></a>**`psql`:** cliente de terminal de PostgreSQL para ejecutar SQL y aplicar migraciones.
+- <a name="docker"></a>**Docker:** programa que ejecuta aplicaciones dentro de [contenedores](#contenedor). En el proyecto corre PostgreSQL, para que cada PC tenga la misma base sin instalarla a mano (decisión D13).
+- <a name="imagen-docker"></a>**Imagen (Docker):** plantilla de solo lectura con un programa listo para ejecutarse. El proyecto usa la imagen oficial `postgres:17-alpine`, que Docker descarga la primera vez.
+- <a name="contenedor"></a>**Contenedor:** un programa en ejecución creado a partir de una imagen, aislado del resto del PC. El de la base se llama `bike-store-db`.
+- <a name="volumen-docker"></a>**Volumen (Docker):** espacio donde Docker guarda los datos de un contenedor para que no se pierdan al apagarlo. `docker compose down -v` lo borra.
+- <a name="docker-compose"></a>**Docker Compose:** herramienta que levanta uno o varios contenedores con la configuración escrita en `docker-compose.yml` (`docker compose up -d`, `docker compose stop`).
 - <a name="base-pruebas"></a>**Base de datos de pruebas:** base separada (`bike_store_test`) que usan las pruebas automatizadas del backend. Se vacía y se recrea con `npm run test:db`; por eso su nombre debe terminar en `_test` y nunca es la base de desarrollo. Ver [backend/README](../backend/README.md#pruebas-automatizadas).
 - <a name="rol-postgres"></a>**Rol de PostgreSQL:** usuario de la base de datos. La API se conecta con `bike_store_app`, no con el superusuario `postgres`.
 - <a name="sql-parametrizado"></a>**SQL parametrizado:** consultas con marcadores `$1, $2…` en lugar de pegar texto del usuario. Evita la inyección SQL.
