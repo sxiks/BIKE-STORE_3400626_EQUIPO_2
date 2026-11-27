@@ -4,7 +4,7 @@
 > **Cuándo usarlo:** antes de consumir o modificar un endpoint, y para reaccionar a los errores por su [`code`](../GLOSARIO.md#code-error).
 > ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
 
-**Se actualiza este documento antes que el código** (ver la [sección 3 de CONTRIBUTING](../../CONTRIBUTING.md#3-contrato-primero)). Todos los endpoints de este documento están implementados y probados, salvo la exportación de CU-18, que está **por implementar en el Sprint 4** (decisión D11 del [ROADMAP](../ROADMAP.md#resueltas)).
+**Se actualiza este documento antes que el código** (ver la [sección 3 de CONTRIBUTING](../../CONTRIBUTING.md#3-contrato-primero)). Todos los endpoints de este documento están implementados y probados con pruebas automatizadas.
 
 - URL base (desarrollo): `http://localhost:3000/api`. En el frontend sale de `VITE_API_URL`.
 - Formato: JSON. Los endpoints con imagen usan `multipart/form-data`, con la imagen en el campo `imagen`.
@@ -260,6 +260,18 @@ Respuestas:
 Ejemplo: `GET /pedidos/BS-2026-000001`
 - `200` → `data: Pedido` · `404`
 
+### `GET /pedidos/admin?q=&estado=&desde=&hasta=` · admin · B4 (decisión N)
+Todos los pedidos **confirmados** de todos los clientes (nunca los carritos), del más reciente al más antiguo por `fecha_pedido`. Todos los filtros son opcionales:
+- `q`: busca, sin distinguir mayúsculas y como "contiene", en el número del pedido, el nombre y el correo del cliente; `%` y `_` se buscan como texto.
+- `estado`: `pendiente` | `pagado` | `fallido`.
+- `desde`, `hasta`: `AAAA-MM-DD`, rango inclusivo sobre `fecha_pedido` en hora de Colombia (mismas reglas que `/dashboard/metricas`).
+
+```jsonc
+PedidoAdmin = Pedido sin items ni pagos + { "cliente_nombre": "Ana Cliente", "cliente_email": "ana@correo.com", "unidades": 3 }
+```
+- `200` → `{ "ok": true, "data": [PedidoAdmin] }` (máximo 200; con más, hay que filtrar) · `400` estado o fecha inválidos, o `desde` posterior a `hasta` · `401` · `403` (cliente)
+- El detalle de cada pedido es `GET /pedidos/:numero`, que el admin ya puede ver.
+
 ## Tablero · admin · Sprint 4
 
 ### `GET /dashboard/metricas?desde=AAAA-MM-DD&hasta=AAAA-MM-DD&categoria=` · CU-16, CU-17
@@ -281,12 +293,25 @@ Solo cuenta pedidos **pagados** y filtra por **`fecha_pedido`** (fecha de confir
   "pedidos_fallidos": [ ... ] }
 ```
 
-### `GET /dashboard/exportar?formato=xlsx|pdf` · admin · CU-18 · por implementar
-**Por implementar en el Sprint 4** (tareas [B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf) y [F4.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes)). Decisión D11: el archivo se genera en el backend con `exceljs` (xlsx) y `pdfkit` (pdf), en memoria; el frontend solo lo descarga. La tarea B4.1 completa este bloque antes de programar.
+### `GET /dashboard/exportar?formato=xlsx|pdf&desde=&hasta=&categoria=` · admin · CU-18
+Decisión D11: el archivo se genera en el backend con `exceljs` (xlsx) y `pdfkit` (pdf), **en memoria** (no se guarda en disco); el frontend solo lo descarga (tarea [F4.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes)). Las cifras salen de las mismas consultas que `/dashboard/metricas` y `/dashboard/alertas`, así que coinciden con el tablero para el mismo filtro.
 
 Query params: `formato` (obligatorio: `xlsx` | `pdf`), y `desde`, `hasta` y `categoria` con las mismas reglas que `/dashboard/metricas`.
-- `200` → el archivo (no JSON), con `Content-Type` del formato y `Content-Disposition: attachment; filename="bike-store-informe-AAAA-MM-DD.<formato>"`
-- `400` formato inválido, fecha inválida o `desde` posterior a `hasta` (JSON) · `401` · `403`
+
+Contenido del informe:
+1. **Encabezado:** "Informe de ventas · Bike Store", fecha y hora de generación (hora de Colombia) y filtros aplicados (periodo y nombre de la categoría, o "Todos").
+2. **Resumen:** ventas totales (COP), cantidad de pedidos pagados y unidades vendidas.
+3. **Más vendidos:** los 5 primeros con unidades y ventas (COP).
+4. **Inventario** (estado actual, no depende del filtro): productos con stock bajo (umbral `STOCK_BAJO_UMBRAL`) y agotados.
+
+En el Excel, las secciones 1 a 3 van en la hoja **"Resumen"** y la 4 en la hoja **"Inventario"**, con los montos como números en formato COP (se pueden sumar). En el PDF van en ese orden, en tamaño carta.
+
+Respuestas:
+- `200` → el archivo (no JSON), con `Content-Disposition: attachment; filename="bike-store-informe-AAAA-MM-DD.<formato>"` (fecha de generación) y `Content-Type`:
+  - xlsx: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+  - pdf: `application/pdf`
+- `400` formato ausente o inválido, fecha inválida, `desde` posterior a `hasta` o categoría inválida (JSON, como los demás errores) · `401` · `403` (cliente)
+- CORS expone `Content-Disposition` (`exposedHeaders`), para que el frontend, que está en otro origen, pueda leer el nombre del archivo.
 
 ---
 

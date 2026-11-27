@@ -83,6 +83,5 @@ Contratos completos en [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
 | Públicas | `GET /api/health` · `POST /api/auth/register` · `POST /api/auth/login` · `POST /api/auth/recuperar` · `POST /api/auth/restablecer` · `GET /api/categorias` · `GET /api/productos` · `GET /api/productos/:id` |
 | Con sesión | `GET /api/auth/me` · `GET /api/pedidos/:numero` (dueño o admin) |
 | Cliente | `GET/POST/PUT/DELETE /api/carrito…` · `POST /api/pedidos` · `GET /api/pedidos` · `POST /api/pedidos/:id/pagos` |
-| Admin | `GET /api/usuarios` · `PATCH /api/usuarios/:id/rol` · `PATCH /api/usuarios/:id/estado` · `GET /api/productos/admin` · `GET /api/productos/admin/:id` · `POST /api/productos` · `PUT /api/productos/:id` · `PATCH /api/productos/:id/estado` · `GET /api/dashboard/metricas` · `GET /api/dashboard/alertas` |
+| Admin | `GET /api/usuarios` · `PATCH /api/usuarios/:id/rol` · `PATCH /api/usuarios/:id/estado` · `GET /api/productos/admin` · `GET /api/productos/admin/:id` · `POST /api/productos` · `PUT /api/productos/:id` · `PATCH /api/productos/:id/estado` · `GET /api/dashboard/metricas` · `GET /api/dashboard/alertas` · `GET /api/dashboard/exportar` · `GET /api/pedidos/admin` |
 
-Pendiente: exportación del tablero (CU-18, decisión D11), por implementar en el Sprint 4.

@@ -14,7 +14,8 @@ const errorHandler = require('./middlewares/error.middleware');
 
 const app = express();
 
-app.use(cors({ origin: env.corsOrigin }));
+// exposedHeaders: el frontend está en otro origen y necesita leer el nombre del archivo exportado (CU-18).
+app.use(cors({ origin: env.corsOrigin, exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json({ limit: '100kb' }));
 app.use('/uploads', express.static(UPLOAD_ROOT));
 
