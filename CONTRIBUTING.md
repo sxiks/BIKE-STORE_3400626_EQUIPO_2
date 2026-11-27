@@ -99,7 +99,10 @@ Nunca uses `git push --force` sobre `develop` o `main`.
 3. Contrato de API antes que código ([sección 3](#3-contrato-primero)).
 4. Hacer `git merge origin/develop` en tu rama al menos una vez al día y siempre antes del PR.
 5. Migraciones SQL: un archivo nuevo por cambio (`004_...sql`, `005_...sql`). Nunca editar uno ya integrado. El PR debe decir "Requiere aplicar la migración 00N" y cada integrante la aplica con `psql` (ver `database/README.md`).
-6. `package-lock.json` **se versiona**: garantiza que ambos instalan exactamente las mismas versiones. Si hay conflicto en él: acepta la versión de `develop` y ejecuta `npm install` para regenerarlo (`git checkout --theirs package-lock.json && npm install`).
+6. `package-lock.json` **se versiona**: garantiza que ambos instalan exactamente las mismas versiones.
+   - Para instalar (después de clonar, de un `git pull` o de cambiar de rama) usa **`npm ci`**: instala lo que dice el lockfile y no lo modifica.
+   - `npm install` solo se usa para agregar o quitar una dependencia (regla 7) o para resolver un conflicto en el lockfile. Si lo ejecutaste sin cambiar dependencias y `git status` muestra `package-lock.json` modificado, descarta ese cambio con `git restore package-lock.json`.
+   - Si hay conflicto en él: acepta la versión de `develop` y regenéralo (`git checkout --theirs package-lock.json && npm install`).
 7. Para instalar una dependencia nueva, hazlo en un commit aparte (`chore(deps): agregar zod`) para que el conflicto, si lo hay, sea trivial.
 8. Formato: `.editorconfig` y `.gitattributes` fijan LF y 2 espacios. No reformatees archivos que no estás cambiando.
 9. Nunca subir `.env`. Si agregas una variable nueva, agrégala también a `.env.example` con un valor de ejemplo.
@@ -127,3 +130,13 @@ Ejemplos: `feat(productos): filtrar por categoría (CU-02)`, `fix(carrito): no p
 1. Ambos confirman que `develop` arranca y pasa las pruebas.
 2. PR `develop → main` titulado `release: sprint N`, aprobado por ambos, **Create a merge commit** (no squash).
 3. Etiqueta: `git switch main && git pull && git tag -a v0.N.0 -m "Sprint N" && git push origin v0.N.0`.
+
+### Versión de correcciones (v0.N.1, v0.N.2…)
+
+Cuando `develop` reúne correcciones sin un sprint nuevo (por ejemplo, las de una auditoría), se publica una versión que solo sube el último número:
+
+1. Ambos confirman que `develop` arranca y pasa las pruebas, y que cada PC aplicó las migraciones nuevas, si las hay.
+2. PR `develop → main` titulado `release: v0.N.M`, aprobado por ambos, **Create a merge commit** (no squash). La descripción lista los PR incluidos y las migraciones que exige.
+3. Etiqueta: `git switch main && git pull && git tag -a v0.N.M -m "Correcciones: <tema>" && git push origin v0.N.M`.
+
+Una etiqueta ya publicada no se borra ni se vuelve a crear: si falta algo, se publica la siguiente (`v0.N.M+1`).
