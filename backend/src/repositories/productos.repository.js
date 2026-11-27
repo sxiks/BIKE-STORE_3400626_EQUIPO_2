@@ -1,4 +1,4 @@
-// Acceso a datos de `productos` (CU-01, CU-02, CU-08, CU-12 a CU-15).
+// Acceso a datos de `productos` (CU-01, CU-02, CU-08, CU-12 a CU-15 y la eliminación de B2.2).
 const pool = require('../config/db');
 const { patronContiene } = require('../utils/like');
 
@@ -85,6 +85,35 @@ async function updateEstado(id, estado, db = pool) {
   return rowCount;
 }
 
+// B2.2: bloquea el producto dentro de una transacción (galería y eliminación).
+// Mientras dure, nadie más puede cambiarlo ni agregarlo a un carrito o pedido.
+async function bloquear(id, db) {
+  const { rows } = await db.query(
+    'SELECT id_producto, imagen FROM productos WHERE id_producto = $1 FOR UPDATE',
+    [id]
+  );
+  return rows[0] || null;
+}
+
+// true si el producto está o estuvo en algún carrito o pedido (D12: ambos viven en detalle_pedido).
+async function usadoEnPedidos(id, db = pool) {
+  const { rows } = await db.query(
+    'SELECT EXISTS (SELECT 1 FROM detalle_pedido WHERE id_producto = $1) AS usado',
+    [id]
+  );
+  return rows[0].usado;
+}
+
+async function updateImagen(id, imagen, db = pool) {
+  await db.query('UPDATE productos SET imagen = $2 WHERE id_producto = $1', [id, imagen]);
+}
+
+// Borra la fila; la galería se borra sola (ON DELETE CASCADE, migración 006).
+async function remove(id, db = pool) {
+  const { rowCount } = await db.query('DELETE FROM productos WHERE id_producto = $1', [id]);
+  return rowCount;
+}
+
 // Pago (decisión 10): bloquea las filas en orden de id para evitar deadlocks.
 async function bloquearPorIds(ids, db = pool) {
   const { rows } = await db.query(
@@ -114,6 +143,10 @@ module.exports = {
   create,
   update,
   updateEstado,
+  bloquear,
+  usadoEnPedidos,
+  updateImagen,
+  remove,
   bloquearPorIds,
   descontarExistencias
 };
