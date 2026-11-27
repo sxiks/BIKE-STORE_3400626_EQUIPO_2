@@ -341,6 +341,10 @@ export function carritoSimulado({ inicial = [] } = {}) {
       cambios[id] = { ...cambios[id], ...campos };
     },
     cantidades: () => Object.fromEntries(lineas),
+    vaciar: () => {
+      lineas.clear();
+      idPedido = null;
+    },
   };
 }
 
@@ -405,16 +409,66 @@ export const pedidoEn = (estado, { reintentado = false } = {}) =>
 
 // Reemplazo de services/pedidos.service.js para vi.mock:
 //   vi.mock("../services/pedidos.service", async () => (await import("./fixtures/catalogo")).pedidosSimulado());
-export function pedidosSimulado() {
+// Guarda estado mientras dure el servicio simulado. Con `carrito` (un carritoSimulado), confirmarCarrito usa
+// y vacía ese carrito, como la API (D12). pagarPedido aplica las decisiones D (0000 rechaza), E (SIN_STOCK),
+// F (reintentar un fallido) y PEDIDO_YA_PAGADO. Extra: `sinStock(idProducto, disponibles)` simula que otro
+// cliente compró antes de pagar.
+export function pedidosSimulado({ carrito = null } = {}) {
+  const pedidos = structuredClone(PEDIDOS);
+  const faltantes = {};
+  let siguiente = 100;
+  const MOTIVO = { INACTIVO: "INACTIVO", SIN_STOCK: "SIN_STOCK", SUPERA_STOCK: "SUPERA_STOCK" };
+
   return {
     listarPedidos: vi.fn(() =>
-      Promise.resolve({ ok: true, data: PEDIDOS.map(({ items, pagos, ...resumen }) => ({ ...resumen })) })
+      Promise.resolve({ ok: true, data: pedidos.map(({ items, pagos, ...resumen }) => ({ ...resumen })) })
     ),
     obtenerPedido: vi.fn((numero) => {
-      const encontrado = PEDIDOS.find((p) => p.numero_pedido === numero);
+      const encontrado = pedidos.find((p) => p.numero_pedido === numero);
       return encontrado
         ? Promise.resolve({ ok: true, data: structuredClone(encontrado) })
         : Promise.reject(errorApi("Pedido no encontrado", 404));
     }),
+    confirmarCarrito: vi.fn(async (envio) => {
+      const { data } = carrito ? await carrito.obtenerCarrito() : { data: { items: [] } };
+      if (!data.items.length) throw errorApi("El carrito está vacío", 400, "CARRITO_VACIO");
+      if (!data.puede_comprar) {
+        const items = data.items.filter((i) => !i.disponible).map((i) => ({ id_producto: i.id_producto, nombre: i.nombre, motivo: MOTIVO[i.motivo] }));
+        throw errorApi("Hay productos no disponibles en el carrito", 409, "CARRITO_NO_DISPONIBLE", { items });
+      }
+      const nuevo = pedido(siguiente++, "pendiente", "2026-11-27T19:30:00.000Z", data.items.map((i) => [productoPorId(i.id_producto), i.cantidad]));
+      Object.assign(nuevo, envio);
+      pedidos.unshift(nuevo);
+      carrito.vaciar();
+      return { ok: true, data: structuredClone(nuevo) };
+    }),
+    pagarPedido: vi.fn(async (idPedido, { medio_pago, numero }) => {
+      const p = pedidos.find((x) => x.id_pedido === Number(idPedido));
+      if (!p || p.estado === "carrito") throw errorApi("Pedido no encontrado", 404);
+      if (p.estado === "pagado") throw errorApi("El pedido ya fue pagado", 409, "PEDIDO_YA_PAGADO");
+      const problemas = p.items
+        .filter((i) => faltantes[i.id_producto] !== undefined && faltantes[i.id_producto] < i.cantidad)
+        .map((i) => ({ id_producto: i.id_producto, nombre: i.nombre, motivo: "SIN_STOCK", disponibles: faltantes[i.id_producto] }));
+      if (problemas.length) {
+        throw errorApi("No hay existencias suficientes para completar el pedido", 409, "SIN_STOCK", { items: problemas });
+      }
+      const ultimos4 = String(numero).slice(-4);
+      const pago = { id_pago: p.id_pedido * 10 + p.pagos.length, medio_pago, ultimos4, valor: p.total, estado: "aprobado", created_at: "2026-11-27T19:31:00.000Z" };
+      if (ultimos4 === "0000") {
+        p.pagos.push({ ...pago, estado: "rechazado" });
+        p.estado = "fallido";
+        throw errorApi("El pago fue rechazado. Puedes intentarlo de nuevo con otro medio de pago", 402, "PAGO_RECHAZADO", {
+          numero_pedido: p.numero_pedido,
+          estado: "fallido",
+          pago: { ...pago, estado: "rechazado" },
+        });
+      }
+      p.pagos.push(pago);
+      p.estado = "pagado";
+      return { ok: true, data: { numero_pedido: p.numero_pedido, estado: "pagado", valor_pagado: p.total, pago } };
+    }),
+    sinStock: (idProducto, disponibles) => {
+      faltantes[idProducto] = disponibles;
+    },
   };
 }
