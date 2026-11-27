@@ -1,4 +1,5 @@
 // F2.3 · Panel de productos del administrador (CU-12, CU-13, CU-14, CU-15).
+// F2.4 · Eliminar un producto desde su edición (decisión M), al final de este archivo.
 // Los servicios se simulan con el catálogo de prueba (fixtures/catalogo.js): no se escriben nombres ni
 // cantidades a mano, y si la semilla crece estas pruebas siguen valiendo.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -9,6 +10,7 @@ import {
   actualizarProducto,
   cambiarEstadoProducto,
   crearProducto,
+  eliminarProducto,
   listarProductosAdmin,
   obtenerProductoAdmin,
 } from "../services/productos.service";
@@ -18,7 +20,7 @@ import { IMAGEN_MAX_BYTES } from "../utils/validaciones";
 vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
 
 const ADMIN = { id_usuario: 1, nombre: "Admin Tienda", email: "admin@prueba.local", rol: "admin", estado: "activo" };
-const ADMIN_FNS = { listarProductosAdmin, obtenerProductoAdmin, crearProducto, actualizarProducto, cambiarEstadoProducto };
+const ADMIN_FNS = { listarProductosAdmin, obtenerProductoAdmin, crearProducto, actualizarProducto, cambiarEstadoProducto, eliminarProducto };
 
 let fetchMock;
 
@@ -234,7 +236,7 @@ describe("Crear (CU-12)", () => {
     expect(screen.getByText("La imagen supera el máximo de 2 MB")).toBeInTheDocument();
   });
 
-  it("envía un FormData con los datos limpios y la imagen, y vuelve al listado", async () => {
+  it("envía un FormData con los datos limpios y la imagen, y pasa a la edición del producto nuevo (F2.4)", async () => {
     await abrirFormulario("/admin/productos/nuevo");
     llenarFormulario();
 
@@ -252,8 +254,10 @@ describe("Crear (CU-12)", () => {
     });
     expect(datos.imagen).toBeInstanceOf(File);
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Productos" })).toBeInTheDocument();
-    expect(screen.getByText("Se creó Casco Urbano LED.")).toBeInTheDocument();
+    // La galería necesita que el producto exista: se sigue en su edición.
+    expect(await screen.findByRole("heading", { level: 1, name: "Editar producto" })).toBeInTheDocument();
+    expect(screen.getByText(/Se creó Casco Urbano LED\. Ahora puedes agregar más imágenes/)).toBeInTheDocument();
+    await waitFor(() => expect(obtenerProductoAdmin).toHaveBeenCalledWith("100"));
   });
 
   it("PRODUCTO_DUPLICADO se marca en el campo nombre", async () => {
@@ -361,5 +365,65 @@ describe("Editar (CU-13)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Producto no encontrado");
     expect(within(screen.getByRole("main")).getAllByRole("link", { name: "Volver a productos" })).toHaveLength(2);
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
+  });
+});
+
+describe("Eliminar (F2.4 · decisión M)", () => {
+  const producto = unActivo();
+  const ruta = `/admin/productos/${producto.id_producto}`;
+  const abrirEliminar = async () => {
+    await abrirFormulario(ruta);
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar producto" }));
+    return within(screen.getByRole("dialog"));
+  };
+
+  it("pide confirmación, elimina y vuelve al listado", async () => {
+    const dialogo = await abrirEliminar();
+    expect(dialogo.getByText(/no se puede deshacer/i)).toBeInTheDocument();
+
+    fireEvent.click(dialogo.getByRole("button", { name: "Sí, eliminar" }));
+
+    await waitFor(() => expect(eliminarProducto).toHaveBeenCalledWith(producto.id_producto));
+    expect(await screen.findByRole("heading", { level: 1, name: "Productos" })).toBeInTheDocument();
+    expect(screen.getByText(`Se eliminó ${producto.nombre}.`)).toBeInTheDocument();
+  });
+
+  it("cancelar no llama a la API", async () => {
+    const dialogo = await abrirEliminar();
+
+    fireEvent.click(dialogo.getByRole("button", { name: "Cancelar" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(eliminarProducto).not.toHaveBeenCalled();
+  });
+
+  it("si está en un carrito o pedido (PRODUCTO_CON_PEDIDOS), ofrece inactivarlo en su lugar", async () => {
+    eliminarProducto.mockRejectedValueOnce(
+      new ApiError("No se puede eliminar: el producto está o estuvo en un carrito o pedido.", { status: 409, code: "PRODUCTO_CON_PEDIDOS" })
+    );
+    const dialogo = await abrirEliminar();
+    fireEvent.click(dialogo.getByRole("button", { name: "Sí, eliminar" }));
+
+    const oferta = within(await screen.findByRole("dialog", { name: "No se puede eliminar" }));
+    fireEvent.click(oferta.getByRole("button", { name: "Inactivar en su lugar" }));
+
+    await waitFor(() => expect(cambiarEstadoProducto).toHaveBeenCalledWith(producto.id_producto, "inactivo"));
+    expect(await screen.findByText(`${producto.nombre} quedó inactivo: ya no se ve en la tienda.`)).toBeInTheDocument();
+    expect(screen.getByText("Inactivo", { selector: ".etiqueta" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Editar producto" })).toBeInTheDocument();
+  });
+
+  it("si ya estaba inactivo, solo muestra el mensaje de la API", async () => {
+    const inactivo = unInactivo();
+    eliminarProducto.mockRejectedValueOnce(
+      new ApiError("No se puede eliminar: el producto está o estuvo en un carrito o pedido.", { status: 409, code: "PRODUCTO_CON_PEDIDOS" })
+    );
+    await abrirFormulario(`/admin/productos/${inactivo.id_producto}`);
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar producto" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Sí, eliminar" }));
+
+    expect(await screen.findByText(/no se puede eliminar: el producto está o estuvo/i)).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(cambiarEstadoProducto).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,8 @@ import AdminInicioPage from './pages/admin/AdminInicioPage';
 import UsuariosPage from './pages/admin/UsuariosPage';
 import ProductosPage from './pages/admin/ProductosPage';
 import ProductoFormPage from './pages/admin/ProductoFormPage';
+import CategoriasPage from './pages/admin/CategoriasPage';
+import ProductoPage from './pages/ProductoPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import './assets/base.css';
 
@@ -44,6 +46,8 @@ export function AppRutas() {
             <Route element={<SinAdmin />}>
               {/* Tienda: usa BarraCliente con carrito y búsqueda (aún con datos simulados) */}
               <Route path="/" element={<TiendaPage />} />
+              {/* Detalle del producto con su galería (F2.4): también usa BarraCliente con el carrito */}
+              <Route path="/producto/:id" element={<ProductoPage />} />
 
               <Route element={<ClienteLayout />}>
                 {/* Acceso */}
@@ -68,6 +72,8 @@ export function AppRutas() {
                 <Route path="/admin/productos" element={<ProductosPage />} />
                 <Route path="/admin/productos/nuevo" element={<ProductoFormPage key="nuevo" />} />
                 <Route path="/admin/productos/:id" element={<ProductoFormPage key="editar" />} />
+                {/* Categorías (F2.4 · decisión M) */}
+                <Route path="/admin/categorias" element={<CategoriasPage />} />
               </Route>
             </Route>
 

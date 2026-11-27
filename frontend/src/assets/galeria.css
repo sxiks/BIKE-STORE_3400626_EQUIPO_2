@@ -1,0 +1,62 @@
+/* Galería de imágenes del formulario de edición (components/GaleriaProducto.jsx, F2.4). Solo variables de tokens.css. */
+.galeria { display: grid; gap: var(--espacio-4); padding: var(--espacio-6); }
+
+.galeria__encabezado { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--espacio-3); }
+.galeria__encabezado h2 { margin: 0 0 var(--espacio-1); font-size: var(--texto-lg); font-weight: 700; }
+.galeria__encabezado p { margin: 0; max-width: 620px; font-size: var(--texto-sm); color: var(--color-texto-suave); }
+.galeria__contador { white-space: nowrap; }
+
+/* La lista usa display: contents para que sus <li> sean celdas de la misma rejilla que la portada.
+   role="list" en el JSX conserva la semántica de lista en Safari. */
+.galeria__rejilla { display: grid; gap: var(--espacio-3); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.galeria__lista { display: contents; margin: 0; padding: 0; list-style: none; }
+
+.galeria__item { display: grid; gap: var(--espacio-2); margin: 0; align-content: start; }
+.galeria__item--arrastrando { position: relative; z-index: 2; opacity: 0.85; }
+.galeria__item--arrastrando .galeria__marco { box-shadow: var(--sombra-md); border-color: var(--color-acento); }
+
+.galeria__marco {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie-2);
+}
+.galeria__marco img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.galeria__marco img[data-reemplazo] { object-fit: contain; padding: var(--espacio-4); }
+.galeria__item--portada .galeria__marco { border-color: var(--color-acento); }
+.galeria__item--portada figcaption .etiqueta { display: inline-flex; align-items: center; gap: 4px; }
+
+.galeria__asa {
+  position: absolute;
+  top: var(--espacio-2);
+  left: var(--espacio-2);
+  background: var(--color-superficie);
+  cursor: grab;
+  touch-action: none; /* en pantallas táctiles el dedo arrastra la imagen en lugar de desplazar la página */
+}
+.galeria__asa:active { cursor: grabbing; }
+
+.galeria__acciones { display: flex; flex-wrap: wrap; gap: 2px; }
+.galeria__acciones .icono-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.galeria__agregar { justify-items: stretch; }
+.galeria__agregar-boton {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--espacio-2);
+  aspect-ratio: 1 / 1;
+  border: 1px dashed var(--color-borde);
+  border-radius: var(--radio-lg);
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.galeria__agregar-boton:hover { border-color: var(--color-texto-tenue); color: var(--color-texto); }
+.galeria__agregar:focus-within .galeria__agregar-boton { outline: 2px solid var(--color-acento); outline-offset: 2px; }
+.galeria__ayuda, .galeria__nota { margin: 0; font-size: var(--texto-xs); color: var(--color-texto-tenue); }
+
+@media (max-width: 860px) { .galeria { padding: var(--espacio-4); } }

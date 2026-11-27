@@ -1,21 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import {
   actualizarProducto,
+  cambiarEstadoProducto,
   crearProducto,
+  eliminarProducto,
   listarCategorias,
   obtenerProductoAdmin
 } from '../../services/productos.service';
 import { validarProducto } from '../../utils/validaciones';
 import CampoImagen from '../../components/CampoImagen';
+import GaleriaProducto from '../../components/GaleriaProducto';
+import DialogoConfirmacion from '../../components/DialogoConfirmacion';
 import '../../assets/panel.css';
 import '../../assets/productos.css';
 
 // Crear (CU-12, /admin/productos/nuevo) y editar (CU-13, /admin/productos/:id) un producto (F2.3).
 // Valida en el formulario con las mismas reglas del backend antes de enviar; la API sigue decidiendo.
 // Editar es actualización parcial: solo se envían los campos que cambiaron, y la imagen solo si se eligió otra.
+// F2.4: al crear se pasa a la edición del producto nuevo (para agregar su galería). En edición se muestran
+// la galería (GaleriaProducto, que guarda al momento) y la sección para eliminar el producto (decisión M).
 
 const VACIO = { nombre: '', id_categoria: '', precio: '', existencias: '', descripcion: '' };
 const CAMPOS = ['nombre', 'id_categoria', 'precio', 'existencias', 'descripcion', 'imagen'];
@@ -68,6 +74,8 @@ export default function ProductoFormPage() {
   const [tocados, setTocados] = useState({});
   const [errorApi, setErrorApi] = useState({ campo: null, mensaje: '' });
   const [enviando, setEnviando] = useState(false);
+  const [dialogo, setDialogo] = useState(null); // null | 'eliminar' | 'inactivar'
+  const [ocupado, setOcupado] = useState(false);
 
   // Carga las categorías (para la lista) y, al editar, el producto. Si algo falla, no se muestra el formulario.
   useEffect(() => {
@@ -134,8 +142,14 @@ export default function ProductoFormPage() {
     setEnviando(true);
     try {
       const { data } = esEdicion ? await actualizarProducto(producto.id_producto, datos) : await crearProducto(datos);
-      mostrar(esEdicion ? `Se guardaron los cambios de ${data.nombre}.` : `Se creó ${data.nombre}.`);
-      navigate('/admin/productos');
+      if (esEdicion) {
+        mostrar(`Se guardaron los cambios de ${data.nombre}.`);
+        navigate('/admin/productos');
+      } else {
+        // La galería necesita que el producto exista: se sigue en su edición.
+        mostrar(`Se creó ${data.nombre}. Ahora puedes agregar más imágenes a su galería.`);
+        navigate(`/admin/productos/${data.id_producto}`, { replace: true });
+      }
     } catch (error) {
       setEnviando(false);
       if (error.status === 404) {
@@ -145,6 +159,39 @@ export default function ProductoFormPage() {
       }
       // Se reacciona por `code` (API_CONTRATOS.md): el nombre repetido se marca en su campo.
       setErrorApi({ campo: error.code === 'PRODUCTO_DUPLICADO' ? 'nombre' : null, mensaje: error.message });
+    }
+  }
+
+  // Eliminar (decisión M): solo si nunca estuvo en un carrito ni en un pedido.
+  async function confirmarEliminar() {
+    setOcupado(true);
+    try {
+      await eliminarProducto(producto.id_producto);
+      mostrar(`Se eliminó ${producto.nombre}.`);
+      navigate('/admin/productos');
+    } catch (error) {
+      setOcupado(false);
+      if (error.code === 'PRODUCTO_CON_PEDIDOS' && producto.estado === 'activo') {
+        setDialogo('inactivar'); // se ofrece inactivarlo en su lugar
+      } else {
+        setDialogo(null);
+        mostrar(error.message);
+        if (error.status === 404) navigate('/admin/productos');
+      }
+    }
+  }
+
+  async function confirmarInactivar() {
+    setOcupado(true);
+    try {
+      const { data } = await cambiarEstadoProducto(producto.id_producto, 'inactivo');
+      setProducto((prev) => ({ ...prev, ...data }));
+      mostrar(`${data.nombre} quedó inactivo: ya no se ve en la tienda.`);
+    } catch (error) {
+      mostrar(error.message);
+    } finally {
+      setOcupado(false);
+      setDialogo(null);
     }
   }
 
@@ -302,6 +349,50 @@ export default function ProductoFormPage() {
             </button>
           </div>
         </form>
+      )}
+
+      {carga.estado === 'listo' && esEdicion && producto && (
+        <>
+          <GaleriaProducto producto={producto} onCambio={setProducto} />
+
+          <section className="producto-form__peligro tarjeta" aria-labelledby="peligro-titulo">
+            <div>
+              <h2 id="peligro-titulo">Eliminar producto</h2>
+              <p>
+                Solo se puede eliminar si nunca estuvo en un carrito ni en un pedido. Si ya se vendió, inactívalo: deja de
+                verse en la tienda y conserva su historia.
+              </p>
+            </div>
+            <button type="button" className="btn btn--peligro" onClick={() => setDialogo('eliminar')}>
+              <Trash2 size={18} aria-hidden="true" />
+              Eliminar producto
+            </button>
+          </section>
+        </>
+      )}
+
+      {dialogo === 'eliminar' && (
+        <DialogoConfirmacion
+          titulo="Eliminar producto"
+          mensaje={`¿Eliminar ${producto.nombre}? Se borran el producto y todas sus imágenes. Esta acción no se puede deshacer.`}
+          textoConfirmar="Sí, eliminar"
+          peligro
+          ocupado={ocupado}
+          onConfirmar={confirmarEliminar}
+          onCancelar={() => setDialogo(null)}
+        />
+      )}
+
+      {dialogo === 'inactivar' && (
+        <DialogoConfirmacion
+          titulo="No se puede eliminar"
+          mensaje={`${producto.nombre} está o estuvo en un carrito o pedido, así que no se puede eliminar. ¿Quieres inactivarlo en su lugar? Dejará de verse en la tienda y podrás activarlo de nuevo.`}
+          textoConfirmar="Inactivar en su lugar"
+          textoCancelar="No, dejarlo así"
+          ocupado={ocupado}
+          onConfirmar={confirmarInactivar}
+          onCancelar={() => setDialogo(null)}
+        />
       )}
     </main>
   );

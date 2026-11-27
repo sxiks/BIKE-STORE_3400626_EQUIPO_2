@@ -86,6 +86,27 @@ export const unActivo = () => conMasStock();
 /** Un producto inactivo (para activar). */
 export const unInactivo = () => PRODUCTOS.find((p) => p.estado === "inactivo");
 
+// ---------- Galería y categorías (F2.4 · decisión M) ----------
+
+export const MAX_IMAGENES = 5; // portada + 4
+/** El producto que trae galería en el catálogo de prueba (dos imágenes adicionales). */
+export const conGaleria = () => unActivo();
+const galeriaInicial = () => ({
+  [conGaleria().id_producto]: [
+    { id_imagen: 1, imagen: "extra-1.png", orden: 1 },
+    { id_imagen: 2, imagen: "extra-2.png", orden: 2 },
+  ],
+});
+/** Galería inicial de un producto (copia). */
+export const galeriaDe = (id) => (galeriaInicial()[id] ?? []).map((i) => ({ ...i }));
+
+/** Categorías con su número de productos (activos e inactivos), como GET /categorias/admin. */
+export const categoriasAdmin = () =>
+  CATEGORIAS.map((c) => ({ ...c, total_productos: PRODUCTOS.filter((p) => p.id_categoria === c.id_categoria).length }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+/** Una categoría sin productos no existe en la semilla: las pruebas la crean. Esta sí tiene. */
+export const categoriaConProductos = () => categoriasAdmin().find((c) => c.total_productos > 0);
+
 // Producto que respondería la API después de crear o editar con este FormData.
 function desdeFormData(base, datos) {
   const leer = (campo, actual) => (datos.has(campo) ? datos.get(campo) : actual);
@@ -106,6 +127,11 @@ function desdeFormData(base, datos) {
   };
 }
 
+// Error con la forma de ApiError (sin importar services/api.js, para no cargar la app en el fixture).
+function errorApi(message, status, code, data) {
+  return Object.assign(new Error(message), { name: "ApiError", status, code: code ?? null, data: data ?? null });
+}
+
 // Reemplazo de services/productos.service.js para vi.mock:
 //   vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
 // Las funciones de administración no guardan nada: responden con lo que devolvería la API.
@@ -115,7 +141,6 @@ export function servicioSimulado() {
     listarCategorias: vi.fn(() => Promise.resolve({ ok: true, data: CATEGORIAS })),
     listarProductos: vi.fn((filtros = {}) => Promise.resolve({ ok: true, data: catalogoPublico(filtros) })),
     listarProductosAdmin: vi.fn((filtros = {}) => Promise.resolve({ ok: true, data: catalogoAdmin(filtros) })),
-    obtenerProductoAdmin: vi.fn((id) => Promise.resolve({ ok: true, data: productoPorId(id) })),
     crearProducto: vi.fn((datos) =>
       Promise.resolve({ ok: true, data: desdeFormData({ id_producto: 100, created_at: "2026-11-27T12:00:00.000Z" }, datos) })
     ),
@@ -123,6 +148,105 @@ export function servicioSimulado() {
     cambiarEstadoProducto: vi.fn((id, estado) => {
       const p = productoPorId(id);
       return Promise.resolve({ ok: true, data: { ...p, estado, disponible: estado === "activo" && p.existencias > 0 } });
+    }),
+    ...galeriaSimulada(),
+  };
+}
+
+// Detalle, eliminar y galería (F2.4). Guarda estado mientras dure el servicio simulado (una prueba),
+// para que varias acciones seguidas se comporten como en la API.
+function galeriaSimulada() {
+  const galerias = galeriaInicial();
+  const portadas = {};
+  let siguienteId = 100;
+
+  const detalle = (id) => {
+    const p = productoPorId(id);
+    if (!p) return null;
+    return { ...p, imagen: portadas[p.id_producto] ?? p.imagen, imagenes: (galerias[p.id_producto] ?? []).map((i) => ({ ...i })) };
+  };
+  const responder = (id) => {
+    const d = detalle(id);
+    return d ? Promise.resolve({ ok: true, data: d }) : Promise.reject(errorApi("Producto no encontrado", 404));
+  };
+  const imagenDe = (id, idImagen) => (galerias[Number(id)] ?? []).find((i) => i.id_imagen === Number(idImagen));
+
+  return {
+    obtenerProducto: vi.fn((id) => {
+      const d = detalle(id);
+      return d && d.estado === "activo" ? Promise.resolve({ ok: true, data: d }) : Promise.reject(errorApi("Producto no encontrado", 404));
+    }),
+    obtenerProductoAdmin: vi.fn((id) => responder(id)),
+    eliminarProducto: vi.fn((id) => Promise.resolve({ ok: true, data: { id_producto: Number(id) } })),
+    agregarImagen: vi.fn((id, archivo) => {
+      const lista = (galerias[Number(id)] ??= []);
+      if (lista.length + 1 >= MAX_IMAGENES) {
+        return Promise.reject(errorApi("El producto ya tiene el máximo de 5 imágenes", 409, "LIMITE_IMAGENES", { maximo: MAX_IMAGENES }));
+      }
+      lista.push({ id_imagen: siguienteId++, imagen: archivo?.name ?? "nueva.png", orden: lista.length + 1 });
+      return responder(id);
+    }),
+    quitarImagen: vi.fn((id, idImagen) => {
+      if (!imagenDe(id, idImagen)) return Promise.reject(errorApi("Imagen no encontrada", 404));
+      galerias[Number(id)] = galerias[Number(id)].filter((i) => i.id_imagen !== Number(idImagen));
+      return responder(id);
+    }),
+    elegirPortada: vi.fn((id, idImagen) => {
+      const img = imagenDe(id, idImagen);
+      if (!img) return Promise.reject(errorApi("Imagen no encontrada", 404));
+      const anterior = detalle(id).imagen;
+      portadas[Number(id)] = img.imagen;
+      img.imagen = anterior;
+      return responder(id);
+    }),
+    reordenarImagenes: vi.fn((id, ids) => {
+      const lista = galerias[Number(id)] ?? [];
+      galerias[Number(id)] = ids.map((x, i) => ({ ...lista.find((img) => img.id_imagen === x), orden: i + 1 }));
+      return responder(id);
+    }),
+  };
+}
+
+// Reemplazo de services/categorias.service.js para vi.mock:
+//   vi.mock("../services/categorias.service", async () => (await import("./fixtures/catalogo")).categoriasSimulado());
+// Guarda estado mientras dure el servicio simulado. Aplica las reglas del backend: nombre único sin
+// distinguir mayúsculas y no eliminar una categoría con productos.
+export function categoriasSimulado() {
+  let lista = categoriasAdmin();
+  let siguienteId = 50;
+  const ordenar = () => lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  const repetido = (nombre, id) => lista.some((c) => c.nombre.toLowerCase() === nombre.trim().toLowerCase() && c.id_categoria !== id);
+  const duplicada = () => Promise.reject(errorApi("Ya existe una categoría con ese nombre", 409, "CATEGORIA_DUPLICADA"));
+
+  return {
+    listarCategoriasAdmin: vi.fn(() => Promise.resolve({ ok: true, data: lista.map((c) => ({ ...c })) })),
+    crearCategoria: vi.fn((nombre) => {
+      if (repetido(nombre)) return duplicada();
+      const nueva = { id_categoria: siguienteId++, nombre: nombre.trim(), total_productos: 0 };
+      lista.push(nueva);
+      ordenar();
+      return Promise.resolve({ ok: true, data: { ...nueva } });
+    }),
+    renombrarCategoria: vi.fn((id, nombre) => {
+      const c = lista.find((x) => x.id_categoria === Number(id));
+      if (!c) return Promise.reject(errorApi("Categoría no encontrada", 404));
+      if (repetido(nombre, c.id_categoria)) return duplicada();
+      c.nombre = nombre.trim();
+      ordenar();
+      return Promise.resolve({ ok: true, data: { ...c } });
+    }),
+    eliminarCategoria: vi.fn((id) => {
+      const c = lista.find((x) => x.id_categoria === Number(id));
+      if (!c) return Promise.reject(errorApi("Categoría no encontrada", 404));
+      if (c.total_productos > 0) {
+        return Promise.reject(
+          errorApi(`No se puede eliminar: la categoría tiene ${c.total_productos} productos.`, 409, "CATEGORIA_CON_PRODUCTOS", {
+            total_productos: c.total_productos,
+          })
+        );
+      }
+      lista = lista.filter((x) => x.id_categoria !== c.id_categoria);
+      return Promise.resolve({ ok: true, data: { id_categoria: c.id_categoria } });
     }),
   };
 }
