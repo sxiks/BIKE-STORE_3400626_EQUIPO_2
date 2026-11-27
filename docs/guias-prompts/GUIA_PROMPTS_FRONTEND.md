@@ -30,7 +30,7 @@ Reglas del frontend que debes respetar:
 - Dinero en COP como número; fechas en ISO UTC.
 - URL base desde config/env.js (VITE_API_URL). Nada de URLs a mano.
 - Mensajes al usuario con ToastContext (mostrar), nunca alert() ni confirm().
-- Sistema de diseño "Montaña Clara": colores, tipografía (Outfit títulos, Nunito Sans texto), espacios, radios y sombras SOLO con las variables de assets/tokens.css (nunca un color a mano). Reutiliza las clases de assets/base.css (.contenedor, .btn + .btn--primario/--suave/--acento/--peligro, .icono-btn, .campo, .input, .tarjeta, .etiqueta--exito/--aviso/--error, .alerta--error, .solo-lector) y crea clases BEM propias por componente en su .css.
+- Sistema de diseño "Noche" con tema oscuro y claro: colores, tipografía (Inter), espacios, radios y sombras SOLO con las variables de assets/tokens.css (nunca un color a mano; texto sobre un fondo de color con su --color-sobre-…). Todo debe verse bien en los dos temas. Reutiliza las clases de assets/base.css (.contenedor, .btn + .btn--primario/--suave/--acento/--peligro, .icono-btn, .campo, .input, .tarjeta, .etiqueta--exito/--aviso/--error, .alerta--error, .solo-lector) y crea clases BEM propias por componente en su .css.
 - Solo trabajo dentro de frontend/. No propongas cambios en backend/ ni database/: si algo falta en la API, ayúdame a redactar el pedido para el Dev Backend.
 - El flujo de trabajo es el de CONTRIBUTING.md: una rama por tarea desde develop, commits con Conventional Commits, PR hacia develop con la plantilla .github/pull_request_template.md y 1 aprobación.
 Adjunto: docs/diseno-tecnico/ARQUITECTURA.md, docs/diseno-tecnico/API_CONTRATOS.md, CONTRIBUTING.md, frontend/src/assets/tokens.css, frontend/src/assets/base.css y los archivos que voy a tocar.
@@ -183,7 +183,7 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### F2.1 · Sistema de diseño unificado
 
-> ✅ **Hecha** (adelantada al Sprint 1): se eligió la opción C "Montaña Clara". Resultado: `assets/tokens.css` + `assets/base.css`. Este prompt queda como referencia.
+> ✅ **Hecha** (adelantada al Sprint 1): se eligió la opción C "Montaña Clara". Resultado: `assets/tokens.css` + `assets/base.css`. Después la **reemplazó el rediseño "Noche"** (tema oscuro y claro, ver la decisión "Diseño" del [ROADMAP](../ROADMAP.md#resueltas)); la estructura de archivos se mantiene. Este prompt queda como referencia.
 
 ```
 TAREA F2.1 · Sprint 2 · RNF de usabilidad · Rama: feature/front-sistema-diseno (ya creada desde develop actualizado; si no, dame primero los comandos).
