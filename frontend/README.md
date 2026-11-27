@@ -37,7 +37,9 @@ npm run build      # versión de producción en dist/
 | `/admin/productos/nuevo` | Solo `admin` | Crear un producto con su imagen (CU-12) |
 | `/admin/productos/:id` | Solo `admin` | Editar un producto: solo se envían los campos que cambian, y la imagen solo si se elige otra (CU-13). Debajo: la galería (agregar, quitar, hacer portada y ordenar arrastrando; se guarda al momento) y "Eliminar producto" (solo si nunca se usó) |
 | `/admin/categorias` | Solo `admin` | Crear, renombrar y eliminar categorías sin productos (decisión M) |
-| `/cuenta` | Solo `cliente` | Mi cuenta (inicio provisional: "Mis pedidos" llega en F3.2) |
+| `/cuenta` | Solo `cliente` | Mi cuenta, con el enlace a "Mis pedidos" |
+| `/cuenta/pedidos` | Solo `cliente` | Mis pedidos: número, fecha (hora del navegador), estado y total, del más reciente al más antiguo (F3.2) |
+| `/cuenta/pedidos/:numero` | Solo `cliente` | Detalle del pedido: productos al precio con que se confirmó (R3), envío y cada intento de pago (medio, últimos 4 dígitos, estado). Si está pendiente o rechazado muestra "Pagar" (se activa en F3.3). También será la confirmación después de pagar |
 | `/checkout` | Solo `cliente` | Finalizar compra. Provisional en F3.1 (resumen del carrito); F3.3 agrega envío y pago. Un visitante que pulsa "Comprar" pasa antes por el login y vuelve aquí |
 
 Estructura (rediseño):
