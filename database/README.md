@@ -33,9 +33,10 @@ Consecuencia práctica: la `002` **no se puede ejecutar dos veces** sobre la mis
 
 ## Con Docker
 
-Es la forma principal (decisión D13 del [ROADMAP](../docs/ROADMAP.md#resueltas)). `docker-compose.yml`, en la raíz, levanta PostgreSQL 17 en el puerto **5433**. La primera vez que se crea el volumen de datos, `docker/initdb/01-crear-bases.sh` crea el rol `bike_store_app`, las bases `bike_store` y `bike_store_test`, y aplica de la `002` a la `005` sobre `bike_store`. Los pasos completos están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker). Desde la raíz del repositorio:
+Es la forma principal (decisión D13 del [ROADMAP](../docs/ROADMAP.md#resueltas)). `docker-compose.yml`, en la raíz, levanta PostgreSQL 17 en el puerto **5433**, accesible solo desde el mismo PC. Las contraseñas salen del `.env` de la raíz (copia de `.env.example`, no se sube a GitHub). La primera vez que se crea el volumen de datos, `docker/initdb/01-crear-bases.sh` crea el rol `bike_store_app`, las bases `bike_store` y `bike_store_test`, y aplica de la `002` a la `005` sobre `bike_store`. Los pasos completos están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker). Desde la raíz del repositorio:
 
 ```bash
+cp .env.example .env                 # una sola vez: elige POSTGRES_PASSWORD (y DB_PASSWORD si quieres otra)
 docker compose up -d                 # arranca la base (la primera vez, la crea y aplica las migraciones)
 docker compose logs db               # qué pasó al iniciar
 
