@@ -126,12 +126,15 @@ async function actualizar(idProducto, datos = {}, imagenNueva) {
   }
 }
 
-// CU-14: borrado lógico (nunca DELETE).
+// CU-14: borrado lógico (nunca DELETE). CU-14 2.1: si ya está en ese estado, se informa (409 SIN_CAMBIOS).
 async function cambiarEstado(idProducto, { estado } = {}) {
   v.enLista(estado, ESTADOS, 'estado');
-  const afectados = await productosRepository.updateEstado(v.id(idProducto), estado);
-  if (!afectados) throw new AppError('Producto no encontrado', 404);
-  return productosRepository.findById(Number(idProducto));
+  const actual = await buscarAdmin(idProducto);
+  if (actual.estado === estado) {
+    throw new AppError(`El producto ya se encuentra ${estado}`, 409, 'SIN_CAMBIOS');
+  }
+  await productosRepository.updateEstado(actual.id_producto, estado);
+  return productosRepository.findById(actual.id_producto);
 }
 
 // ---------- B2.2: eliminar y galería ----------

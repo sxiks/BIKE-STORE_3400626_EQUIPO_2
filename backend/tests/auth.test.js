@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const app = require('../src/app.js');
 const env = require('../src/config/env.js');
 const { pool, limpiarUsuarios, cambiarEstadoUsuario, vencerTokensDe } = require('./helpers/db.js');
+const { cargarConfig } = require('./helpers/config.js');
 
 const PASSWORD = 'Clave1234';
 const NUEVA_PASSWORD = 'NuevaClave99';
@@ -221,13 +222,15 @@ describe('POST /api/auth/recuperar · CU-11 (D8)', () => {
     });
   });
 
-  it('no devuelve el token fuera de desarrollo, aunque RESET_TOKEN_EN_RESPUESTA esté encendido', async () => {
-    await conConfig(env, 'isDev', false, async () => {
-      const res = await recuperar();
-
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({ ok: true, message: MENSAJE });
-    });
+  // Desde B1 (H-03) la condición se decide en config/env.js con NODE_ENV escrito: se comprueba cargando
+  // la configuración en un proceso aparte, con las variables de cada caso.
+  it.each([
+    ['NODE_ENV=production', { NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(40) }],
+    ['sin NODE_ENV (no se supone desarrollo)', { NODE_ENV: undefined }]
+  ])('no devuelve el token fuera de desarrollo, aunque RESET_TOKEN_EN_RESPUESTA esté encendido: %s', (_caso, variables) => {
+    const salida = cargarConfig({ RESET_TOKEN_EN_RESPUESTA: 'true', ...variables }, 'resetToken.enRespuesta');
+    expect(salida).toBe('false');
+    expect(cargarConfig({ RESET_TOKEN_EN_RESPUESTA: 'true', NODE_ENV: 'development' }, 'resetToken.enRespuesta')).toBe('true');
   });
 
   it('responde 400 si el correo no tiene un formato válido', async () => {

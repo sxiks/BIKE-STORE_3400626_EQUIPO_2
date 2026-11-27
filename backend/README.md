@@ -20,6 +20,12 @@ Arquitectura en capas: `routes → middlewares → controllers → services → 
 
 Al arrancar, la API comprueba la conexión a PostgreSQL y crea el admin de `ADMIN_*` si no existe. La carpeta `uploads/productos/` se crea sola y está ignorada por Git.
 
+**Seguridad (B1, auditoría):**
+- `NODE_ENV` va siempre escrito en el `.env`. Si falta, la API avisa en consola y no activa las opciones solo de desarrollo, como devolver el token de recuperación.
+- Con `NODE_ENV=production`, la API no arranca si `JWT_SECRET` tiene menos de 32 caracteres o es el de ejemplo.
+- Login, recuperar y registro tienen límite de intentos: `AUTH_LIMITE_*` en `.env.example`, con 429 y `DEMASIADOS_INTENTOS`. El contador vive en memoria y se reinicia al reiniciar la API.
+- Todas las respuestas llevan `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`, y no anuncian Express.
+
 ## Pruebas automatizadas
 
 Vitest + Supertest (requiere Node.js 22.12 o superior). Las pruebas llaman a la app directamente (sin abrir el puerto 3000), así que pueden correr con la API encendida. Usan **su propia base**, `bike_store_test`, y **borran sus datos** en cada ejecución: nunca tocan `bike_store`.
@@ -54,7 +60,7 @@ npm test             # corre todas las pruebas una vez
 npm run test:watch   # las repite al guardar cambios
 ```
 
-- Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`. El script aplica de la `002` a la `005`.
+- Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`. El script aplica de la `002` a la `006`.
 - Protección: si `.env.test` no existe o su `DB_NAME` no termina en `_test`, las pruebas y `test:db` se niegan a ejecutarse.
 - Las pruebas están en `tests/`: un archivo por módulo (`auth.test.js`, `carrito-pedido.test.js`, …) y utilidades en `tests/helpers/`.
 

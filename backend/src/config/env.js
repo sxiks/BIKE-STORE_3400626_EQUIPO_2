@@ -21,12 +21,39 @@ if (!/^[A-Za-z_]+(\/[A-Za-z_]+)*$/.test(timezone)) {
   throw new Error('DB_TIMEZONE no tiene un formato válido (ej. America/Bogota)');
 }
 
-const nodeEnv = process.env.NODE_ENV || 'development';
+// NODE_ENV se toma como 'development' si falta, pero las opciones que solo valen en desarrollo
+// (como devolver el token de recuperación en la respuesta, decisión D8) exigen que esté ESCRITO:
+// así una API publicada sin NODE_ENV no las activa por accidente (hallazgo H-03 de la auditoría).
+const nodeEnvExplicito = process.env.NODE_ENV;
+const nodeEnv = nodeEnvExplicito || 'development';
+if (!nodeEnvExplicito) {
+  console.warn('[config] NODE_ENV no está definido: se asume development. En un servidor, define NODE_ENV=production.');
+}
+
+// En producción el secreto del JWT no puede ser corto ni uno de los de ejemplo del repositorio:
+// con un secreto conocido cualquiera podría firmar tokens válidos.
+const SECRETOS_DE_EJEMPLO = [
+  'cambia_este_secreto_por_uno_largo',
+  'secreto_solo_para_pruebas_automatizadas_no_usar_en_produccion'
+];
+if (nodeEnv === 'production') {
+  const secreto = process.env.JWT_SECRET;
+  if (secreto.length < 32 || SECRETOS_DE_EJEMPLO.includes(secreto)) {
+    throw new Error('JWT_SECRET no es seguro para producción: usa una cadena aleatoria de al menos 32 caracteres');
+  }
+}
 
 module.exports = {
   nodeEnv,
-  isDev: nodeEnv === 'development',
   port: entero('PORT', 3000),
+  // Saltos de proxy a confiar para leer la IP real del cliente (0 = ninguno, desarrollo local).
+  trustProxy: entero('TRUST_PROXY', 0, 0),
+  // Límite de intentos en /auth (B1 · H-02): por IP en login, recuperar y registro; por correo en login y recuperar.
+  limiteAuth: {
+    minutos: entero('AUTH_LIMITE_MINUTOS', 15),
+    porIp: entero('AUTH_LIMITE_IP', 30),
+    porCorreo: entero('AUTH_LIMITE_CORREO', 10)
+  },
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   db: {
     host: process.env.DB_HOST,
@@ -48,7 +75,7 @@ module.exports = {
   stockBajoUmbral: entero('STOCK_BAJO_UMBRAL', 5, 0),
   resetToken: {
     minutos: entero('RESET_TOKEN_MINUTOS', 30),
-    // Solo tiene efecto si NODE_ENV=development (ver docs/GUIA_PRUEBAS_LOCALES.md, sección 1)
-    enRespuesta: process.env.RESET_TOKEN_EN_RESPUESTA === 'true'
+    // Solo tiene efecto con NODE_ENV=development ESCRITO en el .env (ver docs/GUIA_PRUEBAS_LOCALES.md, sección 1)
+    enRespuesta: nodeEnvExplicito === 'development' && process.env.RESET_TOKEN_EN_RESPUESTA === 'true'
   }
 };
