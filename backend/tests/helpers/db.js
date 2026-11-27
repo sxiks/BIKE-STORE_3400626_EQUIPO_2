@@ -49,6 +49,34 @@ async function restaurarProductos(foto) {
   }
 }
 
+// Categorías: foto y restauración (B2.2). Llamar DESPUÉS de restaurarProductos:
+// una categoría creada por una prueba solo se puede borrar cuando ya no tiene productos.
+async function fotoCategorias() {
+  const { rows } = await pool.query('SELECT id_categoria, nombre FROM categorias');
+  return rows;
+}
+
+async function restaurarCategorias(foto) {
+  const ids = foto.map((c) => c.id_categoria);
+  await pool.query('DELETE FROM categorias WHERE NOT (id_categoria = ANY($1::int[]))', [ids]);
+  for (const c of foto) {
+    await pool.query('UPDATE categorias SET nombre = $2 WHERE id_categoria = $1', [c.id_categoria, c.nombre]);
+  }
+}
+
+// Galería (B2.2): la semilla no trae imágenes adicionales, así que se vacía entera.
+async function limpiarGaleria() {
+  await pool.query('TRUNCATE producto_imagenes RESTART IDENTITY');
+}
+
+async function galeriaDe(idProducto) {
+  const { rows } = await pool.query(
+    'SELECT id_imagen, imagen, orden FROM producto_imagenes WHERE id_producto = $1 ORDER BY orden, id_imagen',
+    [idProducto]
+  );
+  return rows;
+}
+
 async function productoPorId(id) {
   const { rows } = await pool.query('SELECT * FROM productos WHERE id_producto = $1', [id]);
   return rows[0] || null;
@@ -62,5 +90,9 @@ module.exports = {
   vencerTokensDe,
   fotoProductos,
   restaurarProductos,
+  fotoCategorias,
+  restaurarCategorias,
+  limpiarGaleria,
+  galeriaDe,
   productoPorId
 };

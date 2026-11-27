@@ -1,4 +1,5 @@
-// Pruebas del catálogo público y de la administración de productos: CU-01, CU-02, CU-12 a CU-15.
+// Pruebas del catálogo público y de la administración de productos: CU-01, CU-02, CU-12 a CU-15,
+// y de la eliminación de productos nunca usados y la galería de imágenes (B2.2, decisión M).
 // Contratos: docs/diseno-tecnico/API_CONTRATOS.md, sección "Catálogo y productos".
 // Las imágenes que suben las pruebas se borran después de cada una, y se comprueba que
 // backend/uploads/productos quede igual que antes (sin archivos huérfanos).
@@ -8,7 +9,7 @@ import request from 'supertest';
 
 const require = createRequire(import.meta.url);
 const app = require('../src/app.js');
-const { limpiarUsuarios, fotoProductos, restaurarProductos, productoPorId } = require('./helpers/db.js');
+const { limpiarUsuarios, fotoProductos, restaurarProductos, productoPorId, limpiarGaleria, galeriaDe } = require('./helpers/db.js');
 const { registrarYEntrar } = require('./helpers/sesion.js');
 const img = require('./helpers/imagenes.js');
 
@@ -61,6 +62,7 @@ afterEach(async () => {
   const sobrantes = img.archivosEnUploads().filter((n) => !archivosAntes.includes(n));
   img.borrarNuevos(archivosAntes);
   await limpiarUsuarios();
+  await limpiarGaleria();
   await restaurarProductos(foto);
   // Lo que una prueba sube debe terminar en un producto de la base o borrarse: aquí solo
   // pueden sobrar las imágenes de los productos que la prueba creó con éxito.
@@ -374,5 +376,224 @@ describe('PATCH /productos/:id/estado · CU-14', () => {
       .send({ estado: 'inactivo' });
 
     expect(res.status).toBe(403);
+  });
+});
+
+// ---------- B2.2 · decisión M ----------
+
+// Sube una imagen a la galería del producto.
+function subirImagen(id, archivo = { buffer: img.PNG, filename: 'extra.png', contentType: 'image/png' }) {
+  return conAdmin(request(app).post(`/api/productos/${id}/imagenes`)).attach('imagen', archivo.buffer, {
+    filename: archivo.filename,
+    contentType: archivo.contentType
+  });
+}
+
+const alCarrito = (idProducto) =>
+  request(app).post('/api/carrito/items').set('Authorization', `Bearer ${tokenCliente}`).send({ id_producto: idProducto });
+
+describe('DELETE /productos/:id · decisión M', () => {
+  it('elimina un producto que nunca se usó y borra del disco la portada y la galería', async () => {
+    const creado = (await crear()).body.data;
+    const extra = (await subirImagen(creado.id_producto)).body.data.imagenes[0];
+
+    const res = await conAdmin(request(app).delete(`/api/productos/${creado.id_producto}`));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ id_producto: creado.id_producto });
+    expect(await productoPorId(creado.id_producto)).toBeNull();
+    expect(await galeriaDe(creado.id_producto)).toEqual([]);
+    expect(img.existeEnUploads(creado.imagen)).toBe(false);
+    expect(img.existeEnUploads(extra.imagen)).toBe(false);
+    expect(img.archivosEnUploads()).toEqual(archivosAntes);
+  });
+
+  it('si está en un carrito responde 409 PRODUCTO_CON_PEDIDOS y no borra nada', async () => {
+    const creado = (await crear()).body.data;
+    expect((await alCarrito(creado.id_producto)).status).toBe(200);
+
+    const res = await conAdmin(request(app).delete(`/api/productos/${creado.id_producto}`));
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('PRODUCTO_CON_PEDIDOS');
+    expect(res.body.message).toMatch(/inactívalo/i);
+    expect(await productoPorId(creado.id_producto)).not.toBeNull();
+    expect(img.existeEnUploads(creado.imagen)).toBe(true);
+  });
+
+  it('si el cliente lo quita de su carrito, ya no está en ninguna línea y se puede eliminar', async () => {
+    // Quitarlo del carrito borra la línea: entonces ya no está en ningún carrito ni pedido y se puede eliminar.
+    const creado = (await crear()).body.data;
+    await alCarrito(creado.id_producto);
+    await request(app).delete(`/api/carrito/items/${creado.id_producto}`).set('Authorization', `Bearer ${tokenCliente}`);
+
+    const res = await conAdmin(request(app).delete(`/api/productos/${creado.id_producto}`));
+
+    expect(res.status).toBe(200);
+  });
+
+  it('un producto de un pedido ya confirmado responde 409', async () => {
+    const sierra = foto.find((p) => p.nombre === 'MTB Sierra 29');
+    await alCarrito(sierra.id_producto);
+    const pedido = await request(app)
+      .post('/api/pedidos')
+      .set('Authorization', `Bearer ${tokenCliente}`)
+      .send({
+        envio_nombre: 'Ana Cliente',
+        envio_telefono: '3001234567',
+        envio_departamento: 'Valle del Cauca',
+        envio_ciudad: 'Palmira',
+        envio_direccion: 'Calle 1 # 2-3'
+      });
+    expect(pedido.status).toBe(201);
+
+    const res = await conAdmin(request(app).delete(`/api/productos/${sierra.id_producto}`));
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('PRODUCTO_CON_PEDIDOS');
+  });
+
+  it('inexistente responde 404, id inválido 400 y un cliente 403', async () => {
+    expect((await conAdmin(request(app).delete('/api/productos/999999'))).status).toBe(404);
+    expect((await conAdmin(request(app).delete('/api/productos/abc'))).status).toBe(400);
+    const sierra = foto.find((p) => p.nombre === 'MTB Sierra 29');
+    const res = await request(app).delete(`/api/productos/${sierra.id_producto}`).set('Authorization', `Bearer ${tokenCliente}`);
+    expect(res.status).toBe(403);
+    expect(await productoPorId(sierra.id_producto)).not.toBeNull();
+  });
+});
+
+describe('Galería de imágenes · decisión M', () => {
+  let creado;
+
+  beforeEach(async () => {
+    creado = (await crear()).body.data;
+  });
+
+  const galeria = async () => (await galeriaDe(creado.id_producto)).map((i) => i.id_imagen);
+
+  it('agrega imágenes al final, en orden, y el detalle (admin y público) las incluye', async () => {
+    const primera = await subirImagen(creado.id_producto);
+    const segunda = await subirImagen(creado.id_producto, { buffer: img.WEBP, filename: 'b.webp', contentType: 'image/webp' });
+
+    expect(primera.status).toBe(201);
+    expect(segunda.body.data.imagenes).toHaveLength(2);
+    expect(segunda.body.data.imagenes.map((i) => i.orden)).toEqual([1, 2]);
+    expect(segunda.body.data.imagenes[1].imagen).toMatch(/\.webp$/);
+    for (const i of segunda.body.data.imagenes) expect(img.existeEnUploads(i.imagen)).toBe(true);
+    expect(segunda.body.data.imagen).toBe(creado.imagen); // la portada no cambia
+
+    const publico = await request(app).get(`/api/productos/${creado.id_producto}`);
+    expect(publico.body.data.imagenes).toEqual(segunda.body.data.imagenes);
+    const listado = await request(app).get('/api/productos');
+    expect(listado.body.data[0]).not.toHaveProperty('imagenes'); // los listados siguen livianos
+  });
+
+  it('permite 5 imágenes en total (portada + 4); la sexta responde 409 LIMITE_IMAGENES y se borra', async () => {
+    for (let i = 0; i < 4; i++) expect((await subirImagen(creado.id_producto)).status).toBe(201);
+    const enDisco = img.archivosEnUploads();
+
+    const res = await subirImagen(creado.id_producto);
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('LIMITE_IMAGENES');
+    expect(res.body.data).toEqual({ maximo: 5 });
+    expect(await galeria()).toHaveLength(4);
+    expect(img.archivosEnUploads()).toEqual(enDisco);
+  });
+
+  it('un archivo que no es imagen responde 400 y no deja nada; sin archivo también 400', async () => {
+    const res = await subirImagen(creado.id_producto, { buffer: img.HTML, filename: 'x.png', contentType: 'image/png' });
+    expect(res.status).toBe(400);
+    expect((await conAdmin(request(app).post(`/api/productos/${creado.id_producto}/imagenes`))).status).toBe(400);
+    expect(await galeria()).toEqual([]);
+    expect(img.archivosEnUploads().filter((n) => !archivosAntes.includes(n))).toEqual([creado.imagen]);
+  });
+
+  it('a un producto inexistente responde 404 y la imagen subida se borra', async () => {
+    const enDisco = img.archivosEnUploads();
+    expect((await subirImagen(999999)).status).toBe(404);
+    expect(img.archivosEnUploads()).toEqual(enDisco);
+  });
+
+  it('quitar una imagen la saca de la galería y borra su archivo', async () => {
+    const imagenes = (await subirImagen(creado.id_producto)).body.data.imagenes;
+    const quitar = imagenes[0];
+
+    const res = await conAdmin(request(app).delete(`/api/productos/${creado.id_producto}/imagenes/${quitar.id_imagen}`));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.imagenes).toEqual([]);
+    expect(img.existeEnUploads(quitar.imagen)).toBe(false);
+    expect(img.existeEnUploads(creado.imagen)).toBe(true);
+  });
+
+  it('una imagen de otro producto o inexistente responde 404', async () => {
+    const otro = (await crear({ nombre: 'Otro timbre' })).body.data;
+    const ajena = (await subirImagen(otro.id_producto)).body.data.imagenes[0];
+
+    expect((await conAdmin(request(app).delete(`/api/productos/${creado.id_producto}/imagenes/${ajena.id_imagen}`))).status).toBe(404);
+    expect((await conAdmin(request(app).patch(`/api/productos/${creado.id_producto}/imagenes/${ajena.id_imagen}/portada`))).status).toBe(404);
+    expect((await conAdmin(request(app).delete(`/api/productos/${creado.id_producto}/imagenes/999999`))).status).toBe(404);
+    expect(await galeriaDe(otro.id_producto)).toHaveLength(1);
+  });
+
+  it('elegir portada intercambia: la elegida pasa a portada y la anterior ocupa su lugar', async () => {
+    await subirImagen(creado.id_producto);
+    const imagenes = (await subirImagen(creado.id_producto)).body.data.imagenes;
+    const elegida = imagenes[1];
+
+    const res = await conAdmin(request(app).patch(`/api/productos/${creado.id_producto}/imagenes/${elegida.id_imagen}/portada`));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.imagen).toBe(elegida.imagen);
+    expect(res.body.data.imagenes).toEqual([imagenes[0], { ...elegida, imagen: creado.imagen }]);
+    expect((await productoPorId(creado.id_producto)).imagen).toBe(elegida.imagen);
+    for (const nombre of [creado.imagen, elegida.imagen, imagenes[0].imagen]) expect(img.existeEnUploads(nombre)).toBe(true);
+  });
+
+  it('reordenar cambia el orden de la galería', async () => {
+    for (let i = 0; i < 3; i++) await subirImagen(creado.id_producto);
+    const [a, b, c] = await galeria();
+
+    const res = await conAdmin(request(app).patch(`/api/productos/${creado.id_producto}/imagenes/orden`)).send({ ids: [c, a, b] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.imagenes.map((i) => i.id_imagen)).toEqual([c, a, b]);
+    expect(res.body.data.imagenes.map((i) => i.orden)).toEqual([1, 2, 3]);
+    expect(await galeria()).toEqual([c, a, b]);
+  });
+
+  it('reordenar con ids que faltan, sobran, se repiten o no son de la galería responde 400 y no cambia nada', async () => {
+    for (let i = 0; i < 2; i++) await subirImagen(creado.id_producto);
+    const [a, b] = await galeria();
+    const url = `/api/productos/${creado.id_producto}/imagenes/orden`;
+
+    for (const ids of [[a], [a, b, 999], [a, a], [b, 999], 'a,b', [a, 'x']]) {
+      expect((await conAdmin(request(app).patch(url)).send({ ids })).status).toBe(400);
+    }
+    expect((await conAdmin(request(app).patch(url)).send({})).status).toBe(400);
+    expect(await galeria()).toEqual([a, b]);
+    expect((await conAdmin(request(app).patch('/api/productos/999999/imagenes/orden')).send({ ids: [] })).status).toBe(404);
+  });
+
+  it('reemplazar la portada con PUT no toca la galería', async () => {
+    const extra = (await subirImagen(creado.id_producto)).body.data.imagenes[0];
+
+    const res = await enviarProducto('put', `/api/productos/${creado.id_producto}`, {}, { buffer: img.JPEG, filename: 'n.jpg', contentType: 'image/jpeg' });
+
+    expect(res.status).toBe(200);
+    expect(img.existeEnUploads(creado.imagen)).toBe(false);
+    expect(img.existeEnUploads(extra.imagen)).toBe(true);
+    expect(await galeriaDe(creado.id_producto)).toEqual([extra]);
+  });
+
+  it('un cliente recibe 403 en todas las rutas de la galería', async () => {
+    const auth = (r) => r.set('Authorization', `Bearer ${tokenCliente}`);
+    const id = creado.id_producto;
+    expect((await auth(request(app).post(`/api/productos/${id}/imagenes`)).attach('imagen', img.PNG, 'a.png')).status).toBe(403);
+    expect((await auth(request(app).patch(`/api/productos/${id}/imagenes/orden`)).send({ ids: [] })).status).toBe(403);
+    expect((await auth(request(app).delete(`/api/productos/${id}/imagenes/1`))).status).toBe(403);
+    expect((await auth(request(app).patch(`/api/productos/${id}/imagenes/1/portada`))).status).toBe(403);
   });
 });
