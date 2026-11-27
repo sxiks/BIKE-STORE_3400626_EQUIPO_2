@@ -52,7 +52,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | Sprint | Tarea | Rama | CU | Depende de |
 |---|---|---|---|---|
 | 1 ✅ | [B1.1 Base de pruebas automatizadas y autenticación](#b11--base-de-pruebas-automatizadas-y-autenticación) | `feature/back-tests-auth` | 09, 10, 11 | — |
-| 1 · Hecha | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
+| 1 ✅ | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
 | 2 | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
 | 3 | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito` | 03–07 | B1.1 |
 | 3 | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-pedidos-pagos` | 07, 08 | B3.1 |
@@ -95,7 +95,7 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### B1.2 · Pruebas de usuarios y control de acceso
 
-> **Hecha.** Resultado: `tests/usuarios.test.js` (29 pruebas) y el helper compartido `tests/helpers/sesion.js` (`registrarYEntrar`, `conToken`). Reveló que la búsqueda trataba `%` y `_` como comodines; se corrigió en `usuarios.repository.buscar`. Este prompt queda como referencia.
+> ✅ **Hecha.** Resultado: `tests/usuarios.test.js` (29 pruebas) y el helper compartido `tests/helpers/sesion.js` (`registrarYEntrar`, `conToken`). Reveló que la búsqueda trataba `%` y `_` como comodines; se corrigió en `usuarios.repository.buscar`. Este prompt queda como referencia.
 
 ```
 TAREA B1.2 · Sprint 1 · CU-19, CU-20, CU-21, CU-22 · Rama: feature/back-tests-usuarios (ya creada desde develop actualizado; si no, dame primero los comandos).
@@ -185,7 +185,7 @@ OBJETIVO: cubrir con pruebas la creación de pedidos y el flujo transaccional de
 ESPECIFICACIONES (contratos en la sección "Pedidos y pago · cliente" de API_CONTRATOS.md; flujo en las decisiones 10, E y F de docs/diseno-tecnico/MODELO_DATOS.md y docs/ROADMAP.md, adjuntos):
 - Confirmar el carrito (POST /pedidos): carrito vacío → 400 CARRITO_VACIO; con ítems no disponibles → 409 CARRITO_NO_DISPONIBLE y el pedido sigue en estado 'carrito'; datos de envío incompletos → 400; éxito → 201, el mismo id_pedido pasa a 'pendiente' con numero_pedido BS-AAAA-NNNNNN y fecha_pedido (trigger), precio_unitario refrescado al vigente (R3: cambiar el precio después no altera el pedido) y el carrito queda vacío.
 - Pago: número inválido → 400; número terminado en 0000 → 402 PAGO_RECHAZADO, pedido fallido y SIN descontar stock; reintento sobre el pedido fallido → 201 aprobado (F); al aprobar se descuenta el stock, se registra el pago con solo los últimos 4 dígitos (el carrito ya se vació al confirmar); segundo pago → 409 PEDIDO_YA_PAGADO; pagar un pedido en estado 'carrito' → 404.
-- Decisión E: si el stock bajó entre crear el pedido y pagarlo → 409 SIN_STOCK, el pedido sigue pendiente y NO se registra ningún pago.
+- Decisión E: si el stock bajó entre confirmar el carrito y pagarlo → 409 SIN_STOCK, el pedido sigue pendiente y NO se registra ningún pago.
 - Acceso: el pedido de otro cliente → 404; el admin puede ver cualquier pedido con GET /pedidos/:numero pero no pagar (403).
 - Opcional: una prueba de concurrencia con dos pagos simultáneos sobre la última unidad (solo uno debe aprobarse).
 - No cambiar el comportamiento de la API. Si una prueba revela un error real, detente, explícamelo y propón la corrección mínima.

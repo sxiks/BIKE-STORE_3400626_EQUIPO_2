@@ -252,7 +252,7 @@ Abre **otra** terminal, distinta de la de la API.
 cd frontend
 cp .env.example .env      # indica a qué URL está la API (VITE_API_URL)
 npm install
-npm test                  # debe dar 35 pruebas en verde
+npm test                  # debe dar 90 pruebas en verde
 npm run dev               # abre http://localhost:5173
 ```
 
@@ -276,8 +276,8 @@ npm run dev
 | La API responde | `curl -s http://localhost:3000/api/health` | `Invoke-RestMethod http://localhost:3000/api/health` | `ok: true` |
 | El catálogo tiene datos | `curl -s http://localhost:3000/api/productos` | `Invoke-RestMethod http://localhost:3000/api/productos` | 9 productos activos |
 | El login funciona | Abre `http://localhost:5173/login` | igual | Con el admin, redirige a la tienda |
-| Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 35 pruebas en verde |
-| Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `bike_store_test` y `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y todas las pruebas en verde |
+| Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 90 pruebas en verde |
+| Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `bike_store_test` y `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y 82 pruebas en verde |
 
 ### Usuarios de prueba
 
