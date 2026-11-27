@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, PackageX } from 'lucide-react';
-import { CarritoProvider, useCarrito } from '../context/CarritoContext';
+import { useCarrito } from '../context/CarritoContext';
 import { useToast } from '../context/ToastContext';
 import { obtenerProducto } from '../services/productos.service';
 import { formatoCOP } from '../utils/formato';
@@ -14,14 +14,10 @@ import '../assets/tienda.css';
 import '../assets/detalle.css';
 
 // Detalle de un producto en la tienda (F2.4): portada y galería, datos completos y agregar al carrito.
-// Ruta pública /producto/:id (el admin no llega: SinAdmin). Usa el mismo carrito local que la tienda
-// (CarritoProvider guarda en localStorage), hasta F3.1.
+// Ruta pública /producto/:id (el admin no llega: SinAdmin). Usa el mismo carrito que la tienda
+// (CarritoProvider en App.jsx: navegador para visitantes, API para clientes).
 export default function ProductoPage() {
-  return (
-    <CarritoProvider>
-      <DetalleContenido />
-    </CarritoProvider>
-  );
+  return <DetalleContenido />;
 }
 
 function DetalleContenido() {

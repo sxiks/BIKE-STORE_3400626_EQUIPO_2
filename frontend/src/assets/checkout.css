@@ -1,0 +1,19 @@
+/* /checkout (F3.1 provisional; F3.3 agrega envío y pago). Solo variables de tokens.css. */
+.checkout { max-width: 720px; padding-top: var(--espacio-8); padding-bottom: var(--espacio-12); display: grid; gap: var(--espacio-4); }
+.checkout .panel__encabezado { margin-bottom: 0; }
+.checkout__mensaje { color: var(--color-texto-suave); }
+.checkout__vacio { display: grid; justify-items: center; gap: var(--espacio-3); padding: var(--espacio-8); text-align: center; }
+.checkout__vacio p { margin: 0; color: var(--color-texto-suave); }
+
+.checkout__resumen { padding: var(--espacio-5) var(--espacio-6); }
+.checkout__resumen h2 { margin: 0 0 var(--espacio-3); font-size: var(--texto-lg); font-weight: 700; }
+.checkout__lineas { display: grid; gap: var(--espacio-2); margin: 0; padding: 0; list-style: none; }
+.checkout__lineas li { display: flex; justify-content: space-between; gap: var(--espacio-3); }
+.checkout__cantidad { color: var(--color-texto-tenue); }
+.checkout__linea--no-disponible { color: var(--color-aviso-texto); }
+.checkout__total { display: grid; gap: var(--espacio-1); margin: var(--espacio-4) 0 0; padding-top: var(--espacio-3); border-top: 1px solid var(--color-borde); }
+.checkout__total div { display: flex; justify-content: space-between; }
+.checkout__total dt, .checkout__total dd { margin: 0; }
+.checkout__total div:last-child { font-size: var(--texto-xl); font-weight: 700; }
+
+.checkout__volver { justify-self: start; font-size: var(--texto-sm); color: var(--color-enlace); }

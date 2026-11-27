@@ -54,7 +54,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 2 ✅ | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
 | 2 ✅ | [F2.3 Panel de productos](#f23--panel-de-productos-admin) | `feature/front-admin-productos` | 12–15 | F1.2, F2.1 |
 | 2 ✅ | [F2.4 Categorías, eliminar, galería y detalle](#f24--categorías-eliminar-productos-galería-y-detalle) | `feature/front-categorias-galeria` | 12–15 (extensión, decisión M) | F2.3 y la tarea B2.2 del backend |
-| 3 | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
+| 3 ✅ | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
 | 3 | [F3.2 Mis pedidos y detalle](#f32--mis-pedidos-y-detalle-del-pedido) | `feature/front-mis-pedidos` | 08 | F1.2 |
 | 3 | [F3.3 Checkout y pago](#f33--checkout-y-pago-simulado) | `feature/front-checkout` | 07, 08 | F3.1, F3.2 |
 | 4 | [F4.1 Tablero](#f41--tablero-de-control-admin) | `feature/front-dashboard` | 16, 17 | F1.2 |
@@ -296,6 +296,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F3.1 · Carrito conectado a la API
+
+> ✅ **Hecha.** Se ajustó D1 por decisión del equipo: el visitante puede armar su carrito en el navegador y solo al comprar se le pide iniciar sesión; al entrar, su carrito pasa a la API. Resultado: `services/carrito.service.js`, `CarritoContext` con modo visitante y modo cliente (proveedor en `App.jsx`), `CarritoPanel` con los motivos de D4 y el botón "Comprar", y `pages/cuenta/CheckoutPage.jsx` provisional hasta F3.3. Los casos del instructor (`carrito.test.jsx`) no cambiaron: prueban el modo visitante; el modo cliente está en `carrito-api.test.jsx`. Este prompt queda como referencia (su punto sobre D1 quedó reemplazado por el ajuste).
 
 ```
 TAREA F3.1 · Sprint 3 · CU-03, CU-04, CU-05, CU-06 · Rama: feature/front-carrito-api (ya creada desde develop actualizado; si no, dame primero los comandos).
