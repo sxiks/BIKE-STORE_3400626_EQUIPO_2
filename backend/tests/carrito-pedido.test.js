@@ -3,14 +3,12 @@
 // Contratos: docs/diseno-tecnico/API_CONTRATOS.md, secciones "Carrito", "Pedidos y pago" y "Tablero".
 import { createRequire } from 'node:module';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import request from 'supertest';
 
 const require = createRequire(import.meta.url);
-const app = require('../src/app.js');
-const { pool, limpiarUsuarios, cambiarRolUsuario } = require('./helpers/db.js');
+const { pool, limpiarUsuarios } = require('./helpers/db.js');
+const { PASSWORD, registrarYEntrar: tokenDe, conToken } = require('./helpers/sesion.js');
 const pedidosRepository = require('../src/repositories/pedidos.repository.js');
 
-const PASSWORD = 'Clave1234';
 const CLIENTE = { nombre: 'Ana Cliente', email: 'ana@prueba.local', password: PASSWORD };
 const ADMIN = { nombre: 'Admin Tienda', email: 'admin@prueba.local', password: PASSWORD };
 const ENVIO = {
@@ -25,20 +23,6 @@ const TARJETA_RECHAZO = { medio_pago: 'tarjeta_debito', numero: '411111111111000
 
 let productosOriginales;
 let ids;
-
-async function tokenDe(usuario, rol) {
-  await request(app).post('/api/auth/register').send(usuario);
-  if (rol) await cambiarRolUsuario(usuario.email, rol);
-  const res = await request(app).post('/api/auth/login').send({ email: usuario.email, password: PASSWORD });
-  return res.body.data.token;
-}
-
-const conToken = (token) => ({
-  get: (url) => request(app).get(url).set('Authorization', `Bearer ${token}`),
-  post: (url, body) => request(app).post(url).set('Authorization', `Bearer ${token}`).send(body),
-  put: (url, body) => request(app).put(url).set('Authorization', `Bearer ${token}`).send(body),
-  del: (url) => request(app).delete(url).set('Authorization', `Bearer ${token}`)
-});
 
 async function filasPedidos(idUsuario) {
   const { rows } = await pool.query(
