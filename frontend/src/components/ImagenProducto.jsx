@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { urlImagen } from '../utils/format';
+import { urlImagen } from '../utils/formato';
 import placeholder from '../assets/placeholder-producto.svg';
 
 // Imagen de un producto con reemplazo local (decisión L): si el producto no tiene imagen o el archivo
