@@ -13,6 +13,8 @@ import RecuperarPage from './pages/RecuperarPage';
 import RestablecerPage from './pages/RestablecerPage';
 import AdminInicioPage from './pages/admin/AdminInicioPage';
 import UsuariosPage from './pages/admin/UsuariosPage';
+import ProductosPage from './pages/admin/ProductosPage';
+import ProductoFormPage from './pages/admin/ProductoFormPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import './assets/base.css';
 
@@ -62,6 +64,10 @@ export function AppRutas() {
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminInicioPage />} />
                 <Route path="/admin/usuarios" element={<UsuariosPage />} />
+                {/* Productos (F2.3): listado, crear y editar. "nuevo" gana a ":id" por ser una ruta fija. */}
+                <Route path="/admin/productos" element={<ProductosPage />} />
+                <Route path="/admin/productos/nuevo" element={<ProductoFormPage key="nuevo" />} />
+                <Route path="/admin/productos/:id" element={<ProductoFormPage key="editar" />} />
               </Route>
             </Route>
 
