@@ -1,7 +1,10 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import '../../assets/panel.css';
 
-// Inicio provisional de la cuenta del cliente (F1.2). "Mis pedidos" llega en F3.2.
+// Inicio de la cuenta del cliente (F1.2). Cada sección es un enlace cuando su tarea está integrada.
+const SECCIONES = [{ nombre: 'Mis pedidos', detalle: 'Historial y detalle de tus compras', ruta: '/cuenta/pedidos' }];
+
 export default function CuentaInicioPage() {
   const { user } = useAuth();
 
@@ -14,11 +17,16 @@ export default function CuentaInicioPage() {
         </p>
       </header>
       <ul className="panel__secciones">
-        <li className="panel__seccion tarjeta">
-          <h2>Mis pedidos</h2>
-          <p>Historial y detalle de tus compras</p>
-          <span className="etiqueta etiqueta--aviso">Próximamente · F3.2 · Sprint 3</span>
-        </li>
+        {SECCIONES.map((seccion) => (
+          <li key={seccion.nombre} className="panel__seccion tarjeta">
+            <h2>
+              <Link to={seccion.ruta} className="panel__seccion-enlace">
+                {seccion.nombre}
+              </Link>
+            </h2>
+            <p>{seccion.detalle}</p>
+          </li>
+        ))}
       </ul>
     </main>
   );

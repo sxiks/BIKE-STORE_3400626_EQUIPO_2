@@ -20,6 +20,8 @@ import CategoriasPage from './pages/admin/CategoriasPage';
 import ProductoPage from './pages/ProductoPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import CheckoutPage from './pages/cuenta/CheckoutPage';
+import PedidosPage from './pages/cuenta/PedidosPage';
+import PedidoDetallePage from './pages/cuenta/PedidoDetallePage';
 import './assets/base.css';
 
 // Orden de los proveedores: Router → Tema → Toasts → Sesión → Carrito. El tema va por fuera de todo lo visual.
@@ -65,6 +67,9 @@ export function AppRutas() {
                     <Route path="/cuenta" element={<CuentaInicioPage />} />
                     {/* F3.1: provisional (resumen); F3.3 agrega envío y pago. Un visitante pasa antes por el login. */}
                     <Route path="/checkout" element={<CheckoutPage />} />
+                    {/* Mis pedidos (F3.2); el detalle también es la confirmación después de pagar (F3.3) */}
+                    <Route path="/cuenta/pedidos" element={<PedidosPage />} />
+                    <Route path="/cuenta/pedidos/:numero" element={<PedidoDetallePage />} />
                   </Route>
                 </Route>
               </Route>
