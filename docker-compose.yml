@@ -1,0 +1,39 @@
+# Base de datos local de Bike Store con Docker (decisión D13 del ROADMAP).
+# Uso: docker compose up -d   (ver docs/GUIA_EJECUCION_LOCAL.md, paso 4)
+#
+# La primera vez que se crea el volumen, database/docker/initdb/01-crear-bases.sh
+# crea el rol bike_store_app, las bases bike_store y bike_store_test, y aplica
+# las migraciones 002 a 005 sobre bike_store. Después ya no vuelve a correr:
+# para empezar de cero, docker compose down -v (borra los datos) y docker compose up -d.
+
+name: bike-store
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: bike-store-db
+    restart: unless-stopped
+    environment:
+      # Superusuario interno del contenedor. Solo se usa para crear el rol y las bases.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_local
+      # Rol de la aplicación: deben coincidir con DB_USER y DB_PASSWORD de backend/.env.
+      APP_DB_USER: bike_store_app
+      APP_DB_PASSWORD: cambia_esta_clave
+      TZ: America/Bogota
+      PGTZ: America/Bogota
+    ports:
+      # 5433 en tu PC -> 5432 dentro del contenedor. Así no choca con un PostgreSQL ya instalado.
+      - "5433:5432"
+    volumes:
+      - bike_store_datos:/var/lib/postgresql/data
+      - ./database/migrations:/migraciones:ro
+      - ./database/docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bike_store"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bike_store_datos:
