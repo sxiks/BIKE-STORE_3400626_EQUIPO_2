@@ -1,5 +1,6 @@
 // F1.3 · Reglas de los formularios de registro y restablecer (CU-09, CU-11, D7).
 // F2.3 · Reglas del formulario de productos (CU-12, CU-13), las mismas del backend.
+// F3.3 · Reglas del envío y del pago del checkout (CU-07, CU-08).
 import { describe, expect, it } from "vitest";
 import {
   errorEmail,
@@ -10,7 +11,10 @@ import {
   validarProducto,
   errorImagen,
   IMAGEN_MAX_BYTES,
-  MSG_PASSWORD_D7
+  MSG_PASSWORD_D7,
+  validarEnvio,
+  validarPago,
+  enmascararNumero
 } from "../utils/validaciones";
 
 const cumple = (password) =>
@@ -149,5 +153,67 @@ describe("validarProducto", () => {
     expect(errorImagen(archivo("image/gif"))).toMatch(/formato de imagen no permitido/i);
     expect(errorImagen(archivo("text/html"))).toMatch(/formato de imagen no permitido/i);
     expect(errorImagen(archivo("image/png", IMAGEN_MAX_BYTES + 1))).toBe("La imagen supera el máximo de 2 MB");
+  });
+});
+
+describe("validarEnvio (F3.3)", () => {
+  const ENVIO = {
+    envio_nombre: "Ana",
+    envio_telefono: "300 123 4567",
+    envio_departamento: "Valle del Cauca",
+    envio_ciudad: "Palmira",
+    envio_direccion: "Calle 1 # 2-3",
+  };
+
+  it("un envío completo no tiene errores", () => {
+    expect(validarEnvio(ENVIO)).toEqual({});
+  });
+
+  it("pide los cinco campos", () => {
+    expect(Object.keys(validarEnvio({}))).toEqual(Object.keys(ENVIO));
+  });
+
+  it.each(["123456", "300-abc-4567", "+57"])("rechaza el teléfono %j", (envio_telefono) => {
+    expect(validarEnvio({ ...ENVIO, envio_telefono })).toHaveProperty("envio_telefono");
+  });
+
+  it.each(["3001234567", "+57 300 123 4567", "602-555-1234"])("acepta el teléfono %j", (envio_telefono) => {
+    expect(validarEnvio({ ...ENVIO, envio_telefono })).toEqual({});
+  });
+
+  it("respeta las longitudes del backend", () => {
+    expect(validarEnvio({ ...ENVIO, envio_nombre: "a".repeat(101), envio_direccion: "a".repeat(256) })).toEqual({
+      envio_nombre: "Admite máximo 100 caracteres",
+      envio_direccion: "Admite máximo 255 caracteres",
+    });
+  });
+});
+
+describe("validarPago (F3.3)", () => {
+  it.each([
+    ["tarjeta_credito", "4111 1111 1111 1111"],
+    ["tarjeta_debito", "4111-1111-1111-1"],
+    ["cuenta_bancaria", "123456"],
+    ["cuenta_bancaria", "12345678901234567890"],
+  ])("acepta %s %j (ignora espacios y guiones)", (medio_pago, numero) => {
+    expect(validarPago({ medio_pago, numero })).toEqual({});
+  });
+
+  it.each([
+    ["tarjeta_credito", "411111111111", /entre 13 y 19/],
+    ["tarjeta_credito", "41111111111111111111", /entre 13 y 19/],
+    ["cuenta_bancaria", "12345", /entre 6 y 20/],
+    ["tarjeta_debito", "4111abcd11111111", /solo puede tener dígitos/],
+    ["tarjeta_debito", "", /escribe el número/i],
+  ])("rechaza %s %j", (medio_pago, numero, error) => {
+    expect(validarPago({ medio_pago, numero }).numero).toMatch(error);
+  });
+
+  it("pide el medio de pago", () => {
+    expect(validarPago({ medio_pago: "efectivo", numero: "4111111111111111" })).toHaveProperty("medio_pago");
+  });
+
+  it("enmascara dejando solo los últimos 4 dígitos", () => {
+    expect(enmascararNumero("4111 1111 1111 1234")).toBe("•••• 1234");
   });
 });

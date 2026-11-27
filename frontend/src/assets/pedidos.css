@@ -84,3 +84,7 @@
   .pedido__tabla tbody td:first-child::before { display: none; }
   .pedido__tabla tfoot, .pedido__tabla tfoot tr { display: flex; width: 100%; justify-content: space-between; }
 }
+
+/* F3.3: confirmación después de pagar y botón Pagar como enlace */
+.pedido__confirmacion { align-items: center; font-size: var(--texto-md); }
+.pedido__pagar .btn { text-decoration: none; }

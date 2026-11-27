@@ -22,6 +22,7 @@ import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import CheckoutPage from './pages/cuenta/CheckoutPage';
 import PedidosPage from './pages/cuenta/PedidosPage';
 import PedidoDetallePage from './pages/cuenta/PedidoDetallePage';
+import PagarPedidoPage from './pages/cuenta/PagarPedidoPage';
 import './assets/base.css';
 
 // Orden de los proveedores: Router → Tema → Toasts → Sesión → Carrito. El tema va por fuera de todo lo visual.
@@ -65,11 +66,13 @@ export function AppRutas() {
                   {/* Cuenta del cliente */}
                   <Route element={<ProtectedRoute roles={['cliente']} />}>
                     <Route path="/cuenta" element={<CuentaInicioPage />} />
-                    {/* F3.1: provisional (resumen); F3.3 agrega envío y pago. Un visitante pasa antes por el login. */}
+                    {/* Checkout en tres pasos: resumen, envío y pago (F3.3). Un visitante pasa antes por el login (F3.1). */}
                     <Route path="/checkout" element={<CheckoutPage />} />
                     {/* Mis pedidos (F3.2); el detalle también es la confirmación después de pagar (F3.3) */}
                     <Route path="/cuenta/pedidos" element={<PedidosPage />} />
                     <Route path="/cuenta/pedidos/:numero" element={<PedidoDetallePage />} />
+                    {/* F3.3: pagar un pedido pendiente o reintentar uno rechazado (mismo formulario de pago del checkout) */}
+                    <Route path="/cuenta/pedidos/:numero/pagar" element={<PagarPedidoPage />} />
                   </Route>
                 </Route>
               </Route>
