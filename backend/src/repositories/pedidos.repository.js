@@ -1,6 +1,7 @@
 // Acceso a datos de `pedidos` y `detalle_pedido` (CU-03 a CU-08; R2, R3, R4).
 // El carrito es un pedido con estado 'carrito' (migraciones 004 y 005): sus líneas son filas de detalle_pedido.
 const pool = require('../config/db');
+const { patronContiene } = require('../utils/like');
 
 const SELECT_PEDIDO = `
   SELECT pe.id_pedido, pe.numero_pedido, pe.id_usuario, pe.estado,
@@ -162,6 +163,49 @@ async function listarPorUsuario(idUsuario, db = pool) {
   return rows;
 }
 
+// Decisión N (B4): pedidos confirmados de todos los clientes para el admin (nunca carritos).
+// q busca "contiene" en número, nombre y correo; desde/hasta filtran fecha_pedido como el tablero.
+const LIMITE_ADMIN = 200;
+async function listarAdmin({ q, estado, desde, hasta }, db = pool) {
+  const valores = [];
+  const condiciones = ["pe.estado <> 'carrito'"];
+  if (q) {
+    valores.push(patronContiene(q));
+    const i = valores.length;
+    condiciones.push(`(pe.numero_pedido ILIKE $${i} OR u.nombre ILIKE $${i} OR u.email ILIKE $${i})`);
+  }
+  if (estado) {
+    valores.push(estado);
+    condiciones.push(`pe.estado = $${valores.length}`);
+  }
+  if (desde) {
+    valores.push(desde);
+    condiciones.push(`pe.fecha_pedido >= $${valores.length}::date`);
+  }
+  if (hasta) {
+    valores.push(hasta);
+    condiciones.push(`pe.fecha_pedido < ($${valores.length}::date + 1)`);
+  }
+  valores.push(LIMITE_ADMIN);
+  const { rows } = await db.query(
+    `SELECT pe.id_pedido, pe.numero_pedido, pe.id_usuario, pe.estado,
+            pe.envio_nombre, pe.envio_telefono, pe.envio_departamento, pe.envio_ciudad, pe.envio_direccion,
+            pe.fecha_pedido, pe.created_at,
+            u.nombre AS cliente_nombre, u.email AS cliente_email,
+            COALESCE(SUM(d.cantidad * d.precio_unitario), 0) AS total,
+            COALESCE(SUM(d.cantidad), 0)::int AS unidades
+     FROM pedidos pe
+     JOIN usuarios u ON u.id_usuario = pe.id_usuario
+     LEFT JOIN detalle_pedido d ON d.id_pedido = pe.id_pedido
+     WHERE ${condiciones.join(' AND ')}
+     GROUP BY pe.id_pedido, u.id_usuario
+     ORDER BY pe.fecha_pedido DESC, pe.id_pedido DESC
+     LIMIT $${valores.length}`,
+    valores
+  );
+  return rows;
+}
+
 async function listarDetalle(idPedido, db = pool) {
   const { rows } = await db.query(
     `SELECT d.id_producto, p.nombre, d.cantidad, d.precio_unitario,
@@ -202,6 +246,7 @@ module.exports = {
   findByNumero,
   bloquear,
   listarPorUsuario,
+  listarAdmin,
   listarDetalle,
   calcularTotal,
   actualizarEstado

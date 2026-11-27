@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { AppRutas } from "../App";
+import { esperarTienda } from "./utils";
 import { listarProductos } from "../services/productos.service";
 import { CATEGORIAS, agotado, catalogoPublico, conStockMinimo, masCaroDisponible } from "./fixtures/catalogo";
 
@@ -58,11 +59,12 @@ describe("Carga desde la API", () => {
     expect(categorias().getByRole("button", { name: "Todas" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("mientras carga muestra tarjetas vacías", () => {
+  it("mientras carga muestra tarjetas vacías", async () => {
     listarProductos.mockImplementationOnce(() => new Promise(() => {}));
     renderTienda();
 
     expect(screen.getByLabelText("Cargando productos")).toHaveAttribute("aria-busy", "true");
+    await esperarTienda({ productos: false }); // el catálogo sigue cargando; solo llegan las categorías
   });
 
   it("si la API falla muestra el error y Reintentar vuelve a pedir", async () => {

@@ -1,4 +1,5 @@
 import { api } from './api';
+import { consulta } from './dashboard.service';
 
 // Pedidos del cliente (F3.2 · CU-08). Solo el rol cliente lista los suyos; el detalle lo ve el dueño (o un admin).
 // Contrato: sección "Pedidos y pago · cliente" de docs/diseno-tecnico/API_CONTRATOS.md.
@@ -28,4 +29,13 @@ export function confirmarCarrito(envio) {
 // El número completo solo viaja en esta petición: no se guarda en ningún otro lado del frontend.
 export function pagarPedido(idPedido, { medio_pago, numero }) {
   return api(`/pedidos/${idPedido}/pagos`, { method: 'POST', body: JSON.stringify({ medio_pago, numero }) });
+}
+
+// ---------- Pedidos del admin (F4 · decisión N) ----------
+
+// GET /pedidos/admin?q=&estado=&desde=&hasta= → { ok: true, data: [PedidoAdmin] } (máximo 200, sin carritos).
+// PedidoAdmin = Pedido sin items ni pagos + cliente_nombre, cliente_email y unidades · 400 filtros inválidos
+// El detalle de cada uno es obtenerPedido(numero): el admin puede ver cualquier pedido.
+export function listarPedidosAdmin({ q, estado, desde, hasta } = {}) {
+  return api(`/pedidos/admin${consulta({ q, estado, desde, hasta })}`);
 }

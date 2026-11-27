@@ -82,13 +82,20 @@ describe("Barra lateral del admin", () => {
     fetchMock.mockImplementation(() => respuesta(200, { ok: true, data: ADMIN }));
   });
 
-  it("muestra las secciones de los próximos sprints sin enlace", async () => {
+  it("todas las secciones son enlaces a su página, también Pedidos y Tablero (F4)", async () => {
     renderApp("/admin");
 
     const lateral = within(await screen.findByRole("navigation", { name: "Administración" }));
-    expect(lateral.getByText("Pedidos")).toBeInTheDocument();
-    expect(lateral.getByText("Sprint 3")).toBeInTheDocument();
-    expect(lateral.queryByRole("link", { name: /pedidos/i })).not.toBeInTheDocument();
+    const rutas = Object.fromEntries(lateral.getAllByRole("link").map((enlace) => [enlace.textContent, enlace.getAttribute("href")]));
+    expect(rutas).toEqual({
+      Inicio: "/admin",
+      Usuarios: "/admin/usuarios",
+      Productos: "/admin/productos",
+      Categorías: "/admin/categorias",
+      Pedidos: "/admin/pedidos",
+      Tablero: "/admin/dashboard",
+    });
+    expect(lateral.queryByText(/sprint/i)).not.toBeInTheDocument();
   });
 
   it("el botón de menú (pantallas angostas) abre y cierra la navegación", async () => {

@@ -7,14 +7,14 @@ import BotonTema from './BotonTema';
 import { iniciales } from './BarraCliente';
 import '../assets/barra-admin.css';
 
-// Secciones del panel. Las que tienen `ruta` ya existen; las demás muestran el sprint en que llegan.
+// Secciones del panel (todas con su página desde F4).
 const SECCIONES = [
   { nombre: 'Inicio', icono: House, ruta: '/admin', exacta: true },
   { nombre: 'Usuarios', icono: Users, ruta: '/admin/usuarios' },
   { nombre: 'Productos', icono: Package, ruta: '/admin/productos' },
   { nombre: 'Categorías', icono: Tags, ruta: '/admin/categorias' },
-  { nombre: 'Pedidos', icono: ReceiptText, sprint: 'Sprint 3' },
-  { nombre: 'Tablero', icono: ChartColumn, sprint: 'Sprint 4' }
+  { nombre: 'Pedidos', icono: ReceiptText, ruta: '/admin/pedidos' },
+  { nombre: 'Tablero', icono: ChartColumn, ruta: '/admin/dashboard' }
 ];
 
 // Barra lateral del administrador (rediseño · estructura B). Sin enlace a la tienda: el admin solo ve su panel.
@@ -60,24 +60,16 @@ export default function BarraAdmin() {
         <nav aria-label="Administración" className="barra-admin__nav">
           <p className="barra-admin__seccion">Administración</p>
           <ul className="barra-admin__lista">
-            {SECCIONES.map(({ nombre, icono: Icono, ruta, exacta, sprint }) => (
+            {SECCIONES.map(({ nombre, icono: Icono, ruta, exacta }) => (
               <li key={nombre}>
-                {ruta ? (
-                  <NavLink
-                    to={ruta}
-                    end={exacta}
-                    className={({ isActive }) => `barra-admin__enlace${isActive ? ' barra-admin__enlace--activo' : ''}`}
-                  >
-                    <Icono size={18} aria-hidden="true" />
-                    {nombre}
-                  </NavLink>
-                ) : (
-                  <span className="barra-admin__enlace barra-admin__enlace--pronto" aria-disabled="true">
-                    <Icono size={18} aria-hidden="true" />
-                    {nombre}
-                    <span className="barra-admin__sprint">{sprint}</span>
-                  </span>
-                )}
+                <NavLink
+                  to={ruta}
+                  end={exacta}
+                  className={({ isActive }) => `barra-admin__enlace${isActive ? ' barra-admin__enlace--activo' : ''}`}
+                >
+                  <Icono size={18} aria-hidden="true" />
+                  {nombre}
+                </NavLink>
               </li>
             ))}
           </ul>

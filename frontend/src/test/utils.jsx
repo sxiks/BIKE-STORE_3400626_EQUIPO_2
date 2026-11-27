@@ -1,5 +1,6 @@
 // Utilidades compartidas por las pruebas.
-import { render } from "@testing-library/react";
+import { expect } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TemaProvider } from "../context/TemaContext";
 import { ToastProvider } from "../context/ToastContext";
@@ -29,6 +30,15 @@ export function renderApp(ruta = "/") {
       <AppRutas />
     </MemoryRouter>
   );
+}
+
+// La tienda pide las categorías y los productos al montarse. Una prueba que solo revisa la barra, el tema o
+// la sesión espera a que esas respuestas lleguen antes de terminar: si llegan después, actualizan la pantalla
+// fuera de la prueba y React avisa con "not wrapped in act(...)".
+//   productos: false si la prueba deja el catálogo cargando a propósito (solo espera las categorías).
+export async function esperarTienda({ productos = true } = {}) {
+  await waitFor(() => expect(within(screen.getByRole("group", { name: "Categorías" })).getAllByRole("button").length).toBeGreaterThan(1));
+  if (productos) await screen.findAllByTestId(/^producto-\d+$/);
 }
 
 // Respuesta simulada de fetch con el formato de la API.

@@ -18,7 +18,7 @@
 4. **Aprueba el plan** antes de que escriba código. Al terminar, la IA te explica la implementación y te da los pasos para subirla y abrir el PR.
 5. Si surge un problema puntual (un error 500, una consulta SQL, un conflicto), usa el prompt de apoyo correspondiente de la [sección 2](#sección-2--prompts-de-apoyo) en el mismo chat.
 
-**Contexto del backend en los sprints:** la API de los CU-01 a CU-22 ya está implementada y verificada a mano. El trabajo del backend en cada sprint es **asegurarla con pruebas automatizadas** del módulo que el frontend está conectando en ese sprint, **corregir lo que esas pruebas revelen** e implementar lo pendiente: la exportación del Sprint 4 (decisión D11).
+**Contexto del backend en los sprints:** la API de los CU-01 a CU-22 ya está implementada y verificada a mano. El trabajo del backend en cada sprint es **asegurarla con pruebas automatizadas** del módulo que el frontend está conectando en ese sprint, **corregir lo que esas pruebas revelen** e implementar lo pendiente. La última pieza pendiente, la exportación del Sprint 4 (decisión D11), ya está implementada.
 
 ---
 
@@ -57,8 +57,8 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 2 ✅ | [B2.2 Categorías, eliminar productos y galería](#b22--categorías-eliminar-productos-y-galería) | `feature/back-categorias-imagenes` | 12–15 (extensión, decisión M) | B2.1 |
 | 3 ✅ | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito-pedidos` (junto con B3.2) | 03–07 | B1.1 |
 | 3 ✅ | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-carrito-pedidos` (junto con B3.1) | 07, 08 | B3.1 |
-| 4 | [B4.1 Exportación Excel y PDF](#b41--exportación-excel-y-pdf) | `docs/contrato-exportacion` + `feature/back-exportacion-dashboard` | 18 | B1.1 |
-| 4 | [B4.2 Pruebas del tablero](#b42--pruebas-del-tablero) | `feature/back-tests-dashboard` | 16, 17 | B1.1 |
+| 4 ✅ | [B4.1 Exportación Excel y PDF](#b41--exportación-excel-y-pdf) | `feature/back-dashboard` (junto con B4.2 y la decisión N) | 18 | B1.1 |
+| 4 ✅ | [B4.2 Pruebas del tablero](#b42--pruebas-del-tablero) | `feature/back-dashboard` (junto con B4.1) | 16, 17 | B1.1 |
 
 Todos los prompts de esta sección terminan con el mismo **bloque de cierre**: explicación de cómo, por qué y para qué se hizo, cómo probarlo y pasos para el PR. Está incluido en cada uno para que se copien completos.
 
@@ -236,6 +236,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### B4.1 · Exportación Excel y PDF
 
+> ✅ **Hecha** (en un solo PR con B4.2 y el listado de pedidos del admin, rama `feature/back-dashboard`; el contrato fue el primer commit del PR en lugar de una rama aparte). Resultado: `GET /api/dashboard/exportar` con `utils/informe/xlsx.js` (hojas Resumen e Inventario, montos como números en formato COP) y `utils/informe/pdf.js` (tamaño carta), ambos en memoria y alimentados por `dashboard.services.metricas` y `alertas`; CORS expone `Content-Disposition`. `tests/dashboard-export.test.js` (12 pruebas) vuelve a leer el Excel con `exceljs` y compara sus cifras con `/metricas`. En el mismo PR: `GET /api/pedidos/admin` (decisión N) con `tests/pedidos-admin.test.js` (10 pruebas) y el helper `tests/helpers/compras.js`. Este prompt queda como referencia.
+
 ```
 TAREA B4.1 · Sprint 4 · CU-18 · Decisión D11 · Ramas: docs/contrato-exportacion (contrato) y luego feature/back-exportacion-dashboard (implementación), ambas desde develop actualizado; si no existen, dame primero los comandos.
 REQUISITO PREVIO: B1.1 integrada.
@@ -263,6 +265,8 @@ AL TERMINAR CADA PASO entrega, en este orden:
 ```
 
 ### B4.2 · Pruebas del tablero
+
+> ✅ **Hecha** (en un solo PR con B4.1). Resultado: `tests/dashboard.test.js` (11 pruebas): solo pagados, días de Colombia (un pedido de las 23:30 cuenta en ese día), filtro por categoría, top 5 con desempate por ventas, 400, umbral de stock bajo, agotados, pendientes y fallidos sin carritos, y acceso. Los 3 casos de `carrito-pedido.test.js` no se repiten. No reveló errores en la API. Este prompt queda como referencia.
 
 ```
 TAREA B4.2 · Sprint 4 · CU-16, CU-17 · Rama: feature/back-tests-dashboard (ya creada desde develop actualizado; si no, dame primero los comandos).
