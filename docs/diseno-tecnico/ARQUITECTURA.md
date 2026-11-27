@@ -1,7 +1,7 @@
 # Arquitectura en capas · Bike Store
 
 > **Para qué sirve:** explica cómo está organizado el código en [capas](../GLOSARIO.md#arquitectura-capas) y qué puede importar cada una.
-> **Cuándo usarlo:** antes de crear un archivo nuevo, y antes de abrir un PR (comprobación de la sección 2). La versión formal, con diagrama, está en [INFORME_ARQUITECTURA.pdf](INFORME_ARQUITECTURA.pdf) y [DIAGRAMA_ARQUITECTURA.png](DIAGRAMA_ARQUITECTURA.png).
+> **Cuándo usarlo:** antes de crear un archivo nuevo, y antes de abrir un PR (comprobación de la sección 2).
 > ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
 
 ## 1. Vista general
@@ -124,5 +124,3 @@ grep -rn "middlewares" backend/src/services
 - Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.
 - Claves de `localStorage` con prefijo `labcrud_`: ahora son `bikestore_token` y `bikestore_user` (F1.1).
 - `ProtectedRoute` sin uso: ahora protege `/admin` y `/cuenta` por rol (F1.2).
-
-> El diagrama y el informe de arquitectura de esta carpeta reflejan el estado anterior a estos cambios; se actualizan al cerrar el Sprint 1.

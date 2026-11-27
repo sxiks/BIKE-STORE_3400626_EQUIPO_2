@@ -45,7 +45,7 @@ Una tarea del sprint siempre sigue este ciclo. Cada paso enlaza al documento que
 | [GUIA_EJECUCION_LOCAL.md](GUIA_EJECUCION_LOCAL.md) | Instalar requisitos y ejecutar el proyecto (Linux y Windows) |
 | [GUIA_PRUEBAS_LOCALES.md](GUIA_PRUEBAS_LOCALES.md) | Probar flujos a mano y resolver problemas frecuentes |
 | [ROADMAP.md](ROADMAP.md) | Sprints, tareas y decisiones |
-| [diseno-tecnico/](diseno-tecnico/) | [ARQUITECTURA](diseno-tecnico/ARQUITECTURA.md), [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md), [MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md), [JUSTIFICACION_MODELO_DATOS](diseno-tecnico/JUSTIFICACION_MODELO_DATOS.md), informe ([PDF](diseno-tecnico/INFORME_ARQUITECTURA.pdf) · [Word](diseno-tecnico/INFORME_ARQUITECTURA.docx)) y diagrama ([PNG](diseno-tecnico/DIAGRAMA_ARQUITECTURA.png) · [draw.io](diseno-tecnico/DIAGRAMA_ARQUITECTURA.drawio)) |
+| [diseno-tecnico/](diseno-tecnico/) | [ARQUITECTURA](diseno-tecnico/ARQUITECTURA.md), [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md), [MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md), [JUSTIFICACION_MODELO_DATOS](diseno-tecnico/JUSTIFICACION_MODELO_DATOS.md) |
 | [guias-prompts/](guias-prompts/) | [Prompts Frontend](guias-prompts/GUIA_PROMPTS_FRONTEND.md) y [Prompts Backend](guias-prompts/GUIA_PROMPTS_BACKEND.md) |
 | [requerimientos/](requerimientos/) | Casos de uso CU-01 a CU-22 (PDF) |
 | [carrito/](carrito/) | Checklist de pruebas del carrito de origen |
