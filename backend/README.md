@@ -13,7 +13,7 @@ Arquitectura en capas: `routes → middlewares → controllers → services → 
    Los valores de ejemplo coinciden con la guía. Cambia `JWT_SECRET` y las contraseñas en tu `.env` real.
 3. Instalar y ejecutar:
    ```bash
-   npm install
+   npm ci             # instala exactamente las versiones de package-lock.json
    npm run dev        # node --watch → http://localhost:3000
    ```
    `npm run dev` usa `node --watch`, incluido en Node: reinicia la API al guardar un archivo de código. Un cambio en `.env` necesita reiniciarla a mano (Ctrl+C y `npm run dev`).

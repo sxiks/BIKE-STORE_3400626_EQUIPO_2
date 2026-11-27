@@ -11,7 +11,7 @@ SPA en React 19 + Vite 7 + React Router 7. Es la capa de presentación y consume
 
 ```bash
 cp .env.example .env
-npm install
+npm ci             # instala exactamente las versiones de package-lock.json
 npm run dev        # http://localhost:5173
 npm test           # pruebas (Vitest + Testing Library)
 npm run build      # versión de producción en dist/
