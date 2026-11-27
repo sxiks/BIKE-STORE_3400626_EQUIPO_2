@@ -23,7 +23,7 @@
 ## Prompt 0 · Contexto (pegar siempre primero)
 
 ```
-Soy el Dev Frontend de Bike Store (SENA). Monorepo: backend Express 5 + PostgreSQL ya implementado; frontend React 19 + Vite 7 + React Router 7 + Vitest, CSS puro, íconos lucide-react. Node.js 24 LTS.
+Soy el Dev Frontend de Bike Store (SENA). Monorepo: backend Express 5 + PostgreSQL ya implementado; frontend React 19 + Vite 7 + React Router 7 + Vitest, CSS puro, íconos lucide-react. Node.js 26 LTS.
 Reglas del frontend que debes respetar:
 - pages/ orquesta; components/ solo recibe props y no hace fetch; services/ es el único que llama a la API usando api.js (agrega el Bearer token); context/ para estado global (AuthContext, CarritoContext, ToastContext); utils/ funciones puras (formatoCOP, urlImagen); data/ mocks.
 - Respuestas de la API: éxito { ok: true, data, message? }; error { ok: false, message, code?, data? }. Reacciono a errores por `code` (tabla de códigos en API_CONTRATOS.md), nunca comparando textos.

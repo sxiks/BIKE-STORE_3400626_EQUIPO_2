@@ -31,15 +31,15 @@ En Windows, los comandos de esta guía se ejecutan en **PowerShell**. En Linux, 
 
 | Herramienta | Versión mínima | Recomendada |
 |---|---|---|
-| [Node.js](GLOSARIO.md#nodejs) (incluye [npm](GLOSARIO.md#npm)) | **22** | **24 LTS** |
+| [Node.js](GLOSARIO.md#nodejs) (incluye [npm](GLOSARIO.md#npm)) | **22.12** | **26 LTS** |
 | [Git](GLOSARIO.md#git) | cualquier versión reciente | — |
 | [PostgreSQL](GLOSARIO.md#postgresql): servidor y cliente [`psql`](GLOSARIO.md#psql) | **15** | 16 o 17 |
 
-> Node.js 20 dejó de recibir parches de seguridad el 30 de abril de 2026; por eso el mínimo es 22.
+> El mínimo es 22.12 porque lo exige Vitest 5, la herramienta de pruebas; además, Node.js 20 dejó de recibir parches de seguridad el 30 de abril de 2026. Si ya tienes Node 24, sigue funcionando y no hace falta cambiarlo.
 
 **Linux**
 ```bash
-node -v                    # v22.x o superior (ideal v24.x)
+node -v                    # v22.12 o superior (ideal v26.x)
 npm -v
 git --version
 psql --version             # cliente: 15 o superior
@@ -75,13 +75,13 @@ sudo apt update
 sudo apt install -y git
 ```
 
-**Node.js 24 LTS.** Los repositorios de Debian y Ubuntu traen versiones viejas (Debian 13 trae la 20), así que se instala desde NodeSource:
+**Node.js 26 LTS.** Los repositorios de Debian y Ubuntu traen versiones viejas (Debian 13 trae la 20), así que se instala desde NodeSource:
 ```bash
 sudo apt install -y curl
-curl -fsSL https://deb.nodesource.com/setup_24.x -o nodesource_setup.sh
+curl -fsSL https://deb.nodesource.com/setup_26.x -o nodesource_setup.sh
 sudo -E bash nodesource_setup.sh
 sudo apt install -y nodejs
-node -v      # v24.x
+node -v      # v26.x
 ```
 
 **PostgreSQL**
@@ -99,7 +99,7 @@ sudo apt install -y postgresql-17
 
 ### 2.2 Windows
 
-**Git y Node.js 24 LTS**, con `winget` (incluido en Windows 10 y 11):
+**Git y Node.js 26 LTS**, con `winget` (incluido en Windows 10 y 11):
 ```powershell
 winget install --id Git.Git -e
 winget install --id OpenJS.NodeJS.LTS -e

@@ -25,7 +25,7 @@
 ## Prompt 0 · Contexto (pegar siempre primero)
 
 ```
-Soy el Dev Backend de Bike Store (SENA). Backend: Node.js 24 LTS, Express 5, PostgreSQL 15+ con driver pg, JWT + bcrypt, multer. Arquitectura en capas:
+Soy el Dev Backend de Bike Store (SENA). Backend: Node.js 26 LTS, Express 5, PostgreSQL 15+ con driver pg, JWT + bcrypt, multer. Arquitectura en capas:
 routes -> middlewares -> controllers -> services -> repositories -> PostgreSQL.
 Reglas que debes respetar:
 - Solo repositories/ importa config/db. Cada función de repositorio recibe como último parámetro opcional `db` (pool por defecto o el cliente de una transacción).
