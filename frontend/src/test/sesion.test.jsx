@@ -5,6 +5,9 @@ import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import { api, ApiError } from "../services/api";
 import { renderApp, respuesta } from "./utils";
 
+// La tienda pide el catálogo a la API: se simula para que estas pruebas solo vean las llamadas de sesión.
+vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
+
 const CLIENTE = { id_usuario: 2, nombre: "Ana Cliente", email: "ana@prueba.local", rol: "cliente", estado: "activo" };
 const TOKEN = "token-de-prueba";
 
