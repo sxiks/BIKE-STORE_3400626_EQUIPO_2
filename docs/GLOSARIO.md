@@ -76,6 +76,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="env"></a>**Variables de entorno (`.env`):** configuración privada de cada PC (contraseñas, secretos). Se copia desde `.env.example` y **nunca** se sube a GitHub.
 - <a name="multer"></a>**multer:** librería que recibe archivos (imágenes de productos) en peticiones `multipart/form-data`.
 - <a name="multipart"></a>**multipart/form-data:** formato de petición que permite enviar archivos junto con campos de texto.
+- <a name="on-delete-cascade"></a>**`ON DELETE CASCADE` / `RESTRICT`:** qué hace una llave foránea cuando se borra la fila a la que apunta. `RESTRICT` impide el borrado (por eso no se elimina una categoría con productos); `CASCADE` borra también las filas que dependen de ella (las imágenes de la galería al eliminar su producto).
 - <a name="sqlstate"></a>**SQLSTATE:** código de error estándar de PostgreSQL, por ejemplo 23505 = valor duplicado o 23503 = viola una llave foránea.
 - <a name="pago-simulado"></a>**Pago simulado:** el sistema no cobra de verdad. Valida los datos y decide aprobado o rechazado con una regla fija. Ver la [guía de pruebas locales](GUIA_PRUEBAS_LOCALES.md#2-pago-simulado-cu-08).
 - <a name="supertest"></a>**Supertest:** librería para probar la API haciendo peticiones HTTP desde las pruebas automatizadas.

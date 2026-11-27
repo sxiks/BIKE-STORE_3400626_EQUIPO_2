@@ -85,7 +85,7 @@ grep -rn "middlewares" backend/src/services
 |--------|-------|----------|--------------|----|
 | Autenticación | `/api/auth` | `auth.services` | `usuarios`, `tokensRecuperacion` | 09, 10, 11, 22 |
 | Usuarios (admin) | `/api/usuarios` | `usuarios.services` | `usuarios` | 19, 20, 21 |
-| Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services` | `categorias`, `productos` | 01, 02, 12–15 |
+| Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services`, `categorias.services` | `categorias`, `productos`, `producto_imagenes` (galería, decisión M) | 01, 02, 12–15 |
 | Carrito | `/api/carrito` | `carrito.services` | `pedidos` (el carrito es un pedido en estado `carrito`, D12), `productos` | 03–07 |
 | Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos` | 07, 08 |
 | Tablero | `/api/dashboard` | `dashboard.services` | `dashboard` | 16, 17 (18 pendiente) |
@@ -119,7 +119,7 @@ grep -rn "middlewares" backend/src/services
 | Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
 | Versiones mayores nuevas de dependencias, sin vulnerabilidades: Vite 8, `@vitejs/plugin-react` 6, `@testing-library/jest-dom` 8 (frontend) y `dotenv` 18 (backend) | `npm audit` en 0; se actualizan cuando haga falta, cada una en su propio PR porque pueden traer cambios incompatibles | Sin sprint fijo |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Pruebas automatizadas del backend incompletas | 119 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), el carrito como pedido con su concurrencia (D12), y catálogo, productos e imágenes (B2.1). Falta la cobertura completa de carrito, pedidos, pago y tablero; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 3–4: [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
+| Pruebas automatizadas del backend incompletas | 148 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), el carrito como pedido con su concurrencia (D12), catálogo, productos e imágenes (B2.1), y categorías, eliminación de productos y galería (B2.2). Falta la cobertura completa de carrito, pedidos, pago y tablero; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 3–4: [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
 
 **Resuelto en el Sprint 1:**
 - Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.
