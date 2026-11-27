@@ -11,7 +11,7 @@
   - **Ya hecho:** una sola navbar con la sesión, validación del token al abrir la app, cierre de sesión automático si la API la rechaza (F1.1); rutas `/admin` y `/cuenta` protegidas por rol (F1.2); recuperar y restablecer contraseña, y validaciones del registro (F1.3); panel de usuarios para el admin (F1.4); sistema de diseño "Montaña Clara" aplicado a todas las vistas (F2.1, adelantada).
   - **Sigue con [datos simulados](GLOSARIO.md#mock):** el catálogo y el carrito, hasta F2.2 y F3.1.
   - El resto de pantallas se construye en los sprints.
-- **Base de datos:** el modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) de la 002 a la 005 están verificadas. La 004 y la 005 aplican la decisión D12 (el carrito es un pedido en estado `carrito`).
+- **Base de datos:** en local corre en Docker (D13). El modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) de la 002 a la 005 están verificadas. La 004 y la 005 aplican la decisión D12 (el carrito es un pedido en estado `carrito`).
 - **Único punto abierto:** el [Sprint 5 · Despliegue](#sprint-5--despliegue-pendiente).
 
 ## Sprints
@@ -58,6 +58,7 @@ Es el único sprint sin definir. Se planifica cuando termine el Sprint 4.
 | D10 | El stock se descuenta al confirmar el pago, en una transacción | `pedidos.services.pagar` |
 | D11 | Excel y PDF se generan **en el backend** con `exceljs` y `pdfkit`, en memoria, en `GET /api/dashboard/exportar?formato=xlsx\|pdf`; el frontend solo descarga. **Por implementar en el Sprint 4.** | Tareas [B4.1](guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf) y [F4.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes); contrato en [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md#get-dashboardexportarformatoxlsxpdf--admin--cu-18--por-implementar) |
 | D12 | **El carrito es un pedido en borrador.** Se eliminan `carritos` y `carrito_items`; el carrito es el pedido del cliente con `estado = 'carrito'` y sus líneas son filas de `detalle_pedido`. Al confirmar (`POST /pedidos`) pasa a `pendiente` en un solo `UPDATE`: el trigger asigna `fecha_pedido` y `numero_pedido`, y se refresca `precio_unitario` (R3). El carrito queda vacío al confirmar, no al pagar. El tablero filtra por `fecha_pedido` | Migraciones `004_estado_pedido_carrito.sql` y `005_carrito_como_pedido.sql`; `pedidos.repository`, `carrito.services`, `pedidos.services.confirmarCarrito`, `dashboard.repository`; contrato en [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md#carrito--cliente--sprint-3) |
+| D13 | **La base de datos local corre en Docker.** `docker-compose.yml` levanta PostgreSQL 17 en el puerto 5433; la primera vez crea el rol, `bike_store` y `bike_store_test`, y aplica las migraciones. Evita instalar PostgreSQL y crear roles a mano en cada PC. La instalación nativa queda como alternativa. La API y el frontend siguen corriendo con Node en el PC | `docker-compose.yml`, `database/docker/initdb/`, [GUIA_EJECUCION_LOCAL](GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker) |
 | L | La semilla no trae imágenes reales; el frontend muestra una imagen de reemplazo cuando la imagen no existe | Tarea [F2.2](guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api) (Sprint 2) |
 | Diseño | Sistema de diseño "Montaña Clara" (opción C): azul `#1e40af`, amarillo `#fbbf24`, Outfit + Nunito Sans. Todo color sale de `frontend/src/assets/tokens.css` | Tarea F2.1, adelantada al Sprint 1 |
 | Node | Versión mínima Node.js 22.12 (la exige Vitest 5); recomendada 26 LTS, en soporte hasta abril de 2029. Node 24 sigue con soporte y funciona, pero ya no es la recomendada. Node 20 terminó su soporte el 30-04-2026 | [GUIA_EJECUCION_LOCAL](GUIA_EJECUCION_LOCAL.md#1-verificar-los-requisitos) |
@@ -66,7 +67,7 @@ Es el único sprint sin definir. Se planifica cuando termine el Sprint 4.
 | E | El stock se valida, con los productos bloqueados, **antes** de simular el pago; si falta, 409 y no se registra ningún pago | `pedidos.services.pagar` |
 | F | Un pedido `fallido` se puede volver a pagar | `pedidos.services.pagar` |
 | G | Estado y rol se verifican en la base en cada petición | `auth.middleware.authenticate` |
-| H | Migraciones aplicadas a mano con `psql` (ver [database/README](../database/README.md)) | `database/` |
+| H | Migraciones sin ejecutor automático: con Docker, las de la primera vez las aplica el contenedor y las nuevas se aplican con `docker compose exec ... psql`; sin Docker, a mano con `psql` (ver [database/README](../database/README.md)) | `database/` |
 | I | NUMERIC e INT8 se convierten a `Number` | `config/db.js` |
 | J | Zona horaria America/Bogota en la base y en el pool | `ALTER DATABASE`, `DB_TIMEZONE` |
 | K | Carrito y pago, solo para el rol `cliente` (aplicada por defecto; se cambia en una línea de cada ruta) | `carrito.routes`, `pedidos.routes` |

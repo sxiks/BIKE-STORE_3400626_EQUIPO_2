@@ -8,7 +8,7 @@ Monorepo con dos aplicaciones independientes y su base de datos:
 |---------|--------|-------|-------------|
 | `backend/` | API REST en capas | Node.js 22.12+ (recomendado 26 LTS), Express 5, PostgreSQL (`pg`), JWT, bcrypt, multer | Dev Backend |
 | `frontend/` | SPA (capa de presentación) | React 19, Vite 7, React Router 7, Vitest | Dev Frontend |
-| `database/` | Migraciones SQL numeradas | PostgreSQL 15+ | Dev Backend |
+| `database/` | Migraciones SQL numeradas y arranque de la base en Docker | PostgreSQL 17 en Docker (`docker-compose.yml`); 15+ sin Docker | Dev Backend |
 | `docs/` | Diseño técnico, guías, prompts, glosario y requerimientos (CU-01…CU-22) | Markdown / PDF | Ambos (vía PR) |
 
 ## Arquitectura
@@ -27,7 +27,15 @@ Detalle y reglas de cada capa: [ARQUITECTURA](docs/diseno-tecnico/ARQUITECTURA.m
 
 ## Ejecutar el proyecto en tu PC
 
-Sigue la [GUIA_EJECUCION_LOCAL](docs/GUIA_EJECUCION_LOCAL.md): verificar e instalar requisitos (Linux y Windows), crear la base de datos, levantar la API y la interfaz web, y comprobar que todo funciona.
+Sigue la [GUIA_EJECUCION_LOCAL](docs/GUIA_EJECUCION_LOCAL.md): verificar e instalar requisitos (Linux y Windows), levantar la base de datos con Docker, levantar la API y la interfaz web, y comprobar que todo funciona.
+
+Inicio rápido, si ya tienes Node.js, Git y Docker (desde la raíz del repositorio, cada servicio en su terminal):
+
+```bash
+docker compose up -d                                   # base de datos: PostgreSQL con el modelo y la semilla
+cd backend && cp .env.example .env && npm install && npm run dev
+cd frontend && cp .env.example .env && npm install && npm run dev    # http://localhost:5173
+```
 
 ## Cómo trabajamos
 

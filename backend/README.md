@@ -5,7 +5,7 @@ Arquitectura en capas: `routes → middlewares → controllers → services → 
 
 ## Puesta en marcha
 
-1. Crear la base y aplicar las migraciones: pasos 4 y 5 de la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-crear-el-rol-y-la-base-de-datos).
+1. Levantar la base de datos con Docker desde la raíz del repositorio (`docker compose up -d`): pasos 4 y 5 de la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker). Crea el rol, las bases y aplica las migraciones. Sin Docker: [anexo de la guía](../docs/GUIA_EJECUCION_LOCAL.md#anexo-alternativa-sin-docker).
 2. Variables de entorno:
    ```bash
    cp .env.example .env
@@ -24,7 +24,9 @@ Al arrancar, la API comprueba la conexión a PostgreSQL y crea el admin de `ADMI
 
 Vitest + Supertest (requiere Node.js 22.12 o superior). Las pruebas llaman a la app directamente (sin abrir el puerto 3000), así que pueden correr con la API encendida. Usan **su propia base**, `bike_store_test`, y **borran sus datos** en cada ejecución: nunca tocan `bike_store`.
 
-**Una sola vez por PC** (crear la base de pruebas, igual que en el paso 4 de la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-crear-el-rol-y-la-base-de-datos)):
+**Con Docker** la base `bike_store_test` ya existe: el contenedor la crea junto con `bike_store`. Pasa directo a "Luego, dentro de `backend/`".
+
+**Sin Docker**, créala una sola vez por PC (como en el [anexo de la GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#anexo-alternativa-sin-docker)):
 
 ```bash
 # Linux
@@ -41,8 +43,8 @@ Luego, dentro de `backend/`:
 
 ```bash
 cp .env.test.example .env.test      # Windows: Copy-Item .env.test.example .env.test
-# si tu rol usa otra contraseña, ajústala en DB_PASSWORD de .env.test
-npm run test:db                     # deja la base de pruebas con las migraciones 002 y 003
+# sin Docker: DB_PORT=5432 y, si tu rol usa otra contraseña, ajústala en DB_PASSWORD
+npm run test:db                     # deja la base de pruebas con las migraciones 002 a 005
 ```
 
 **Cada vez que pruebes:**
