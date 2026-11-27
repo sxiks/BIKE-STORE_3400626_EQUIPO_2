@@ -158,19 +158,37 @@ Si ya tenías un clon viejo del repositorio, renómbralo como respaldo antes de 
 **Quién:** Dev Backend y Dev Frontend, cada uno en su PC.
 
 **Qué hace.** Un solo comando, desde la **raíz del repositorio**, descarga la imagen oficial de PostgreSQL 17 y arranca un [contenedor](GLOSARIO.md#contenedor) llamado `bike-store-db`. **La primera vez**, el script `database/docker/initdb/01-crear-bases.sh`:
-- crea el [rol](GLOSARIO.md#rol-postgres) `bike_store_app` con la contraseña `cambia_esta_clave` (la misma de `backend/.env.example`);
+- crea el [rol](GLOSARIO.md#rol-postgres) `bike_store_app` con la contraseña de `DB_PASSWORD` del `.env` de la raíz (por defecto `cambia_esta_clave`, la misma de `backend/.env.example`);
 - crea las bases `bike_store` y `bike_store_test`, en hora de Colombia;
 - aplica las [migraciones](GLOSARIO.md#migracion) 002 a 005 sobre `bike_store` (tablas, [semilla](GLOSARIO.md#semilla) y carrito como pedido).
 
 Los datos se guardan en un [volumen](GLOSARIO.md#volumen-docker) llamado `bike-store_bike_store_datos`: sobreviven al apagar el contenedor o el PC.
 
-Los comandos son iguales en Linux y en Windows (PowerShell, con Docker Desktop abierto):
+**Primero, las contraseñas** (una sola vez por PC). Las contraseñas de la base no están escritas en el repositorio: cada PC las pone en un archivo `.env` en la **raíz**, que no se sube a GitHub.
+
+```bash
+cp .env.example .env       # Windows (PowerShell): Copy-Item .env.example .env
+```
+Abre ese `.env` y completa:
+- `POSTGRES_PASSWORD`: contraseña del superusuario interno de PostgreSQL. **Obligatoria**: elige una propia. Casi nunca la vas a escribir, porque los comandos `docker compose exec` no la piden.
+- `DB_PASSWORD`: contraseña del rol `bike_store_app`, que usa la API. Puedes dejar `cambia_esta_clave` o elegir otra; **debe ser la misma** que `DB_PASSWORD` en `backend/.env` y `backend/.env.test` (paso 6).
+
+Si falta `POSTGRES_PASSWORD`, cualquier comando `docker compose` se detiene con el mensaje *"Falta POSTGRES_PASSWORD. Copia .env.example como .env..."*.
+
+**Después, levanta la base.** Los comandos son iguales en Linux y en Windows (PowerShell, con Docker Desktop abierto):
 ```bash
 docker compose up -d       # arranca la base en segundo plano (la primera vez descarga la imagen)
 docker compose ps          # STATUS debe decir "healthy" (espera unos segundos si dice "starting")
 ```
 
-La base queda en `localhost:5433`. Se usa el puerto **5433**, y no el 5432 de siempre, para no chocar con un PostgreSQL que ya esté instalado en el PC.
+La base queda en `localhost:5433`. Se usa el puerto **5433**, y no el 5432 de siempre, para no chocar con un PostgreSQL que ya esté instalado en el PC. Solo acepta conexiones **desde el mismo PC** (`127.0.0.1`): otros equipos de la red, por ejemplo en el SENA o en un wifi compartido, no pueden conectarse a tu base. La API y las pruebas no se ven afectadas, porque corren en el mismo PC.
+
+**Cambiar una contraseña en una base que ya existe.** Las contraseñas del `.env` de la raíz solo se usan la primera vez que se crea la base. Para cambiarlas después, sin borrar datos:
+```bash
+docker compose exec db psql -U postgres -c "\password bike_store_app"     # rol de la API: pide la nueva dos veces
+docker compose exec db psql -U postgres -c "\password postgres"           # superusuario
+```
+Después pon la nueva contraseña del rol en `DB_PASSWORD` de `backend/.env`, `backend/.env.test` y el `.env` de la raíz (así se conserva si algún día recreas la base con `down -v`).
 
 | Para | Comando |
 |---|---|

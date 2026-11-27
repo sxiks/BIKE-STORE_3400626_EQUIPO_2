@@ -32,6 +32,7 @@ Sigue la [GUIA_EJECUCION_LOCAL](docs/GUIA_EJECUCION_LOCAL.md): verificar e insta
 Inicio rápido, si ya tienes Node.js, Git y Docker (desde la raíz del repositorio, cada servicio en su terminal):
 
 ```bash
+cp .env.example .env                                   # elige POSTGRES_PASSWORD (ver la guía, paso 4)
 docker compose up -d                                   # base de datos: PostgreSQL con el modelo y la semilla
 cd backend && cp .env.example .env && npm install && npm run dev
 cd frontend && cp .env.example .env && npm install && npm run dev    # http://localhost:5173
