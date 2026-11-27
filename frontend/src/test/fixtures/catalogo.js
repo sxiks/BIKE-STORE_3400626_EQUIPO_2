@@ -60,12 +60,69 @@ export const agotado = () => catalogoPublico().find((p) => !p.disponible);
 /** El que la tienda debe mostrar como destacado: el disponible más caro. */
 export const masCaroDisponible = () => [...disponibles()].sort((a, b) => b.precio - a.precio)[0];
 
+// ---------- Administración (F2.3) ----------
+
+// Lo que respondería GET /productos/admin?q=&categoria=&estado= (incluye inactivos; orden por nombre).
+// q busca "contiene", sin distinguir mayúsculas, como el backend.
+export function catalogoAdmin({ q = "", categoria = "", estado = "" } = {}) {
+  const texto = q.trim().toLowerCase();
+  return PRODUCTOS.filter(
+    (p) =>
+      (!texto || p.nombre.toLowerCase().includes(texto)) &&
+      (!categoria || String(p.id_categoria) === String(categoria)) &&
+      (!estado || p.estado === estado)
+  )
+    .map((p) => ({ ...p }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+}
+
+/** Copia del producto con ese id, como lo respondería GET /productos/admin/:id. */
+export const productoPorId = (id) => {
+  const p = PRODUCTOS.find((x) => x.id_producto === Number(id));
+  return p ? { ...p } : null;
+};
+/** Un producto activo con existencias (para inactivar o editar). */
+export const unActivo = () => conMasStock();
+/** Un producto inactivo (para activar). */
+export const unInactivo = () => PRODUCTOS.find((p) => p.estado === "inactivo");
+
+// Producto que respondería la API después de crear o editar con este FormData.
+function desdeFormData(base, datos) {
+  const leer = (campo, actual) => (datos.has(campo) ? datos.get(campo) : actual);
+  const idCategoria = Number(leer("id_categoria", base.id_categoria));
+  const existencias = Number(leer("existencias", base.existencias));
+  const estado = base.estado ?? "activo";
+  return {
+    ...base,
+    id_categoria: idCategoria,
+    categoria: CATEGORIAS.find((c) => c.id_categoria === idCategoria)?.nombre ?? "",
+    nombre: String(leer("nombre", base.nombre)).trim(),
+    descripcion: String(leer("descripcion", base.descripcion ?? "")).trim() || null,
+    precio: Number(leer("precio", base.precio)),
+    existencias,
+    imagen: datos.has("imagen") ? "nueva-imagen.png" : base.imagen,
+    estado,
+    disponible: estado === "activo" && existencias > 0,
+  };
+}
+
 // Reemplazo de services/productos.service.js para vi.mock:
 //   vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
+// Las funciones de administración no guardan nada: responden con lo que devolvería la API.
 export function servicioSimulado() {
   return {
     ORDENES: ["precio_asc", "precio_desc"],
     listarCategorias: vi.fn(() => Promise.resolve({ ok: true, data: CATEGORIAS })),
     listarProductos: vi.fn((filtros = {}) => Promise.resolve({ ok: true, data: catalogoPublico(filtros) })),
+    listarProductosAdmin: vi.fn((filtros = {}) => Promise.resolve({ ok: true, data: catalogoAdmin(filtros) })),
+    obtenerProductoAdmin: vi.fn((id) => Promise.resolve({ ok: true, data: productoPorId(id) })),
+    crearProducto: vi.fn((datos) =>
+      Promise.resolve({ ok: true, data: desdeFormData({ id_producto: 100, created_at: "2026-11-27T12:00:00.000Z" }, datos) })
+    ),
+    actualizarProducto: vi.fn((id, datos) => Promise.resolve({ ok: true, data: desdeFormData(productoPorId(id), datos) })),
+    cambiarEstadoProducto: vi.fn((id, estado) => {
+      const p = productoPorId(id);
+      return Promise.resolve({ ok: true, data: { ...p, estado, disponible: estado === "activo" && p.existencias > 0 } });
+    }),
   };
 }
