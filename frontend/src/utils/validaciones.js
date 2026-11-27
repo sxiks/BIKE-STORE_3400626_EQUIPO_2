@@ -55,6 +55,63 @@ export function validarRegistro({ nombre = '', email = '', password = '' } = {})
   });
 }
 
+// ---------- Productos (F2.3 · CU-12, CU-13) ----------
+// Mismas reglas que productos.services.js y upload.middleware.js del backend.
+export const PRODUCTO_NOMBRE_MAX = 150;
+export const PRODUCTO_DESCRIPCION_MAX = 5000;
+export const PRECIO_MAX = 100000000; // NUMERIC(10,2): el precio debe ser menor que esto
+export const IMAGEN_TIPOS = ['image/jpeg', 'image/png', 'image/webp'];
+export const IMAGEN_MAX_BYTES = 2 * 1024 * 1024;
+
+// Devuelve el mensaje de error del archivo de imagen, o null si es válido (o si no hay archivo).
+// El backend además revisa el contenido del archivo; aquí solo se mira el tipo y el tamaño.
+export function errorImagen(archivo) {
+  if (!archivo) return null;
+  if (!IMAGEN_TIPOS.includes(archivo.type)) return 'Formato de imagen no permitido. Usa JPG, PNG o WEBP';
+  if (archivo.size > IMAGEN_MAX_BYTES) return 'La imagen supera el máximo de 2 MB';
+  return null;
+}
+
+function errorPrecio(valor) {
+  const texto = String(valor ?? '').trim();
+  if (!texto) return 'Escribe el precio';
+  if (!/^\d+(\.\d{1,2})?$/.test(texto)) return 'El precio debe ser un número con máximo 2 decimales';
+  const n = Number(texto);
+  if (n <= 0) return 'El precio debe ser mayor que 0';
+  if (n >= PRECIO_MAX) return 'El precio es demasiado alto';
+  return null;
+}
+
+function errorExistencias(valor) {
+  const texto = String(valor ?? '').trim();
+  if (!texto) return 'Escribe las existencias';
+  return /^\d+$/.test(texto) ? null : 'Las existencias deben ser un número entero mayor o igual a 0';
+}
+
+// Crear o editar un producto: { campo: mensaje } solo con los campos que fallan.
+// imagenObligatoria: true al crear (CU-12); al editar, la imagen actual se conserva si no se elige otra.
+export function validarProducto(
+  { nombre = '', descripcion = '', precio = '', existencias = '', id_categoria = '', imagen = null } = {},
+  { imagenObligatoria = true } = {}
+) {
+  const nombreLimpio = nombre.trim();
+  return soloErrores({
+    nombre: !nombreLimpio
+      ? 'Escribe el nombre del producto'
+      : nombreLimpio.length > PRODUCTO_NOMBRE_MAX
+        ? `El nombre admite máximo ${PRODUCTO_NOMBRE_MAX} caracteres`
+        : null,
+    id_categoria: id_categoria ? null : 'Elige una categoría',
+    precio: errorPrecio(precio),
+    existencias: errorExistencias(existencias),
+    descripcion:
+      descripcion.trim().length > PRODUCTO_DESCRIPCION_MAX
+        ? `La descripción admite máximo ${PRODUCTO_DESCRIPCION_MAX} caracteres`
+        : null,
+    imagen: !imagen && imagenObligatoria ? 'Elige una imagen del producto' : errorImagen(imagen)
+  });
+}
+
 // Restablecer (CU-11): la nueva contraseña cumple D7 y la confirmación coincide.
 export function validarRestablecer({ password = '', confirmacion = '' } = {}) {
   return soloErrores({

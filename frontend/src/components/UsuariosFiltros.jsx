@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import Segmentado from './Segmentado';
 import '../assets/usuarios.css';
 
 const ROLES = [
@@ -11,25 +12,6 @@ const ESTADOS = [
   { valor: 'activo', texto: 'Activos' },
   { valor: 'inactivo', texto: 'Inactivos' }
 ];
-
-// Grupo de botones segmentados: uno solo queda presionado (aria-pressed).
-function Segmentado({ etiqueta, opciones, valor, onElegir }) {
-  return (
-    <div className="segmentado" role="group" aria-label={etiqueta}>
-      {opciones.map((opcion) => (
-        <button
-          key={opcion.valor || 'todos'}
-          type="button"
-          className={`segmentado__opcion${opcion.valor === valor ? ' segmentado__opcion--activa' : ''}`}
-          aria-pressed={opcion.valor === valor}
-          onClick={() => onElegir(opcion.valor)}
-        >
-          {opcion.texto}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 // Buscador y filtros del listado de usuarios (CU-19). Solo muestra los valores y avisa los cambios.
 // onCambiar(campo, valor): campo es 'q', 'rol' o 'estado'.

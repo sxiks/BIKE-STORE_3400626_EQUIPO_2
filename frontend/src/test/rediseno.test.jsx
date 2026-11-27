@@ -86,9 +86,9 @@ describe("Barra lateral del admin", () => {
     renderApp("/admin");
 
     const lateral = within(await screen.findByRole("navigation", { name: "Administración" }));
-    expect(lateral.getByText("Productos")).toBeInTheDocument();
-    expect(lateral.getByText("Sprint 2")).toBeInTheDocument();
-    expect(lateral.queryByRole("link", { name: /productos/i })).not.toBeInTheDocument();
+    expect(lateral.getByText("Pedidos")).toBeInTheDocument();
+    expect(lateral.getByText("Sprint 3")).toBeInTheDocument();
+    expect(lateral.queryByRole("link", { name: /pedidos/i })).not.toBeInTheDocument();
   });
 
   it("el botón de menú (pantallas angostas) abre y cierra la navegación", async () => {

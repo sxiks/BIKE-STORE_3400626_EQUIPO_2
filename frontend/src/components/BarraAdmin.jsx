@@ -11,7 +11,7 @@ import '../assets/barra-admin.css';
 const SECCIONES = [
   { nombre: 'Inicio', icono: House, ruta: '/admin', exacta: true },
   { nombre: 'Usuarios', icono: Users, ruta: '/admin/usuarios' },
-  { nombre: 'Productos', icono: Package, sprint: 'Sprint 2' },
+  { nombre: 'Productos', icono: Package, ruta: '/admin/productos' },
   { nombre: 'Pedidos', icono: ReceiptText, sprint: 'Sprint 3' },
   { nombre: 'Tablero', icono: ChartColumn, sprint: 'Sprint 4' }
 ];

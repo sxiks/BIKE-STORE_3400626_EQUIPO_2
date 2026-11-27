@@ -13,28 +13,7 @@
 .usuarios-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espacio-3); margin-bottom: var(--espacio-5); }
 .usuarios-filtros__busqueda { flex: 1 1 260px; max-width: 460px; }
 
-/* Botones segmentados (rol, estado) */
-.segmentado {
-  display: inline-flex;
-  padding: 3px;
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-lg);
-  background: var(--color-superficie);
-}
-.segmentado__opcion {
-  min-height: 36px;
-  padding: 0 var(--espacio-3);
-  border: 0;
-  border-radius: var(--radio-md);
-  background: transparent;
-  color: var(--color-texto-suave);
-  font-size: var(--texto-sm);
-  font-weight: 500;
-  cursor: pointer;
-}
-.segmentado__opcion:hover { color: var(--color-texto); }
-.segmentado__opcion--activa { background: var(--color-primario); color: var(--color-sobre-primario); font-weight: 600; }
-.segmentado__opcion--activa:hover { color: var(--color-sobre-primario); }
+/* Los botones segmentados (rol, estado) están en segmentado.css (components/Segmentado.jsx). */
 
 /* Tabla con filas tipo tarjeta */
 .usuarios-tabla { width: 100%; border-collapse: separate; border-spacing: 0 var(--espacio-2); }

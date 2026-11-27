@@ -1,0 +1,22 @@
+/* Botones segmentados (components/Segmentado.jsx): filtros de usuarios y de productos. Solo variables de tokens.css. */
+.segmentado {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie);
+}
+.segmentado__opcion {
+  min-height: 36px;
+  padding: 0 var(--espacio-3);
+  border: 0;
+  border-radius: var(--radio-md);
+  background: transparent;
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.segmentado__opcion:hover { color: var(--color-texto); }
+.segmentado__opcion--activa { background: var(--color-primario); color: var(--color-sobre-primario); font-weight: 600; }
+.segmentado__opcion--activa:hover { color: var(--color-sobre-primario); }
