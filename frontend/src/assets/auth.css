@@ -1,4 +1,4 @@
-/* Login y registro, con el sistema de diseño (F2.1). Reemplaza a lab.css (heredado del Laboratorio). */
+/* Login, registro y recuperación de contraseña, con el sistema de diseño (F2.1). Reemplaza a lab.css (heredado del Laboratorio). */
 .auth {
   min-height: calc(100vh - var(--alto-navbar));
   padding: var(--espacio-8) var(--espacio-4);
@@ -31,3 +31,20 @@
 
 .auth__pie { margin: 0; text-align: center; color: var(--color-texto-suave); }
 .auth__pie a { font-weight: 700; }
+
+.auth__texto { margin: 0; text-align: center; font-size: var(--texto-sm); color: var(--color-texto-suave); }
+.auth__enlace-secundario { align-self: flex-end; font-size: var(--texto-sm); font-weight: 600; }
+
+/* Reglas de contraseña D7 que se marcan mientras se escribe (F1.3) */
+.reglas-password {
+  margin: var(--espacio-1) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px var(--espacio-3);
+  font-size: var(--texto-xs);
+  color: var(--color-texto-tenue);
+}
+.reglas-password__item { display: flex; align-items: center; gap: var(--espacio-1); }
+.reglas-password__item--cumple { color: var(--color-exito-texto); font-weight: 600; }
