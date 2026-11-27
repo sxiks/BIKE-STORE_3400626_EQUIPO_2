@@ -139,7 +139,8 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="mock"></a>**Mock (datos simulados):** datos falsos con la misma forma que la API real, para trabajar sin backend.
 - <a name="vitest"></a>**Vitest / Testing Library:** herramientas para escribir y ejecutar pruebas automatizadas (`npm test`).
 - <a name="build"></a>**Build:** la versión optimizada del frontend lista para publicar, en la carpeta `dist/`.
-- <a name="sistema-diseno"></a>**Sistema de diseño:** conjunto de reglas visuales y piezas reutilizables que comparten todas las pantallas. El del proyecto se llama "Montaña Clara" y vive en `assets/tokens.css` y `assets/base.css`.
+- <a name="sistema-diseno"></a>**Sistema de diseño:** conjunto de reglas visuales y piezas reutilizables que comparten todas las pantallas. El del proyecto se llama "Noche" (tema oscuro y claro) y vive en `assets/tokens.css` y `assets/base.css`.
+- <a name="tema"></a>**Tema (oscuro / claro):** juego de colores de la interfaz. Se elige con el botón de luna o sol, se guarda en el navegador (`bikestore_tema`) y se aplica como `<html data-tema="…">`; `tokens.css` define los colores de cada uno.
 - <a name="tokens-diseno"></a>**Tokens de diseño:** variables CSS con nombre (`--color-primario`, `--espacio-4`, `--radio-md`…) que guardan los valores del sistema de diseño. Se usan con `var(--nombre)` en lugar de escribir el valor a mano.
 - <a name="bem"></a>**BEM (Bloque, Elemento, Modificador):** forma de nombrar clases CSS: `bloque__elemento--modificador`, por ejemplo `producto__stock--agotado`. Evita que los estilos de una pantalla afecten a otra.
 - <a name="contraste-aa"></a>**Contraste AA:** nivel mínimo de accesibilidad entre el color del texto y el del fondo (4.5:1 en texto normal), para que se lea bien.

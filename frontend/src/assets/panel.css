@@ -2,9 +2,10 @@
 .panel__encabezado { margin-bottom: var(--espacio-6); }
 
 .panel__encabezado h1 {
-  font-size: var(--texto-3xl);
-  font-weight: 800;
-  color: var(--color-primario);
+  font-size: var(--texto-2xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-texto);
 }
 
 .panel__encabezado p { margin: var(--espacio-1) 0 0; color: var(--color-texto-suave); }

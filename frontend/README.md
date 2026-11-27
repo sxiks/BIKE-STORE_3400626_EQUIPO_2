@@ -47,13 +47,15 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 
 - Los componentes no hacen `fetch`: todo pasa por `src/services/`, y `api.js` agrega el token Bearer.
 - La API responde `{ ok, data, message, code }`: los datos se leen en `respuesta.data`. Los errores llegan como `ApiError` (`message`, `status`, `code`, `data`) y se manejan por `code`.
-- Proveedores globales en `App.jsx`, en este orden: Router → `ToastProvider` → `AuthProvider`. Los mensajes al usuario van con `useToast().mostrar()`, nunca con `alert()`.
+- Proveedores globales en `App.jsx`, en este orden: Router → `TemaProvider` → `ToastProvider` → `AuthProvider`. Los mensajes al usuario van con `useToast().mostrar()`, nunca con `alert()`.
 - Una sola barra de navegación: `components/Navbar.jsx`. El carrito solo aparece cuando la página le pasa la prop `carrito`.
-- **Sistema de diseño "Montaña Clara"** (F2.1):
-  - `assets/tokens.css` es la única fuente de colores, tipografía, espacios, radios y sombras. Nunca escribas un color a mano: usa `var(--…)`.
-  - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento`, `.alerta--error` y `.solo-lector`.
+- **Sistema de diseño "Noche"**, con tema oscuro (por defecto) y claro:
+  - `assets/tokens.css` es la única fuente de colores, tipografía, espacios, radios y sombras. Tiene un bloque por tema (`:root[data-tema="oscuro"]` y `:root[data-tema="claro"]`) con **los mismos nombres de variables**. Nunca escribas un color a mano: usa `var(--…)`, y el componente funcionará en los dos temas.
+  - Texto sobre un fondo de color: usa la variable `--color-sobre-…` de ese fondo (`--color-sobre-primario`, `--color-sobre-acento`, `--color-sobre-error`), nunca `#ffffff`. Enlaces: `--color-enlace`.
+  - El tema lo maneja `context/TemaContext.jsx` (`useTema()` → `tema`, `alternarTema`) y lo cambia `components/BotonTema.jsx`. Se guarda en `localStorage` (`bikestore_tema`); `index.html` lo aplica antes de que React arranque para evitar un destello del otro tema.
+  - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento|destacado`, `.alerta--error` y `.solo-lector`.
   - Cada vista tiene su `.css` con clases BEM propias: `navbar.css`, `toast.css`, `tienda.css`, `auth.css` y `panel.css`.
-  - Tipografías Outfit (títulos) y Nunito Sans (texto), cargadas desde Google Fonts en `index.html`.
+  - Tipografía Inter, cargada desde Google Fonts en `index.html`.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Flujo de sesión

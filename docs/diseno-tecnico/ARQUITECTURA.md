@@ -101,7 +101,7 @@ grep -rn "middlewares" backend/src/services
 | `services/` | Único lugar que llama a la API. `api.js` agrega el token Bearer, lanza `ApiError` (`message`, `status`, `code`, `data`) y avisa al `AuthContext` cuando una petición con token recibe 401 o 403 `CUENTA_DESACTIVADA`. |
 | `utils/` | Funciones puras (`formatoCOP`, `urlImagen`, `localStorage`). |
 | `data/` | Datos simulados mientras se conecta la API real. |
-| `assets/` | Sistema de diseño "Montaña Clara": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`navbar`, `toast`, `tienda`, `auth`, `panel`). |
+| `assets/` | Sistema de diseño "Noche": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras, con un bloque por tema: oscuro y claro), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`navbar`, `toast`, `tienda`, `auth`, `panel`). |
 | `test/` | Pruebas con Vitest y Testing Library. |
 
 - Un componente **nunca** llama a `fetch` directamente: usa una función de `services/`.

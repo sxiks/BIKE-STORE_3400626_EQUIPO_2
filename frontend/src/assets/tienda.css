@@ -1,8 +1,8 @@
-/* Tienda: catálogo y panel del carrito, con el sistema de diseño (F2.1).
+/* Tienda: catálogo y panel del carrito, con el sistema de diseño (F2.1, rediseño con temas).
    Ya no hay raíz .tienda: las clases son BEM propias (catalogo__, producto__, carrito__). */
 
 /* Catálogo */
-.catalogo__titulo { margin-bottom: var(--espacio-4); font-size: var(--texto-2xl); font-weight: 800; }
+.catalogo__titulo { margin-bottom: var(--espacio-4); font-size: var(--texto-2xl); font-weight: 700; letter-spacing: -0.01em; }
 
 .catalogo__grid {
   display: grid;
@@ -25,15 +25,15 @@
 .producto__imagen {
   height: 140px;
   border-radius: var(--radio-lg);
-  background: var(--color-primario-suave);
-  color: #a5b4d8;
+  background: var(--color-superficie-2);
+  color: var(--color-texto-tenue);
   display: grid;
   place-items: center;
 }
 
 .producto__cuerpo { padding: 0 var(--espacio-1) var(--espacio-1); display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.producto__nombre { font-size: var(--texto-lg); font-weight: 700; }
-.producto__precio { margin: 0; font-family: var(--fuente-titulos); font-size: var(--texto-xl); font-weight: 800; color: var(--color-primario); }
+.producto__nombre { font-size: var(--texto-md); font-weight: 600; }
+.producto__precio { margin: 0; font-family: var(--fuente-titulos); font-size: var(--texto-lg); font-weight: 700; color: var(--color-texto); }
 .producto__stock { margin: 0; font-size: var(--texto-sm); color: var(--color-texto-tenue); }
 .producto__stock--agotado { color: var(--color-error-texto); font-weight: 700; }
 .producto__acciones { margin-top: auto; padding-top: var(--espacio-1); display: flex; gap: var(--espacio-2); align-items: center; }
@@ -46,17 +46,18 @@
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-md);
   background: var(--color-superficie);
+  color: var(--color-texto);
   text-align: center;
   font-size: var(--texto-md);
   appearance: textfield;
   -moz-appearance: textfield;
 }
-.cantidad-input:focus { border-color: var(--color-primario); }
+.cantidad-input:focus { border-color: var(--color-texto-suave); }
 .cantidad-input::-webkit-outer-spin-button,
 .cantidad-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 /* Panel lateral del carrito */
-.carrito__fondo { position: fixed; inset: 0; z-index: 60; background: rgba(15, 23, 42, 0.45); animation: aparecer 0.2s ease; }
+.carrito__fondo { position: fixed; inset: 0; z-index: 60; background: var(--color-velo); animation: aparecer 0.2s ease; }
 
 .carrito {
   position: fixed;
@@ -70,12 +71,13 @@
   flex-direction: column;
   overflow-y: auto;
   background: var(--color-superficie);
+  border-left: 1px solid var(--color-borde);
   box-shadow: var(--sombra-lg);
   animation: deslizar 0.25s ease;
 }
 
 .carrito__cabecera { display: flex; align-items: center; justify-content: space-between; }
-.carrito__cabecera h2 { font-size: var(--texto-xl); font-weight: 800; color: var(--color-primario); }
+.carrito__cabecera h2 { font-size: var(--texto-xl); font-weight: 700; color: var(--color-texto); }
 .carrito__vacio { margin: var(--espacio-12) 0; text-align: center; color: var(--color-texto-suave); }
 
 .carrito__lineas { list-style: none; margin: var(--espacio-4) 0; padding: 0; display: flex; flex-direction: column; gap: var(--espacio-3); }
@@ -85,10 +87,10 @@
 .carrito__controles { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .carrito__subtotal { margin: 0; text-align: right; }
 
-.carrito__totales { margin: auto 0 0; padding-top: var(--espacio-3); border-top: 2px solid var(--color-primario-suave); display: grid; gap: 6px; }
+.carrito__totales { margin: auto 0 0; padding-top: var(--espacio-3); border-top: 1px solid var(--color-borde); display: grid; gap: 6px; }
 .carrito__totales div { display: flex; justify-content: space-between; }
 .carrito__totales dt, .carrito__totales dd { margin: 0; }
-.carrito__total-compra { font-family: var(--fuente-titulos); font-size: var(--texto-xl); font-weight: 800; color: var(--color-primario); }
+.carrito__total-compra { font-family: var(--fuente-titulos); font-size: var(--texto-xl); font-weight: 700; color: var(--color-texto); }
 
 @keyframes deslizar { from { transform: translateX(100%); } to { transform: translateX(0); } }
 

@@ -1,4 +1,4 @@
-/* Notificaciones (ToastContext). Globales desde F1.1; con tokens desde F2.1. */
+/* Notificaciones (ToastContext). Globales desde F1.1; con tokens desde F2.1 y temas desde el rediseño. */
 .toasts {
   position: fixed;
   right: var(--espacio-4);
@@ -17,7 +17,8 @@
   padding: var(--espacio-3) 14px;
   border-radius: var(--radio-lg);
   background: var(--color-oscuro);
-  color: #ffffff;
+  color: var(--color-sobre-oscuro);
+  border: 1px solid var(--color-borde);
   box-shadow: var(--sombra-lg);
   animation: deslizar-toast 0.25s ease;
 }
@@ -29,11 +30,11 @@
   border: 0;
   border-radius: var(--radio-sm);
   background: transparent;
-  color: #cbd5e1;
+  color: var(--color-sobre-oscuro-suave);
   cursor: pointer;
 }
 
-.toast__cerrar:hover { color: #ffffff; }
+.toast__cerrar:hover { color: var(--color-sobre-oscuro); }
 
 .btn--toast {
   min-height: 36px;
@@ -41,7 +42,7 @@
   border: 0;
   border-radius: var(--radio-sm);
   background: var(--color-acento);
-  color: var(--color-texto);
+  color: var(--color-sobre-acento);
   font-weight: 800;
   cursor: pointer;
 }
