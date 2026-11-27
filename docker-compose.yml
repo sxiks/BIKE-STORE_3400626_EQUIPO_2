@@ -4,7 +4,7 @@
 #
 # La primera vez que se crea el volumen, database/docker/initdb/01-crear-bases.sh
 # crea el rol bike_store_app, las bases bike_store y bike_store_test, y aplica
-# las migraciones 002 a 005 sobre bike_store. Después ya no vuelve a correr:
+# las migraciones 002 a 007 sobre bike_store. Después ya no vuelve a correr:
 # para empezar de cero, docker compose down -v (borra los datos) y docker compose up -d.
 
 name: bike-store
