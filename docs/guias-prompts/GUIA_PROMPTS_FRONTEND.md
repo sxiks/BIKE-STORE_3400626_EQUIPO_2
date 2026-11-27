@@ -51,7 +51,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 1 ✅ | [F1.3 Recuperar contraseña y validar registro](#f13--recuperar-contraseña-y-validar-registro) | `feature/front-recuperar-password` | 09, 11 | F1.1 |
 | 1 ✅ | [F1.4 Panel de usuarios](#f14--panel-de-usuarios-admin) | `feature/front-panel-usuarios` | 19, 20, 21 | F1.2 |
 | 1 ✅ | [F2.1 Sistema de diseño unificado](#f21--sistema-de-diseño-unificado) (adelantada al Sprint 1) | `feature/front-sistema-diseno` | RNF usabilidad | F1.1 |
-| 2 | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
+| 2 ✅ | [F2.2 Catálogo desde la API](#f22--catálogo-desde-la-api) | `feature/front-catalogo-api` | 01, 02 | F2.1 |
 | 2 | [F2.3 Panel de productos](#f23--panel-de-productos-admin) | `feature/front-admin-productos` | 12–15 | F1.2, F2.1 |
 | 3 | [F3.1 Carrito conectado a la API](#f31--carrito-conectado-a-la-api) | `feature/front-carrito-api` | 03–06 | F2.2 |
 | 3 | [F3.2 Mis pedidos y detalle](#f32--mis-pedidos-y-detalle-del-pedido) | `feature/front-mis-pedidos` | 08 | F1.2 |
@@ -210,6 +210,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### F2.2 · Catálogo desde la API
+
+> ✅ **Hecha.** Resultado: `services/productos.service.js`; `TiendaPage` con categoría y orden en la URL (`?categoria=&orden=`) y estados de carga, error y vacío; `FiltrosCatalogo`, `ImagenProducto` (decisión L) y el destacado elegido con datos reales (el disponible más caro). `CarritoContext` guarda una copia de cada producto agregado y la actualiza al cargar el catálogo (carrito local hasta F3.1). Se eliminó `data/productos.js`. Las pruebas del instructor usan los productos reales de la semilla desde `test/fixtures/catalogo.js`, elegidos por lo que cada caso necesita, para que se adapten si el catálogo cambia. Este prompt queda como referencia.
 
 ```
 TAREA F2.2 · Sprint 2 · CU-01, CU-02 · Rama: feature/front-catalogo-api (ya creada desde develop actualizado; si no, dame primero los comandos).

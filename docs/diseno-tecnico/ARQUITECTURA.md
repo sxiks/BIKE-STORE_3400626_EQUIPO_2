@@ -100,7 +100,6 @@ grep -rn "middlewares" backend/src/services
 | `hooks/` | Hooks propios (`useAuth`, …). |
 | `services/` | Único lugar que llama a la API. `api.js` agrega el token Bearer, lanza `ApiError` (`message`, `status`, `code`, `data`) y avisa al `AuthContext` cuando una petición con token recibe 401 o 403 `CUENTA_DESACTIVADA`. |
 | `utils/` | Funciones puras (`formatoCOP`, `urlImagen`, `localStorage`). |
-| `data/` | Datos simulados mientras se conecta la API real. |
 | `assets/` | Sistema de diseño "Noche": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras, con un bloque por tema: oscuro y claro), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`barra-cliente`, `barra-admin`, `toast`, `tienda`, `auth`, `panel`, `usuarios`, `dialogo`). |
 | `test/` | Pruebas con Vitest y Testing Library. |
 
@@ -116,7 +115,7 @@ grep -rn "middlewares" backend/src/services
 | Tema | Situación | Se resuelve en |
 |------|-----------|----------------|
 | El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
-| La tienda usa datos simulados (`data/productos.js`) y el carrito vive en `localStorage` (clave heredada `tienda-palmira-carrito`) | El backend ya ofrece catálogo y carrito reales | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) y Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
+| El carrito vive en `localStorage` (`bikestore_carrito`, con una copia de cada producto); el catálogo ya viene de la API (F2.2) | El backend ya ofrece el carrito real | Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
 | Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
 | Versiones mayores nuevas de dependencias, sin vulnerabilidades: Vite 8, `@vitejs/plugin-react` 6, `@testing-library/jest-dom` 8 (frontend) y `dotenv` 18 (backend) | `npm audit` en 0; se actualizan cuando haga falta, cada una en su propio PR porque pueden traer cambios incompatibles | Sin sprint fijo |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
