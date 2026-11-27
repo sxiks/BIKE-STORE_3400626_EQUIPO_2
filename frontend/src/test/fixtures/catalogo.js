@@ -250,3 +250,225 @@ export function categoriasSimulado() {
     }),
   };
 }
+
+// ---------- Carrito del cliente en la API (F3.1) ----------
+
+// Reemplazo de services/carrito.service.js para vi.mock:
+//   vi.mock("../services/carrito.service", async () => (await import("./fixtures/catalogo")).carritoSimulado());
+// Guarda estado mientras dure el servicio simulado y aplica las reglas del backend (API_CONTRATOS.md, "Carrito"):
+// R2 (sumar), STOCK_MAXIMO, SIN_STOCK, PRODUCTO_INACTIVO, CANTIDAD_MINIMA, 404 y los motivos de disponibilidad.
+//   inicial: [[producto, cantidad], ...] → el cliente ya tiene ese carrito guardado en la API.
+// Además de las funciones del servicio, devuelve `cambiarProducto(id, { existencias, estado, precio })`
+// para simular que el admin cambió un producto, y `cantidades()` para ver qué hay guardado.
+export function carritoSimulado({ inicial = [] } = {}) {
+  const lineas = new Map(inicial.map(([p, cantidad]) => [p.id_producto, cantidad]));
+  const cambios = {};
+  let idPedido = inicial.length ? 500 : null;
+
+  const producto = (id) => {
+    const p = productoPorId(id);
+    return p ? { ...p, ...cambios[p.id_producto] } : null;
+  };
+  const armar = () => {
+    const items = [...lineas].map(([id, cantidad]) => {
+      const p = producto(id);
+      const motivo =
+        p.estado !== "activo" ? "INACTIVO" : p.existencias === 0 ? "SIN_STOCK" : cantidad > p.existencias ? "SUPERA_STOCK" : null;
+      return {
+        id_producto: id,
+        nombre: p.nombre,
+        imagen: p.imagen,
+        precio: p.precio,
+        existencias: p.existencias,
+        estado: p.estado,
+        cantidad,
+        subtotal: p.precio * cantidad,
+        disponible: motivo === null,
+        motivo,
+      };
+    });
+    return Promise.resolve({
+      ok: true,
+      data: {
+        id_pedido: idPedido,
+        items,
+        total_unidades: items.reduce((s, i) => s + i.cantidad, 0),
+        total: items.reduce((s, i) => s + i.subtotal, 0),
+        puede_comprar: items.length > 0 && items.every((i) => i.disponible),
+      },
+    });
+  };
+  const comprable = (id) => {
+    const p = producto(id);
+    if (!p) return errorApi("Producto no encontrado", 404);
+    if (p.estado !== "activo") return errorApi("El producto no está disponible", 400, "PRODUCTO_INACTIVO");
+    if (p.existencias === 0) return errorApi("El producto está agotado", 400, "SIN_STOCK");
+    return null;
+  };
+  const MAX = "Este es el máximo de producto disponible en stock";
+
+  return {
+    obtenerCarrito: vi.fn(() => armar()),
+    agregarAlCarrito: vi.fn((id, cantidad = 1) => {
+      const error = comprable(id);
+      if (error) return Promise.reject(error);
+      const actual = lineas.get(id) ?? 0;
+      const { existencias } = producto(id);
+      if (actual + cantidad > existencias) {
+        return Promise.reject(errorApi(MAX, 400, "STOCK_MAXIMO", { maximo: existencias, en_carrito: actual }));
+      }
+      lineas.set(id, actual + cantidad);
+      idPedido ??= 500;
+      return armar();
+    }),
+    cambiarCantidadCarrito: vi.fn((id, cantidad) => {
+      if (cantidad === 0) return Promise.reject(errorApi("Esta es la cantidad mínima (1).", 400, "CANTIDAD_MINIMA"));
+      const error = comprable(id);
+      if (error) return Promise.reject(error);
+      if (cantidad > producto(id).existencias) {
+        return Promise.reject(errorApi(MAX, 400, "STOCK_MAXIMO", { maximo: producto(id).existencias }));
+      }
+      if (!lineas.has(id)) return Promise.reject(errorApi("El producto no está en el carrito", 404));
+      lineas.set(id, cantidad);
+      return armar();
+    }),
+    quitarDelCarrito: vi.fn((id) => {
+      if (!lineas.has(id)) return Promise.reject(errorApi("El producto no está en el carrito", 404));
+      lineas.delete(id);
+      return armar();
+    }),
+    cambiarProducto: (id, campos) => {
+      cambios[id] = { ...cambios[id], ...campos };
+    },
+    cantidades: () => Object.fromEntries(lineas),
+    vaciar: () => {
+      lineas.clear();
+      idPedido = null;
+    },
+  };
+}
+
+// ---------- Pedidos del cliente (F3.2) ----------
+
+const ENVIO_PRUEBA = {
+  envio_nombre: "Ana Cliente",
+  envio_telefono: "3001234567",
+  envio_departamento: "Valle del Cauca",
+  envio_ciudad: "Palmira",
+  envio_direccion: "Calle 1 # 2-3",
+};
+
+// Pedido con la forma del contrato ("Pedido" en API_CONTRATOS.md), hecho con productos de la semilla.
+//   lineas: [[producto, cantidad]] · pagos: [[medio, ultimos4, estado]]
+function pedido(n, estado, fecha, lineas, pagos = []) {
+  const items = lineas.map(([p, cantidad]) => ({
+    id_producto: p.id_producto,
+    nombre: p.nombre,
+    cantidad,
+    precio_unitario: p.precio,
+    subtotal: p.precio * cantidad,
+  }));
+  const total = items.reduce((s, i) => s + i.subtotal, 0);
+  return {
+    id_pedido: n,
+    numero_pedido: `BS-2026-${String(n).padStart(6, "0")}`,
+    id_usuario: 2,
+    estado,
+    ...ENVIO_PRUEBA,
+    fecha_pedido: fecha,
+    created_at: fecha,
+    total,
+    items,
+    pagos: pagos.map(([medio_pago, ultimos4, estadoPago], i) => ({
+      id_pago: n * 10 + i,
+      medio_pago,
+      ultimos4,
+      valor: total,
+      estado: estadoPago,
+      created_at: fecha,
+    })),
+  };
+}
+
+/** Pedidos del cliente de prueba, del más reciente al más antiguo (como GET /pedidos). */
+export const PEDIDOS = (() => {
+  const [a, b, c] = conStockMinimo(3);
+  return [
+    pedido(4, "pendiente", "2026-11-26T20:15:00.000Z", [[a, 1]]),
+    pedido(3, "fallido", "2026-11-24T16:00:00.000Z", [[b, 2]], [["tarjeta_debito", "0000", "rechazado"]]),
+    pedido(2, "pagado", "2026-11-22T14:30:00.000Z", [[a, 1], [c, 3]], [
+      ["tarjeta_credito", "0000", "rechazado"],
+      ["cuenta_bancaria", "3456", "aprobado"],
+    ]),
+    pedido(1, "pagado", "2026-11-20T15:30:00.000Z", [[c, 1]], [["tarjeta_credito", "1111", "aprobado"]]),
+  ];
+})();
+/** El pedido de prueba en cierto estado; con `reintentado`, el pagado que tuvo un rechazo antes. */
+export const pedidoEn = (estado, { reintentado = false } = {}) =>
+  PEDIDOS.find((p) => p.estado === estado && (!reintentado || p.pagos.length > 1));
+
+// Reemplazo de services/pedidos.service.js para vi.mock:
+//   vi.mock("../services/pedidos.service", async () => (await import("./fixtures/catalogo")).pedidosSimulado());
+// Guarda estado mientras dure el servicio simulado. Con `carrito` (un carritoSimulado), confirmarCarrito usa
+// y vacía ese carrito, como la API (D12). pagarPedido aplica las decisiones D (0000 rechaza), E (SIN_STOCK),
+// F (reintentar un fallido) y PEDIDO_YA_PAGADO. Extra: `sinStock(idProducto, disponibles)` simula que otro
+// cliente compró antes de pagar.
+export function pedidosSimulado({ carrito = null } = {}) {
+  const pedidos = structuredClone(PEDIDOS);
+  const faltantes = {};
+  let siguiente = 100;
+  const MOTIVO = { INACTIVO: "INACTIVO", SIN_STOCK: "SIN_STOCK", SUPERA_STOCK: "SUPERA_STOCK" };
+
+  return {
+    listarPedidos: vi.fn(() =>
+      Promise.resolve({ ok: true, data: pedidos.map(({ items, pagos, ...resumen }) => ({ ...resumen })) })
+    ),
+    obtenerPedido: vi.fn((numero) => {
+      const encontrado = pedidos.find((p) => p.numero_pedido === numero);
+      return encontrado
+        ? Promise.resolve({ ok: true, data: structuredClone(encontrado) })
+        : Promise.reject(errorApi("Pedido no encontrado", 404));
+    }),
+    confirmarCarrito: vi.fn(async (envio) => {
+      const { data } = carrito ? await carrito.obtenerCarrito() : { data: { items: [] } };
+      if (!data.items.length) throw errorApi("El carrito está vacío", 400, "CARRITO_VACIO");
+      if (!data.puede_comprar) {
+        const items = data.items.filter((i) => !i.disponible).map((i) => ({ id_producto: i.id_producto, nombre: i.nombre, motivo: MOTIVO[i.motivo] }));
+        throw errorApi("Hay productos no disponibles en el carrito", 409, "CARRITO_NO_DISPONIBLE", { items });
+      }
+      const nuevo = pedido(siguiente++, "pendiente", "2026-11-27T19:30:00.000Z", data.items.map((i) => [productoPorId(i.id_producto), i.cantidad]));
+      Object.assign(nuevo, envio);
+      pedidos.unshift(nuevo);
+      carrito.vaciar();
+      return { ok: true, data: structuredClone(nuevo) };
+    }),
+    pagarPedido: vi.fn(async (idPedido, { medio_pago, numero }) => {
+      const p = pedidos.find((x) => x.id_pedido === Number(idPedido));
+      if (!p || p.estado === "carrito") throw errorApi("Pedido no encontrado", 404);
+      if (p.estado === "pagado") throw errorApi("El pedido ya fue pagado", 409, "PEDIDO_YA_PAGADO");
+      const problemas = p.items
+        .filter((i) => faltantes[i.id_producto] !== undefined && faltantes[i.id_producto] < i.cantidad)
+        .map((i) => ({ id_producto: i.id_producto, nombre: i.nombre, motivo: "SIN_STOCK", disponibles: faltantes[i.id_producto] }));
+      if (problemas.length) {
+        throw errorApi("No hay existencias suficientes para completar el pedido", 409, "SIN_STOCK", { items: problemas });
+      }
+      const ultimos4 = String(numero).slice(-4);
+      const pago = { id_pago: p.id_pedido * 10 + p.pagos.length, medio_pago, ultimos4, valor: p.total, estado: "aprobado", created_at: "2026-11-27T19:31:00.000Z" };
+      if (ultimos4 === "0000") {
+        p.pagos.push({ ...pago, estado: "rechazado" });
+        p.estado = "fallido";
+        throw errorApi("El pago fue rechazado. Puedes intentarlo de nuevo con otro medio de pago", 402, "PAGO_RECHAZADO", {
+          numero_pedido: p.numero_pedido,
+          estado: "fallido",
+          pago: { ...pago, estado: "rechazado" },
+        });
+      }
+      p.pagos.push(pago);
+      p.estado = "pagado";
+      return { ok: true, data: { numero_pedido: p.numero_pedido, estado: "pagado", valor_pagado: p.total, pago } };
+    }),
+    sinStock: (idProducto, disponibles) => {
+      faltantes[idProducto] = disponibles;
+    },
+  };
+}

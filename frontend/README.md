@@ -26,7 +26,7 @@ npm run build      # versión de producción en dist/
 
 | Ruta | Acceso | Vista |
 |------|--------|-------|
-| `/?categoria=&orden=` | Pública (no admin) | Tienda: catálogo de la API con filtro por categoría y orden por precio (`precio_asc` / `precio_desc`) guardados en la URL para compartirlos, producto destacado, búsqueda por nombre y carrito (local hasta F3.1) |
+| `/?categoria=&orden=` | Pública (no admin) | Tienda: catálogo de la API con filtro por categoría y orden por precio (`precio_asc` / `precio_desc`) guardados en la URL para compartirlos, producto destacado, búsqueda por nombre y carrito (en el navegador para visitantes y en la API para clientes, F3.1) |
 | `/producto/:id` | Pública (no admin) | Detalle del producto: portada y galería con miniaturas, datos, descripción y agregar al carrito. Se llega desde la imagen o el nombre de cada tarjeta, o desde el destacado |
 | `/login`, `/registro` | Pública (no admin) | Autenticación, conectada a la API. El login vuelve a la ruta protegida que se intentó abrir |
 | `/recuperar` | Pública (no admin) | Pide el enlace de recuperación de contraseña (CU-11). En desarrollo muestra el enlace en pantalla, porque aún no hay envío de correos |
@@ -37,7 +37,11 @@ npm run build      # versión de producción en dist/
 | `/admin/productos/nuevo` | Solo `admin` | Crear un producto con su imagen (CU-12) |
 | `/admin/productos/:id` | Solo `admin` | Editar un producto: solo se envían los campos que cambian, y la imagen solo si se elige otra (CU-13). Debajo: la galería (agregar, quitar, hacer portada y ordenar arrastrando; se guarda al momento) y "Eliminar producto" (solo si nunca se usó) |
 | `/admin/categorias` | Solo `admin` | Crear, renombrar y eliminar categorías sin productos (decisión M) |
-| `/cuenta` | Solo `cliente` | Mi cuenta (inicio provisional: "Mis pedidos" llega en F3.2) |
+| `/cuenta` | Solo `cliente` | Mi cuenta, con el enlace a "Mis pedidos" |
+| `/cuenta/pedidos` | Solo `cliente` | Mis pedidos: número, fecha (hora del navegador), estado y total, del más reciente al más antiguo (F3.2) |
+| `/cuenta/pedidos/:numero` | Solo `cliente` | Detalle del pedido: productos al precio con que se confirmó (R3), envío y cada intento de pago (medio, últimos 4 dígitos, estado). Si está pendiente o rechazado muestra "Pagar". También es la confirmación después de pagar ("¡Gracias por tu compra!") |
+| `/cuenta/pedidos/:numero/pagar` | Solo `cliente` | Pagar un pedido pendiente o reintentar uno rechazado (decisión F), con el mismo formulario de pago del checkout |
+| `/checkout` | Solo `cliente` | Finalizar compra en tres pasos (F3.3): resumen del carrito, envío (`POST /pedidos`, que vacía el carrito y crea el pedido) y pago simulado. Al aprobarse, lleva al detalle del pedido. Un visitante que pulsa "Comprar" pasa antes por el login y vuelve aquí |
 
 Estructura (rediseño):
 - **Cliente y público:** barra superior `components/BarraCliente.jsx`. La tienda la usa directamente (le pasa el carrito y la búsqueda); las páginas de acceso y Mi cuenta van dentro de `ClienteLayout`.
@@ -68,6 +72,17 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
 - Pruebas de la tienda: simulan `services/productos.service.js` con `test/fixtures/catalogo.js`, que tiene los productos de la semilla con la forma de la API. Las pruebas no escriben nombres ni precios a mano: eligen productos con sus selectores (`conStockMinimo`, `conPocoStock`, `masCaroDisponible`…). Si la semilla cambia o crece, solo se actualiza ese archivo. Las pruebas del panel de productos (`test/productos-admin.test.jsx`) usan el mismo archivo: `catalogoAdmin`, `productoPorId`, `unActivo` y `unInactivo`.
 - Arrastrar y soltar (galería de productos): [dnd-kit](https://dndkit.com) (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`). Funciona con mouse, pantalla táctil y teclado; los anuncios para el lector de pantalla están en español en `GaleriaProducto.jsx`. jsdom no tiene medidas de pantalla, así que en las pruebas se reordena con los botones de mover.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
+
+## Carrito (F3.1, decisión D1)
+
+`context/CarritoContext.jsx` (proveedor en `App.jsx`, dentro de `AuthProvider`) ofrece las mismas funciones en dos modos:
+
+- **Visitante** (sin sesión): el carrito vive en el navegador (`localStorage`, clave `bikestore_carrito`), como antes.
+- **Cliente:** el carrito vive en la API (`services/carrito.service.js`): es su pedido en estado `carrito` (D12). Cada operación se envía a la API y el carrito se reemplaza con la respuesta; totales, unidades y `puede_comprar` los calcula el backend. Las operaciones van en cola (una detrás de otra) para que un doble clic no mande dos peticiones que se crucen. Los errores se manejan por `code`: `STOCK_MAXIMO` → toast de máximo; `CANTIDAD_MINIMA` → toast con "Sí, eliminar".
+- **Al iniciar sesión un cliente**, lo que había en el navegador pasa a su carrito de la API (se suma sin superar el stock, con aviso si algo no cabe) y el navegador queda vacío. Si no hay conexión, los productos se conservan en el navegador para el siguiente intento.
+- El panel marca los ítems no disponibles según su `motivo` (D4: `INACTIVO`, `SIN_STOCK`, `SUPERA_STOCK`) y deshabilita "Comprar" mientras `puede_comprar` sea `false`.
+- **Pago (F3.3):** `components/FormularioPago.jsx` lo usan el checkout y `/cuenta/pedidos/:numero/pagar`. El número de tarjeta o cuenta solo vive en el estado local de ese formulario: no va al contexto, ni a `localStorage`, ni a la consola, y se borra después de cada intento (R5). Para probar un rechazo, un número que termine en `0000`.
+- Pruebas: `carrito.test.jsx` (casos del instructor, modo visitante) y `carrito-api.test.jsx` (modo cliente y paso del carrito al iniciar sesión, con `carritoSimulado()` del fixture).
 
 ## Flujo de sesión
 

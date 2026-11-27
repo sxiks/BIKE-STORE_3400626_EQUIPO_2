@@ -1,54 +1,179 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useToast } from "./ToastContext";
+import { useAuth } from "../hooks/useAuth";
+import {
+  agregarAlCarrito,
+  cambiarCantidadCarrito,
+  obtenerCarrito,
+  quitarDelCarrito,
+} from "../services/carrito.service";
 
 export const MSG_MAX = "Este es el máximo de producto disponible en stock";
 const CLAVE_STORAGE = "bikestore_carrito";
 const CLAVE_ANTIGUA = "tienda-palmira-carrito"; // carrito de los datos simulados (antes de F2.2)
 
-// Carrito LOCAL (en el navegador) hasta F3.1, que lo conecta a la API.
-// Desde F2.2 los productos vienen de la API y la lista visible puede estar filtrada por categoría,
-// así que cada línea guarda una copia del producto (id, nombre, precio, stock) al agregarlo.
-// Cuando llega el catálogo, `sincronizarProductos` actualiza precio y stock de las líneas que estén en él.
+// Carrito de la tienda (F3.1, decisión D1 ajustada). Dos modos detrás de la misma interfaz:
+//   · visitante (sin sesión, o sesión que no es de cliente): el carrito vive en el navegador (localStorage);
+//   · cliente: el carrito vive en la API (es su pedido en estado 'carrito', D12). Totales, unidades y
+//     puede_comprar los calcula el backend; aquí no se recalculan.
+// Al iniciar sesión un cliente, lo que tenía en el navegador se pasa a su carrito de la API (se suma, R2,
+// sin superar el stock) y el navegador queda vacío. Comprar exige sesión de cliente (ruta /checkout protegida).
+// El proveedor va en App.jsx, dentro de AuthProvider: un solo carrito para toda la app.
 
-// Producto de la API → datos que necesita el carrito.
+// Producto de la API → línea del carrito del navegador.
 export const aLinea = (p) => ({ id: p.id_producto, nombre: p.nombre, precio: p.precio, stock: p.existencias });
 
-// Lee el carrito guardado y descarta datos inválidos.
-function cargarCarrito() {
+// Lee el carrito del navegador y descarta datos inválidos.
+function cargarLocal() {
   try {
     localStorage.removeItem(CLAVE_ANTIGUA);
     const crudo = JSON.parse(localStorage.getItem(CLAVE_STORAGE) ?? "[]");
     if (!Array.isArray(crudo)) return [];
-    return crudo.filter(
-      (i) =>
-        Number.isInteger(i?.id) &&
-        typeof i.nombre === "string" &&
-        typeof i.precio === "number" &&
-        Number.isInteger(i.stock) &&
-        Number.isInteger(i.cantidad) &&
-        i.cantidad >= 1
-    ).map((i) => ({ ...i, cantidad: Math.min(i.cantidad, i.stock) })).filter((i) => i.cantidad >= 1);
+    return crudo
+      .filter(
+        (i) =>
+          Number.isInteger(i?.id) &&
+          typeof i.nombre === "string" &&
+          typeof i.precio === "number" &&
+          Number.isInteger(i.stock) &&
+          Number.isInteger(i.cantidad) &&
+          i.cantidad >= 1
+      )
+      .map((i) => ({ ...i, cantidad: Math.min(i.cantidad, i.stock) }))
+      .filter((i) => i.cantidad >= 1);
   } catch {
     return [];
   }
+}
+
+function guardarLocal(items) {
+  try {
+    localStorage.setItem(CLAVE_STORAGE, JSON.stringify(items));
+  } catch {
+    /* almacenamiento no disponible */
+  }
+}
+
+// Las dos fuentes se muestran con la misma forma:
+// { lineas: [{ id, nombre, imagen, precio, stock, cantidad, subtotal, disponible, motivo }], totalUnidades, totalCompra, puedeComprar }
+function desdeLocal(items) {
+  const lineas = items.map((i) => ({ ...i, subtotal: i.precio * i.cantidad, disponible: true, motivo: null }));
+  return {
+    lineas,
+    totalUnidades: lineas.reduce((s, l) => s + l.cantidad, 0),
+    totalCompra: lineas.reduce((s, l) => s + l.subtotal, 0),
+    puedeComprar: lineas.length > 0,
+  };
+}
+
+const VACIO = { lineas: [], totalUnidades: 0, totalCompra: 0, puedeComprar: false };
+
+// Carrito del contrato (API_CONTRATOS.md) → forma común. Tolera respuestas sin `items`.
+function desdeApi(carrito) {
+  const items = Array.isArray(carrito?.items) ? carrito.items : [];
+  return {
+    lineas: items.map((i) => ({
+      id: i.id_producto,
+      nombre: i.nombre,
+      imagen: i.imagen,
+      precio: i.precio,
+      stock: i.existencias,
+      cantidad: i.cantidad,
+      subtotal: i.subtotal,
+      disponible: i.disponible !== false,
+      motivo: i.motivo ?? null,
+    })),
+    totalUnidades: carrito?.total_unidades ?? 0,
+    totalCompra: carrito?.total ?? 0,
+    puedeComprar: Boolean(carrito?.puede_comprar),
+  };
 }
 
 const CarritoContext = createContext(null);
 
 export function CarritoProvider({ children }) {
   const { mostrar } = useToast();
-  const [items, setItems] = useState(cargarCarrito); // [{ id, nombre, precio, stock, cantidad }]
+  const { user, verificando } = useAuth();
+  const esCliente = !verificando && user?.rol === "cliente";
+
+  const [local, setLocal] = useState(cargarLocal); // modo visitante: [{ id, nombre, precio, stock, cantidad }]
+  const [remoto, setRemoto] = useState(null); // modo cliente: forma común, o null mientras carga
+  const cola = useRef(Promise.resolve());
 
   useEffect(() => {
-    try {
-      localStorage.setItem(CLAVE_STORAGE, JSON.stringify(items));
-    } catch {
-      /* almacenamiento no disponible */
-    }
-  }, [items]);
+    guardarLocal(local);
+  }, [local]);
 
-  const itemDe = (id) => items.find((i) => i.id === id);
-  const cantidadDe = (id) => itemDe(id)?.cantidad ?? 0;
+  // Las peticiones al carrito van una detrás de otra: un doble clic nunca manda dos que se crucen.
+  const enCola = useCallback((tarea) => {
+    const resultado = cola.current.then(tarea, tarea);
+    cola.current = resultado.catch(() => {});
+    return resultado;
+  }, []);
+
+  const refrescar = useCallback(
+    () =>
+      enCola(() => obtenerCarrito())
+        .then(({ data }) => setRemoto(desdeApi(data)))
+        .catch(() => {}),
+    [enCola]
+  );
+
+  // Al entrar como cliente: pasar el carrito del navegador a la API y cargar el carrito de la API.
+  // El navegador se vacía ANTES de enviar: si el efecto corre dos veces (StrictMode), nada se envía dos veces.
+  const idUsuario = user?.id_usuario;
+  useEffect(() => {
+    if (!esCliente) {
+      setRemoto(null);
+      return undefined;
+    }
+    let cancelado = false;
+    const pendientes = cargarLocal();
+    if (pendientes.length) {
+      guardarLocal([]);
+      setLocal([]);
+    }
+
+    enCola(async () => {
+      const incompletos = [];
+      for (const linea of pendientes) {
+        try {
+          await agregarAlCarrito(linea.id, linea.cantidad);
+        } catch (error) {
+          if (error.status === 0) throw Object.assign(error, { pendientes }); // sin conexión: se reintenta luego
+          // Si ya tenía unidades en su carrito y no caben todas, se agregan las que quedan libres.
+          const libres = error.code === "STOCK_MAXIMO" ? error.data.maximo - error.data.en_carrito : 0;
+          if (libres > 0) await agregarAlCarrito(linea.id, libres).catch(() => {});
+          incompletos.push(linea.nombre);
+        }
+      }
+      const { data } = await obtenerCarrito();
+      if (cancelado) return;
+      setRemoto(desdeApi(data));
+      if (incompletos.length) {
+        mostrar(`Pasamos tu carrito a tu cuenta, pero no cabían todas las unidades de: ${incompletos.join(", ")}.`);
+      } else if (pendientes.length) {
+        mostrar("Pasamos a tu cuenta los productos que agregaste antes de iniciar sesión.");
+      }
+    }).catch((error) => {
+      // Sin conexión: los productos vuelven al navegador (estado y almacenamiento) y se pasan en la próxima carga.
+      if (error.pendientes) {
+        guardarLocal(error.pendientes);
+        setLocal(error.pendientes);
+      }
+      if (cancelado) return;
+      setRemoto(VACIO);
+      mostrar(error.message);
+    });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [esCliente, idUsuario, enCola, mostrar]);
+
+  const estado = esCliente ? (remoto ?? VACIO) : desdeLocal(local);
+  const lineaDe = (id) => estado.lineas.find((l) => l.id === id);
+  const cantidadDe = (id) => lineaDe(id)?.cantidad ?? 0;
 
   // Unidades que aún se pueden agregar de un producto de la API.
   const disponible = (producto) => producto.existencias - cantidadDe(producto.id_producto);
@@ -63,40 +188,94 @@ export function CarritoProvider({ children }) {
   };
   const limitarAStock = (producto, n) => limitar(producto.existencias, n);
 
+  // ---------- Modo cliente: cada operación va a la API y el carrito se reemplaza con su respuesta ----------
+
+  // Errores por `code` (API_CONTRATOS.md). Después se vuelve a pedir el carrito para mostrar el estado real.
+  function manejarError(error, id) {
+    if (error.code === "STOCK_MAXIMO") mostrar(MSG_MAX);
+    else if (error.code === "CANTIDAD_MINIMA") avisarMinimo(id);
+    else mostrar(error.message);
+    refrescar();
+  }
+
+  function enviar(tarea, id) {
+    return enCola(tarea)
+      .then(({ data }) => setRemoto(desdeApi(data)))
+      .catch((error) => manejarError(error, id));
+  }
+
+  // Muestra el cambio de cantidad de inmediato (la respuesta de la API lo confirma o lo corrige).
+  function ajustarRemoto(id, cambio) {
+    setRemoto((prev) => {
+      if (!prev) return prev;
+      const lineas = prev.lineas
+        .map((l) => (l.id === id ? cambio(l) : l))
+        .filter(Boolean)
+        .map((l) => ({ ...l, subtotal: l.precio * l.cantidad }));
+      return { ...prev, lineas, totalUnidades: lineas.reduce((s, l) => s + l.cantidad, 0), totalCompra: lineas.reduce((s, l) => s + l.subtotal, 0) };
+    });
+  }
+
+  // ---------- Operaciones (mismas funciones en los dos modos) ----------
+
   // Suma a la línea existente (nunca duplica líneas). `producto` es el de la API.
   const agregar = (producto, cantidad) => {
+    const id = producto.id_producto;
+    const enCarrito = cantidadDe(id);
+    const n = limitar(producto.existencias, enCarrito + cantidad) - enCarrito;
+    if (n <= 0) return;
+    if (esCliente) {
+      enviar(() => agregarAlCarrito(id, n), id);
+      return;
+    }
     const linea = aLinea(producto);
-    const nueva = limitar(linea.stock, cantidadDe(linea.id) + cantidad);
-    setItems((prev) =>
-      prev.some((i) => i.id === linea.id)
-        ? prev.map((i) => (i.id === linea.id ? { ...i, ...linea, cantidad: nueva } : i))
-        : [...prev, { ...linea, cantidad: nueva }]
+    setLocal((prev) =>
+      prev.some((i) => i.id === id)
+        ? prev.map((i) => (i.id === id ? { ...i, ...linea, cantidad: i.cantidad + n } : i))
+        : [...prev, { ...linea, cantidad: n }]
     );
   };
 
-  const fijarCantidad = (id, n) => setItems((prev) => prev.map((i) => (i.id === id ? { ...i, cantidad: n } : i)));
-
   const cambiarCantidad = (id, n) => {
-    const aplicada = limitar(itemDe(id).stock, n);
-    fijarCantidad(id, aplicada);
+    const linea = lineaDe(id);
+    if (!linea) return n;
+    const aplicada = limitar(linea.stock, n);
+    if (esCliente) {
+      if (aplicada !== linea.cantidad) {
+        ajustarRemoto(id, (l) => ({ ...l, cantidad: aplicada }));
+        enviar(() => cambiarCantidadCarrito(id, aplicada), id);
+      }
+    } else {
+      setLocal((prev) => prev.map((i) => (i.id === id ? { ...i, cantidad: aplicada } : i)));
+    }
     return aplicada;
   };
 
-  const eliminar = (id) => setItems((prev) => prev.filter((i) => i.id !== id));
+  const eliminar = (id) => {
+    if (esCliente) {
+      ajustarRemoto(id, () => null);
+      enviar(() => quitarDelCarrito(id), id);
+    } else {
+      setLocal((prev) => prev.filter((i) => i.id !== id));
+    }
+  };
 
-  const avisarMinimo = (id) =>
-    mostrar(`Esta es la cantidad mínima (1). ¿Deseas eliminar «${itemDe(id).nombre}» del carrito?`, {
+  function avisarMinimo(id) {
+    const nombre = lineaDe(id)?.nombre ?? "el producto";
+    mostrar(`Esta es la cantidad mínima (1). ¿Deseas eliminar «${nombre}» del carrito?`, {
       accion: { etiqueta: "Sí, eliminar", onClick: () => eliminar(id) },
       duracion: 8000,
     });
+  }
 
   const aumentar = (id) => cambiarCantidad(id, cantidadDe(id) + 1);
   const disminuir = (id) => (cantidadDe(id) <= 1 ? avisarMinimo(id) : cambiarCantidad(id, cantidadDe(id) - 1));
 
-  // Actualiza precio y stock con los datos recién traídos de la API. Si el stock bajó, la cantidad se ajusta.
+  // Modo visitante: actualiza precio y stock de las líneas con los datos recién traídos de la API.
+  // En modo cliente no hace falta: cada respuesta del carrito ya trae el precio y el stock actuales.
   const sincronizarProductos = useCallback((productos) => {
     const porId = new Map(productos.map((p) => [p.id_producto, aLinea(p)]));
-    setItems((prev) => {
+    setLocal((prev) => {
       let cambio = false;
       const siguiente = prev
         .map((i) => {
@@ -114,14 +293,13 @@ export function CarritoProvider({ children }) {
     });
   }, []);
 
-  const lineas = useMemo(() => items.map((i) => ({ ...i, subtotal: i.precio * i.cantidad })), [items]);
-  const totalUnidades = lineas.reduce((s, l) => s + l.cantidad, 0);
-  const totalCompra = lineas.reduce((s, l) => s + l.subtotal, 0);
-
   const valor = {
-    lineas,
-    totalUnidades,
-    totalCompra,
+    modo: esCliente ? "cliente" : "visitante",
+    cargando: esCliente && remoto === null,
+    lineas: estado.lineas,
+    totalUnidades: estado.totalUnidades,
+    totalCompra: estado.totalCompra,
+    puedeComprar: estado.puedeComprar,
     disponible,
     limitarAStock,
     agregar,
@@ -131,6 +309,7 @@ export function CarritoProvider({ children }) {
     avisarMinimo,
     eliminar,
     sincronizarProductos,
+    refrescar,
   };
 
   return <CarritoContext.Provider value={valor}>{children}</CarritoContext.Provider>;

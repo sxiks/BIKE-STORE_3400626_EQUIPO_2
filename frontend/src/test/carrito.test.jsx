@@ -1,6 +1,8 @@
 // Casos de prueba del carrito definidos por el instructor, con los productos reales de la semilla (F2.2).
 // Los productos no se escriben a mano: se eligen del catálogo de prueba por lo que cada caso necesita
 // (con stock amplio, con poco stock…). Si la semilla cambia o crece, las pruebas se adaptan solas.
+// F3.1: estos casos prueban el carrito del VISITANTE (sin sesión, en el navegador), que se comporta igual que antes.
+// El carrito del cliente en la API, con los mismos casos equivalentes, está en carrito-api.test.jsx.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
 import TiendaPage from "../pages/TiendaPage";
