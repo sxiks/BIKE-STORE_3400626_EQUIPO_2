@@ -250,3 +250,96 @@ export function categoriasSimulado() {
     }),
   };
 }
+
+// ---------- Carrito del cliente en la API (F3.1) ----------
+
+// Reemplazo de services/carrito.service.js para vi.mock:
+//   vi.mock("../services/carrito.service", async () => (await import("./fixtures/catalogo")).carritoSimulado());
+// Guarda estado mientras dure el servicio simulado y aplica las reglas del backend (API_CONTRATOS.md, "Carrito"):
+// R2 (sumar), STOCK_MAXIMO, SIN_STOCK, PRODUCTO_INACTIVO, CANTIDAD_MINIMA, 404 y los motivos de disponibilidad.
+//   inicial: [[producto, cantidad], ...] → el cliente ya tiene ese carrito guardado en la API.
+// Además de las funciones del servicio, devuelve `cambiarProducto(id, { existencias, estado, precio })`
+// para simular que el admin cambió un producto, y `cantidades()` para ver qué hay guardado.
+export function carritoSimulado({ inicial = [] } = {}) {
+  const lineas = new Map(inicial.map(([p, cantidad]) => [p.id_producto, cantidad]));
+  const cambios = {};
+  let idPedido = inicial.length ? 500 : null;
+
+  const producto = (id) => {
+    const p = productoPorId(id);
+    return p ? { ...p, ...cambios[p.id_producto] } : null;
+  };
+  const armar = () => {
+    const items = [...lineas].map(([id, cantidad]) => {
+      const p = producto(id);
+      const motivo =
+        p.estado !== "activo" ? "INACTIVO" : p.existencias === 0 ? "SIN_STOCK" : cantidad > p.existencias ? "SUPERA_STOCK" : null;
+      return {
+        id_producto: id,
+        nombre: p.nombre,
+        imagen: p.imagen,
+        precio: p.precio,
+        existencias: p.existencias,
+        estado: p.estado,
+        cantidad,
+        subtotal: p.precio * cantidad,
+        disponible: motivo === null,
+        motivo,
+      };
+    });
+    return Promise.resolve({
+      ok: true,
+      data: {
+        id_pedido: idPedido,
+        items,
+        total_unidades: items.reduce((s, i) => s + i.cantidad, 0),
+        total: items.reduce((s, i) => s + i.subtotal, 0),
+        puede_comprar: items.length > 0 && items.every((i) => i.disponible),
+      },
+    });
+  };
+  const comprable = (id) => {
+    const p = producto(id);
+    if (!p) return errorApi("Producto no encontrado", 404);
+    if (p.estado !== "activo") return errorApi("El producto no está disponible", 400, "PRODUCTO_INACTIVO");
+    if (p.existencias === 0) return errorApi("El producto está agotado", 400, "SIN_STOCK");
+    return null;
+  };
+  const MAX = "Este es el máximo de producto disponible en stock";
+
+  return {
+    obtenerCarrito: vi.fn(() => armar()),
+    agregarAlCarrito: vi.fn((id, cantidad = 1) => {
+      const error = comprable(id);
+      if (error) return Promise.reject(error);
+      const actual = lineas.get(id) ?? 0;
+      const { existencias } = producto(id);
+      if (actual + cantidad > existencias) {
+        return Promise.reject(errorApi(MAX, 400, "STOCK_MAXIMO", { maximo: existencias, en_carrito: actual }));
+      }
+      lineas.set(id, actual + cantidad);
+      idPedido ??= 500;
+      return armar();
+    }),
+    cambiarCantidadCarrito: vi.fn((id, cantidad) => {
+      if (cantidad === 0) return Promise.reject(errorApi("Esta es la cantidad mínima (1).", 400, "CANTIDAD_MINIMA"));
+      const error = comprable(id);
+      if (error) return Promise.reject(error);
+      if (cantidad > producto(id).existencias) {
+        return Promise.reject(errorApi(MAX, 400, "STOCK_MAXIMO", { maximo: producto(id).existencias }));
+      }
+      if (!lineas.has(id)) return Promise.reject(errorApi("El producto no está en el carrito", 404));
+      lineas.set(id, cantidad);
+      return armar();
+    }),
+    quitarDelCarrito: vi.fn((id) => {
+      if (!lineas.has(id)) return Promise.reject(errorApi("El producto no está en el carrito", 404));
+      lineas.delete(id);
+      return armar();
+    }),
+    cambiarProducto: (id, campos) => {
+      cambios[id] = { ...cambios[id], ...campos };
+    },
+    cantidades: () => Object.fromEntries(lineas),
+  };
+}
