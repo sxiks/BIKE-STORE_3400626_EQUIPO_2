@@ -1,0 +1,142 @@
+/* Barra superior del cliente y de las páginas públicas (rediseño · estructura A). Solo variables de tokens.css. */
+.barra-cliente {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.barra-cliente__inner {
+  max-width: var(--ancho-contenido);
+  min-height: var(--alto-navbar);
+  margin: 0 auto;
+  padding: var(--espacio-2) var(--espacio-6);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-4);
+}
+
+.barra-cliente__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  color: var(--color-texto);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: var(--texto-md);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.barra-cliente__marca:hover { color: var(--color-texto); }
+
+.barra-cliente__logo {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radio-md);
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+
+.barra-cliente__enlaces { display: flex; gap: var(--espacio-1); }
+
+.barra-cliente__enlace {
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-md);
+  color: var(--color-texto-suave);
+  font-weight: 500;
+  text-decoration: none;
+}
+.barra-cliente__enlace:hover { color: var(--color-texto); background: var(--color-superficie-2); }
+.barra-cliente__enlace--activo { color: var(--color-texto); background: var(--color-superficie-2); font-weight: 600; }
+
+.barra-cliente__busqueda { position: relative; flex: 1 1 220px; max-width: 420px; margin-left: auto; display: flex; align-items: center; }
+.barra-cliente__busqueda-icono { position: absolute; left: var(--espacio-3); color: var(--color-texto-tenue); pointer-events: none; }
+.barra-cliente__busqueda-input { min-height: 40px; }
+
+.barra-cliente__acciones { display: flex; align-items: center; gap: var(--espacio-2); margin-left: auto; }
+.barra-cliente__busqueda + .barra-cliente__acciones { margin-left: 0; }
+
+.barra-cliente__usuario { display: inline-flex; align-items: center; gap: var(--espacio-2); padding: 0 var(--espacio-2); }
+.barra-cliente__avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-destacado-fondo);
+  color: var(--color-destacado-texto);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+.barra-cliente__usuario-texto { display: flex; flex-direction: column; line-height: 1.2; }
+.barra-cliente__nombre { font-size: var(--texto-sm); font-weight: 600; }
+.barra-cliente__rol { font-size: var(--texto-xs); color: var(--color-texto-tenue); text-transform: capitalize; }
+
+.barra-cliente__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 var(--espacio-3);
+  border: 1px solid transparent;
+  border-radius: var(--radio-md);
+  background: transparent;
+  color: var(--color-texto);
+  font-weight: 600;
+  font-size: var(--texto-sm);
+  text-decoration: none;
+  cursor: pointer;
+}
+.barra-cliente__boton:hover { background: var(--color-superficie-2); color: var(--color-texto); }
+.barra-cliente__boton--resaltado { background: var(--color-primario); color: var(--color-sobre-primario); }
+.barra-cliente__boton--resaltado:hover { background: var(--color-primario-hover); color: var(--color-sobre-primario); }
+
+.barra-cliente__carrito {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: 40px;
+  padding: 0 var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font-weight: 600;
+  cursor: pointer;
+}
+.barra-cliente__carrito:hover { background: var(--color-superficie-2); }
+
+.barra-cliente__contador {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radio-pildora);
+  background: var(--color-acento);
+  color: var(--color-sobre-acento);
+  font-size: var(--texto-xs);
+  font-weight: 800;
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
+
+/* Pantallas medianas: la búsqueda baja a su propia fila */
+@media (max-width: 900px) {
+  .barra-cliente__inner { flex-wrap: wrap; row-gap: var(--espacio-2); }
+  .barra-cliente__busqueda { order: 10; flex-basis: 100%; max-width: none; margin-left: 0; }
+  .barra-cliente__busqueda + .barra-cliente__acciones { margin-left: auto; }
+}
+
+/* Celulares: se ocultan los textos secundarios, quedan las acciones */
+@media (max-width: 640px) {
+  .barra-cliente__inner { gap: var(--espacio-2); padding: var(--espacio-2) var(--espacio-3); }
+  .barra-cliente__usuario-texto,
+  .barra-cliente__carrito-texto { display: none; }
+  .barra-cliente__boton { padding: 0 var(--espacio-2); font-size: var(--texto-xs); }
+}

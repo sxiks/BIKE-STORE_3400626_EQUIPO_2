@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useToast } from '../../context/ToastContext';
@@ -135,15 +133,10 @@ export default function UsuariosPage() {
   const dialogo = pendiente ? describirAccion(pendiente) : null;
 
   return (
-    <main className="contenedor">
-      <Link to="/admin" className="usuarios__volver">
-        <ArrowLeft size={16} aria-hidden="true" />
-        Panel de administración
-      </Link>
-
+    <main className="contenedor contenedor--panel">
       <header className="panel__encabezado">
         <h1>Usuarios</h1>
-        <p>Busca usuarios y cambia su rol o el estado de su cuenta.</p>
+        <p>Busca usuarios y cambia su rol o el estado de su cuenta. No puedes cambiar tu propia cuenta.</p>
       </header>
 
       <UsuariosFiltros q={filtros.q} rol={filtros.rol} estado={filtros.estado} onCambiar={cambiarFiltro} />
@@ -182,7 +175,7 @@ export default function UsuariosPage() {
           <p className="usuarios__total" role="status">
             {usuarios.length} {usuarios.length === 1 ? 'usuario' : 'usuarios'}
           </p>
-          <div className="usuarios__contenedor tarjeta" aria-busy={cargando}>
+          <div className="usuarios__contenedor" aria-busy={cargando}>
             <UsuariosTabla
               usuarios={usuarios}
               idPropio={user?.id_usuario}

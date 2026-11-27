@@ -2,9 +2,10 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { TemaProvider } from './context/TemaContext';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
-import AuthLayout from './components/AuthLayout';
-import PanelLayout from './components/PanelLayout';
+import ClienteLayout from './components/ClienteLayout';
+import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import SinAdmin from './components/SinAdmin';
 import TiendaPage from './pages/TiendaPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -19,7 +20,9 @@ import './assets/base.css';
 // El Router y los Toasts van por fuera de AuthProvider,
 // porque la sesión usa navigate() y mostrar() cuando la API la rechaza (F1.1).
 // Secciones privadas (F1.2): /admin solo para admin y /cuenta solo para cliente.
-// Las páginas de cada sección se agregan dentro de su grupo en los sprints siguientes. Ver docs/ROADMAP.md.
+// Rediseño: el administrador solo ve su panel (SinAdmin lo lleva a /admin desde cualquier otra ruta).
+//   Cliente y público → BarraCliente (barra superior) · Admin → AdminLayout (barra lateral).
+// Las páginas nuevas se agregan dentro de su grupo en los sprints siguientes. Ver docs/ROADMAP.md.
 export default function App() {
   return (
     <BrowserRouter>
@@ -35,25 +38,30 @@ export function AppRutas() {
       <ToastProvider>
         <AuthProvider>
           <Routes>
-            {/* Pública: catálogo + carrito (aún con datos simulados) */}
-            <Route path="/" element={<TiendaPage />} />
+            {/* Cliente y público. Si la sesión es de un admin, todo este grupo redirige a /admin. */}
+            <Route element={<SinAdmin />}>
+              {/* Tienda: usa BarraCliente con carrito y búsqueda (aún con datos simulados) */}
+              <Route path="/" element={<TiendaPage />} />
 
-            {/* Autenticación */}
-            <Route element={<AuthLayout />}>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/registro" element={<RegisterPage />} />
-              <Route path="/recuperar" element={<RecuperarPage />} />
-              <Route path="/restablecer" element={<RestablecerPage />} />
+              <Route element={<ClienteLayout />}>
+                {/* Acceso */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/registro" element={<RegisterPage />} />
+                <Route path="/recuperar" element={<RecuperarPage />} />
+                <Route path="/restablecer" element={<RestablecerPage />} />
+
+                {/* Cuenta del cliente */}
+                <Route element={<ProtectedRoute roles={['cliente']} />}>
+                  <Route path="/cuenta" element={<CuentaInicioPage />} />
+                </Route>
+              </Route>
             </Route>
 
-            {/* Privadas: la navbar (PanelLayout) se ve también en "Verificando…" y "No autorizado" */}
-            <Route element={<PanelLayout />}>
-              <Route element={<ProtectedRoute roles={['admin']} />}>
+            {/* Administración: un cliente ve "No autorizado" (con la barra del cliente) */}
+            <Route element={<ProtectedRoute roles={['admin']} />}>
+              <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminInicioPage />} />
                 <Route path="/admin/usuarios" element={<UsuariosPage />} />
-              </Route>
-              <Route element={<ProtectedRoute roles={['cliente']} />}>
-                <Route path="/cuenta" element={<CuentaInicioPage />} />
               </Route>
             </Route>
 

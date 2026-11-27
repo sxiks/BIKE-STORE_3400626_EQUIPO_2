@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
-import { AlertCircle, Eye, EyeOff, Lock, LogIn, Mail, Mountain } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 // Ruta a la que se vuelve después de iniciar sesión: la que ProtectedRoute guardó en el estado
 // de la navegación (F1.2), o la tienda. Solo se aceptan rutas internas.
-function rutaDestino(location) {
+// Rediseño: el administrador solo ve su panel, así que siempre termina dentro de /admin.
+function rutaDestino(location, esAdmin) {
   const desde = location.state?.from;
   const ruta = desde ? `${desde.pathname}${desde.search ?? ''}` : '/';
-  return ruta.startsWith('/') && !ruta.startsWith('/login') ? ruta : '/';
+  const valida = ruta.startsWith('/') && !ruta.startsWith('/login') ? ruta : '/';
+  if (esAdmin) return valida.startsWith('/admin') ? valida : '/admin';
+  return valida;
 }
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isAdmin } = useAuth();
   const location = useLocation();
 
   const [form, setForm] = useState({ email: '', password: '' });
@@ -21,7 +24,7 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Con sesión (ya iniciada o recién iniciada) se va al destino. Un solo punto de redirección.
-  if (isAuthenticated) return <Navigate to={rutaDestino(location)} replace />;
+  if (isAuthenticated) return <Navigate to={rutaDestino(location, isAdmin)} replace />;
 
   function change(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -43,13 +46,8 @@ export default function LoginPage() {
   return (
     <main className="auth">
       <form className="auth__tarjeta tarjeta" onSubmit={submit}>
-        <div className="auth__logo">
-          <Mountain size={28} aria-hidden="true" />
-        </div>
-
         <div className="auth__encabezado">
-          <h1>BIKE STORE</h1>
-          <h2>Inicia sesión para continuar</h2>
+          <h1>Inicia sesión para continuar</h1>
         </div>
 
         {error && (
