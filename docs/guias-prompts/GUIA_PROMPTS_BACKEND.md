@@ -53,7 +53,7 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 |---|---|---|---|---|
 | 1 ✅ | [B1.1 Base de pruebas automatizadas y autenticación](#b11--base-de-pruebas-automatizadas-y-autenticación) | `feature/back-tests-auth` | 09, 10, 11 | — |
 | 1 ✅ | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
-| 2 | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
+| 2 ✅ | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
 | 3 | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito` | 03–07 | B1.1 |
 | 3 | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-pedidos-pagos` | 07, 08 | B3.1 |
 | 4 | [B4.1 Exportación Excel y PDF](#b41--exportación-excel-y-pdf) | `docs/contrato-exportacion` + `feature/back-exportacion-dashboard` | 18 | B1.1 |
@@ -121,6 +121,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### B2.1 · Pruebas de catálogo y productos
+
+> ✅ **Hecha.** Resultado: `tests/productos.test.js` (37 pruebas), `tests/helpers/imagenes.js` (imágenes generadas en memoria y control de archivos huérfanos) y `fotoProductos` / `restaurarProductos` en `tests/helpers/db.js`. Reveló dos errores, ya corregidos: la subida aceptaba cualquier archivo enviado como imagen y lo guardaba con la extensión del nombre original (un `.html` quedaba publicado en `/uploads`), y la búsqueda del panel trataba `%` y `_` como comodines. Ahora `upload.middleware.js` revisa los primeros bytes del archivo y usa la extensión del tipo, y `utils/like.js` escapa la búsqueda (compartido con usuarios). Este prompt queda como referencia.
 
 ```
 TAREA B2.1 · Sprint 2 · CU-01, CU-02, CU-12 a CU-15 · Rama: feature/back-tests-productos (ya creada desde develop actualizado; si no, dame primero los comandos).
