@@ -55,8 +55,8 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 | 1 ✅ | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
 | 2 ✅ | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
 | 2 ✅ | [B2.2 Categorías, eliminar productos y galería](#b22--categorías-eliminar-productos-y-galería) | `feature/back-categorias-imagenes` | 12–15 (extensión, decisión M) | B2.1 |
-| 3 | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito` | 03–07 | B1.1 |
-| 3 | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-pedidos-pagos` | 07, 08 | B3.1 |
+| 3 ✅ | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito-pedidos` (junto con B3.2) | 03–07 | B1.1 |
+| 3 ✅ | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-carrito-pedidos` (junto con B3.1) | 07, 08 | B3.1 |
 | 4 | [B4.1 Exportación Excel y PDF](#b41--exportación-excel-y-pdf) | `docs/contrato-exportacion` + `feature/back-exportacion-dashboard` | 18 | B1.1 |
 | 4 | [B4.2 Pruebas del tablero](#b42--pruebas-del-tablero) | `feature/back-tests-dashboard` | 16, 17 | B1.1 |
 
@@ -180,6 +180,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### B3.1 · Pruebas del carrito
 
+> ✅ **Hecha** (en un solo PR con B3.2, rama `feature/back-tests-carrito-pedidos`). Resultado: `tests/carrito.test.js` (29 pruebas): acceso (D1, K), agregar con todos sus errores, modificar, eliminar (D4), totales, precio actual, motivos `SIN_STOCK` y `SUPERA_STOCK`, carrito entre sesiones y aislamiento entre clientes. No reveló errores en la API. Este prompt queda como referencia.
+
 ```
 TAREA B3.1 · Sprint 3 · CU-03 a CU-07 · Rama: feature/back-tests-carrito (ya creada desde develop actualizado; si no, dame primero los comandos).
 REQUISITO PREVIO: B1.1 integrada.
@@ -205,6 +207,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 ```
 
 ### B3.2 · Pruebas de pedidos y pago
+
+> ✅ **Hecha** (en un solo PR con B3.1). Resultado: `tests/pedidos.test.js` (32 pruebas): confirmar (envío incompleto, `CARRITO_VACIO`, `CARRITO_NO_DISPONIBLE` con cada motivo, número `BS-AAAA-NNNNNN` consecutivo, R3), pagar (datos inválidos, R5, decisiones D, E y F, `PEDIDO_YA_PAGADO`), acceso entre clientes y del admin, y concurrencia: dos clientes por la última unidad y doble clic en pagar. Se comprobó que la prueba de concurrencia falla si se quita el bloqueo `FOR UPDATE`. No reveló errores en la API. Este prompt queda como referencia.
 
 ```
 TAREA B3.2 · Sprint 3 · CU-07, CU-08 · Rama: feature/back-tests-pedidos-pagos (ya creada desde develop actualizado; si no, dame primero los comandos).
