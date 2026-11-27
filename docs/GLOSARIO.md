@@ -56,7 +56,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="contrato-api"></a>**Contrato de API:** el acuerdo escrito de cómo es cada endpoint (qué recibe, qué responde). Se escribe antes que el código. Ver [API_CONTRATOS](diseno-tecnico/API_CONTRATOS.md).
 - <a name="express"></a>**Express:** framework de Node.js con el que está construida la API.
 - <a name="nodejs"></a>**Node.js:** entorno que permite ejecutar JavaScript fuera del navegador. En él corren el backend y las herramientas del frontend.
-- <a name="npm"></a>**npm:** gestor de paquetes de Node.js. `npm install` descarga las dependencias y `npm run dev` arranca el proyecto.
+- <a name="npm"></a>**npm:** gestor de paquetes de Node.js. `npm ci` instala las dependencias exactamente como están en `package-lock.json`, `npm install <paquete>` agrega una nueva y `npm run dev` arranca el proyecto.
 - <a name="dependencia"></a>**Dependencia (paquete):** librería externa que usa el proyecto, como `express` o `react`. Se declara en `package.json`.
 - <a name="lockfile"></a>**`package-lock.json`:** archivo que fija la versión exacta de cada dependencia, para que los dos PCs instalen lo mismo.
 - <a name="ruta"></a>**Ruta (route):** archivo del backend que asocia una URL y un verbo con su controlador y sus middlewares.

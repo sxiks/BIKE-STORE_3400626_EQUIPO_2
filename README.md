@@ -22,8 +22,12 @@ Detalle y reglas de cada capa: [ARQUITECTURA](docs/diseno-tecnico/ARQUITECTURA.m
 
 ## Estado
 
-- **Backend:** implementado para los CU-01 a CU-22 (la exportación de CU-18 está decidida y se implementa en el Sprint 4), con 78 casos verificados contra PostgreSQL. Tiene base de pruebas automatizadas (Vitest + Supertest) y el módulo de autenticación ya está cubierto.
-- **Frontend:** sistema de diseño "Noche" con tema oscuro y claro, navbar con sesión, rutas `/admin` y `/cuenta` protegidas por rol, login y registro conectados a la API. El catálogo viene de la API; el carrito sigue en el navegador hasta el Sprint 3 ([ROADMAP](docs/ROADMAP.md)).
+Los sprints 0 a 4 están terminados e integrados en `main`; solo falta el Sprint 5 · Despliegue.
+
+- **Backend:** API para los CU-01 a CU-22 sobre PostgreSQL, incluida la exportación del informe a Excel y PDF (CU-18), cubierta con pruebas automatizadas (Vitest + Supertest).
+- **Frontend:** tienda con catálogo y detalle de producto, carrito guardado en la cuenta del cliente, checkout con pago simulado, historial de pedidos y panel del administrador (usuarios, productos, categorías, pedidos y tablero con informes), con pruebas automatizadas (Vitest + Testing Library).
+
+El detalle de cada sprint, las decisiones tomadas y lo que falta está en el [ROADMAP](docs/ROADMAP.md), que es la fuente única del estado del proyecto.
 
 ## Ejecutar el proyecto en tu PC
 
@@ -34,8 +38,8 @@ Inicio rápido, si ya tienes Node.js, Git y Docker (desde la raíz del repositor
 ```bash
 cp .env.example .env                                   # elige POSTGRES_PASSWORD (ver la guía, paso 4)
 docker compose up -d                                   # base de datos: PostgreSQL con el modelo y la semilla
-cd backend && cp .env.example .env && npm install && npm run dev
-cd frontend && cp .env.example .env && npm install && npm run dev    # http://localhost:5173
+cd backend && cp .env.example .env && npm ci && npm run dev
+cd frontend && cp .env.example .env && npm ci && npm run dev         # http://localhost:5173
 ```
 
 ## Cómo trabajamos

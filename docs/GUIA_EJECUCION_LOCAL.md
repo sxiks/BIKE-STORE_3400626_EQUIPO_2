@@ -228,7 +228,7 @@ Abre una terminal **solo para la API** y déjala abierta mientras trabajas.
 ```bash
 cd backend
 cp .env.example .env      # crea tu configuración local; ya apunta a la base de Docker (puerto 5433)
-npm install               # descarga las dependencias (solo la primera vez o si cambia package.json)
+npm ci                    # instala exactamente las versiones de package-lock.json
 npm run dev               # arranca la API y la reinicia sola al guardar cambios
 ```
 
@@ -236,7 +236,7 @@ npm run dev               # arranca la API y la reinicia sola al guardar cambios
 ```powershell
 cd backend
 Copy-Item .env.example .env
-npm install
+npm ci
 npm run dev
 ```
 
@@ -248,6 +248,7 @@ Bike Store API ejecutándose en http://localhost:3000
 
 - El archivo [`.env`](GLOSARIO.md#env) es tuyo: **nunca** se sube a GitHub.
 - Para detener la API: `Ctrl + C` en esa terminal.
+- **`npm ci` y no `npm install`.** `npm ci` instala exactamente lo que dice `package-lock.json` y no lo modifica. `npm install` puede reescribirlo (las versiones nuevas de npm cambian su formato), y aparece como un cambio que nadie hizo. Repite `npm ci` después de un `git pull` que cambie `package-lock.json`, en `backend/` o en `frontend/`. `npm install <paquete>` solo se usa para agregar una dependencia ([CONTRIBUTING, regla 7](../CONTRIBUTING.md#6-reglas-anti-conflictos)).
 
 ---
 
@@ -263,7 +264,7 @@ Abre **otra** terminal, distinta de la de la API.
 ```bash
 cd frontend
 cp .env.example .env      # indica a qué URL está la API (VITE_API_URL)
-npm install
+npm ci
 npm test                  # debe dar 311 pruebas en verde
 npm run dev               # abre http://localhost:5173
 ```
@@ -272,7 +273,7 @@ npm run dev               # abre http://localhost:5173
 ```powershell
 cd frontend
 Copy-Item .env.example .env
-npm install
+npm ci
 npm test
 npm run dev
 ```
