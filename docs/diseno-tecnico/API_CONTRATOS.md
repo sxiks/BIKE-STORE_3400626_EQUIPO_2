@@ -1,6 +1,10 @@
 # Contratos de API · Bike Store
 
-Fuente de verdad entre Backend y Frontend. **Se actualiza este documento antes que el código** (`CONTRIBUTING.md` §3). Todos los endpoints de este documento están implementados y probados, salvo la exportación de CU-18 (pendiente de D11).
+> **Para qué sirve:** es la fuente de verdad entre Backend y Frontend: qué recibe y qué responde cada [endpoint](../GLOSARIO.md#endpoint).
+> **Cuándo usarlo:** antes de consumir o modificar un endpoint, y para reaccionar a los errores por su [`code`](../GLOSARIO.md#code-error).
+> ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
+
+**Se actualiza este documento antes que el código** (ver la [sección 3 de CONTRIBUTING](../../CONTRIBUTING.md#3-contrato-primero)). Todos los endpoints de este documento están implementados y probados, salvo la exportación de CU-18, que está **por implementar en el Sprint 4** (decisión D11 del [ROADMAP](../ROADMAP.md#resueltas)).
 
 - URL base (desarrollo): `http://localhost:3000/api`. En el frontend sale de `VITE_API_URL`.
 - Formato: JSON. Los endpoints con imagen usan `multipart/form-data`, con la imagen en el campo `imagen`.
@@ -29,7 +33,7 @@ Fuente de verdad entre Backend y Frontend. **Se actualiza este documento antes q
 | `PRODUCTO_INACTIVO` / `SIN_STOCK` | 400 al agregar al carrito; 409 al pagar | Mostrar el mensaje; al pagar, `data.items` lista los productos con problema |
 | `STOCK_MAXIMO` | 400: la cantidad supera las existencias | Toast "máximo disponible"; `data.maximo` trae el tope |
 | `CANTIDAD_MINIMA` | 400: cantidad 0 en el carrito | Toast con la opción "Sí, eliminar" |
-| `CARRITO_VACIO` / `CARRITO_NO_DISPONIBLE` | 400/409 al crear el pedido | Volver al carrito; `data.items` lista los no disponibles |
+| `CARRITO_VACIO` / `CARRITO_NO_DISPONIBLE` | 400/409 al confirmar el carrito (`POST /pedidos`) | Volver al carrito; `data.items` lista los no disponibles |
 | `PEDIDO_YA_PAGADO` | 409 | Ir a la confirmación del pedido |
 | `PAGO_RECHAZADO` | 402 | Ofrecer reintentar con otro medio de pago |
 
@@ -79,7 +83,7 @@ Request: `{ "email": "ana@correo.com", "password": "Segura123" }`
 ### `POST /auth/recuperar` · pública · CU-11
 Request: `{ "email": "ana@correo.com" }`
 - `200` → `{ "ok": true, "message": "Si el correo está registrado, se generó un enlace de recuperación" }`
-- Solo en desarrollo (`NODE_ENV=development` y `RESET_TOKEN_EN_RESPUESTA=true`), y si el correo existe: además `"data": { "token_desarrollo": "<64 hex>" }`. Uso: `docs/GUIA_DESARROLLO_LOCAL.md` §7.
+- Solo en desarrollo (`NODE_ENV=development` y `RESET_TOKEN_EN_RESPUESTA=true`), y si el correo existe: además `"data": { "token_desarrollo": "<64 hex>" }`. Uso: [sección 1 de GUIA_PRUEBAS_LOCALES](../GUIA_PRUEBAS_LOCALES.md#1-recuperación-de-contraseña-cu-11).
 - `400` correo con formato inválido
 
 ### `POST /auth/restablecer` · pública · CU-11
@@ -140,9 +144,15 @@ Request: `{ "estado": "inactivo" }`. Es borrado lógico: el producto nunca se el
 
 Requiere sesión con rol `cliente` (D1, K): sin sesión responde `401`; con rol `admin`, `403`. Cada cliente tiene un carrito guardado en la base (CU-06).
 
+El carrito **no es una entidad propia**: es el pedido del cliente en estado `carrito` (decisión D12 del [ROADMAP](../ROADMAP.md#resueltas)), y sus ítems son líneas de `detalle_pedido`. No tiene número de pedido ni fecha de pedido mientras no se confirme. Cada cliente tiene como máximo un carrito.
+
+- **El carrito se crea al agregar el primer producto.** Consultarlo no lo crea: si el cliente todavía no tiene, `GET /carrito` responde un carrito vacío con `id_pedido: null`.
+- Al confirmarlo con `POST /pedidos` deja de ser carrito; el siguiente producto que se agregue crea uno nuevo.
+- Agregar, modificar y eliminar se hacen en una transacción que bloquea el carrito: si el cliente confirma la compra al mismo tiempo (dos pestañas, doble clic), una operación espera a la otra y nunca se modifica un pedido ya confirmado.
+
 ```jsonc
 Carrito = {
-  "id_carrito": 1,
+  "id_pedido": 7,            // id del pedido en estado carrito; null si el cliente todavía no tiene carrito
   "items": [{
     "id_producto": 2, "nombre": "MTB Páramo 27.5", "imagen": "mtb-paramo-275.jpg",
     "precio": 2350000, "existencias": 3, "estado": "activo",
@@ -159,20 +169,21 @@ Carrito = {
 
 | Endpoint | Request | Éxito | Errores |
 |----------|---------|-------|---------|
-| `GET /carrito` | – | `200 data: Carrito` | – |
-| `POST /carrito/items` · CU-03 | `{ "id_producto": 2, "cantidad": 1 }` (por defecto 1). Si ya está, **se suman** las cantidades (R2). | `200 data: Carrito` | `400 PRODUCTO_INACTIVO`, `SIN_STOCK`, `STOCK_MAXIMO` (`data.maximo`, `data.en_carrito`) · `404` |
-| `PUT /carrito/items/:id_producto` · CU-05 | `{ "cantidad": 3 }` (fija la cantidad) | `200 data: Carrito` | `400 CANTIDAD_MINIMA` (si es 0), `STOCK_MAXIMO`, decimal o negativo · `404` si no está en el carrito |
-| `DELETE /carrito/items/:id_producto` | – | `200 data: Carrito` | `404`. Siempre se permite eliminar, incluso un producto inactivo (D4). |
+| `GET /carrito` | – | `200 data: Carrito` (vacío con `id_pedido: null` si no hay carrito; no lo crea) | – |
+| `POST /carrito/items` · CU-03 | `{ "id_producto": 2, "cantidad": 1 }` (por defecto 1). Si ya está, **se suman** las cantidades (R2). Si el cliente no tiene carrito, lo crea. | `200 data: Carrito` | `400 PRODUCTO_INACTIVO`, `SIN_STOCK`, `STOCK_MAXIMO` (`data.maximo`, `data.en_carrito`) · `404` |
+| `PUT /carrito/items/:id_producto` · CU-05 | `{ "cantidad": 3 }` (fija la cantidad) | `200 data: Carrito` | `400 CANTIDAD_MINIMA` (si es 0), `STOCK_MAXIMO`, decimal o negativo · `404` si no está en el carrito o el cliente no tiene carrito |
+| `DELETE /carrito/items/:id_producto` | – | `200 data: Carrito` | `404` si no está en el carrito o el cliente no tiene carrito. Siempre se permite eliminar, incluso un producto inactivo (D4). |
 
 ## Pedidos y pago · cliente · Sprint 3
 
 ```jsonc
 Pedido = {
   "id_pedido": 1, "numero_pedido": "BS-2026-000001", "id_usuario": 2,
-  "estado": "pendiente",     // pendiente | pagado | fallido
+  "estado": "pendiente",     // pendiente | pagado | fallido (un carrito nunca se devuelve como Pedido)
   "envio_nombre": "Ana", "envio_telefono": "3001234567", "envio_departamento": "Valle del Cauca",
   "envio_ciudad": "Palmira", "envio_direccion": "Calle 1 # 2-3",
-  "created_at": "...",
+  "fecha_pedido": "...",     // momento de confirmación (carrito -> pendiente): es la fecha del pedido
+  "created_at": "...",       // auditoría: cuándo se empezó el carrito
   "total": 2350000,          // calculado: SUM(cantidad * precio_unitario)
   "items": [{ "id_producto": 2, "nombre": "MTB Páramo 27.5", "cantidad": 1, "precio_unitario": 2350000, "subtotal": 2350000 }],
   "pagos": [{ "id_pago": 1, "medio_pago": "tarjeta_debito", "ultimos4": "1111", "valor": 2350000, "estado": "aprobado", "created_at": "..." }]
@@ -180,10 +191,11 @@ Pedido = {
 ```
 
 ### `POST /pedidos` · CU-07, CU-08
-Crea el pedido **pendiente** a partir del carrito. Copia el precio actual de cada producto (R3) y **no** descuenta stock. El carrito no se vacía hasta que se paga.
+**Confirma el carrito**: en una transacción valida que no esté vacío y que todos sus productos estén activos y con existencias, refresca el precio de cada línea al precio vigente (R3), guarda los datos de envío y lo pasa a **pendiente**. La base le asigna `fecha_pedido` y `numero_pedido` en ese momento. **No** descuenta stock (se descuenta al pagar).
+Como el carrito se convierte en el pedido, **el carrito queda vacío al confirmar**, no al pagar. Si el pago se rechaza, se reintenta sobre el mismo pedido (decisión F).
 Request: `{ "envio_nombre", "envio_telefono", "envio_departamento", "envio_ciudad", "envio_direccion" }`, todos obligatorios.
 - `201` → `data: Pedido`
-- `400` datos de envío incompletos o `CARRITO_VACIO` · `409` `CARRITO_NO_DISPONIBLE` (`data.items`: `[{ id_producto, nombre, motivo }]`)
+- `400` datos de envío incompletos o `CARRITO_VACIO` · `409` `CARRITO_NO_DISPONIBLE` (`data.items`: `[{ id_producto, nombre, motivo }]`). En ambos errores el carrito queda como estaba.
 
 ### `POST /pedidos/:id/pagos` · CU-08
 Request: `{ "medio_pago": "tarjeta_credito" | "tarjeta_debito" | "cuenta_bancaria", "numero": "4111 1111 1111 1111" }`
@@ -191,13 +203,13 @@ Request: `{ "medio_pago": "tarjeta_credito" | "tarjeta_debito" | "cuenta_bancari
 - **Simulación:** un número que termina en `0000` se rechaza.
 
 Respuestas:
-- `201` aprobado → `{ "ok": true, "message": "Pago aprobado", "data": { "numero_pedido", "estado": "pagado", "valor_pagado", "pago": { ... } } }`. Se descuenta el stock y se vacía el carrito.
+- `201` aprobado → `{ "ok": true, "message": "Pago aprobado", "data": { "numero_pedido", "estado": "pagado", "valor_pagado", "pago": { ... } } }`. Se descuenta el stock. El carrito no se toca: ya se vació al confirmar, y si el cliente empezó otro, ese se conserva.
 - `402` rechazado → `{ "ok": false, "code": "PAGO_RECHAZADO", "message", "data": { "numero_pedido", "estado": "fallido", "pago": { ... } } }`. El pedido se puede **volver a pagar** (decisión F).
 - `409` `SIN_STOCK` → algún producto ya no tiene existencias o se inactivó. **No se registra ningún pago** y el pedido sigue como estaba (decisión E). `data.items` trae el detalle.
-- `409` `PEDIDO_YA_PAGADO` · `400` datos de pago inválidos · `404` el pedido no existe o no es tuyo
+- `409` `PEDIDO_YA_PAGADO` · `400` datos de pago inválidos · `404` el pedido no existe, no es tuyo o todavía es un carrito (hay que confirmarlo primero)
 
 ### `GET /pedidos` · cliente
-- `200` → `data: [Pedido sin items ni pagos]`, del más reciente al más antiguo
+- `200` → `data: [Pedido sin items ni pagos]`, solo los confirmados (nunca el carrito), del más reciente al más antiguo por `fecha_pedido`
 
 ### `GET /pedidos/:numero` · dueño del pedido o admin
 Ejemplo: `GET /pedidos/BS-2026-000001`
@@ -206,7 +218,7 @@ Ejemplo: `GET /pedidos/BS-2026-000001`
 ## Tablero · admin · Sprint 4
 
 ### `GET /dashboard/metricas?desde=AAAA-MM-DD&hasta=AAAA-MM-DD&categoria=` · CU-16, CU-17
-Solo cuenta pedidos **pagados**. El rango es inclusivo y se interpreta en hora de Colombia. Todos los filtros son opcionales.
+Solo cuenta pedidos **pagados** y filtra por **`fecha_pedido`** (fecha de confirmación). Los carritos nunca cuentan. El rango es inclusivo y se interpreta en hora de Colombia. Todos los filtros son opcionales.
 ```jsonc
 { "filtros": { "desde": "2026-11-01", "hasta": "2026-11-30", "categoria": null },
   "ventas_totales": 2350000, "cantidad_pedidos": 1, "unidades_vendidas": 1,
@@ -219,13 +231,17 @@ Solo cuenta pedidos **pagados**. El rango es inclusivo y se interpreta en hora d
 { "umbral_stock_bajo": 5,
   "stock_bajo": [{ "id_producto", "nombre", "existencias" }],   // activos con 0 < existencias <= umbral
   "agotados": [{ "id_producto", "nombre" }],
-  "inactivos_en_carritos": [{ "id_producto", "nombre", "carritos" }],
-  "pedidos_pendientes": [{ "id_pedido", "numero_pedido", "created_at" }],  // últimos 50
+  "inactivos_en_carritos": [{ "id_producto", "nombre", "carritos" }],  // carritos = pedidos en estado carrito que lo contienen
+  "pedidos_pendientes": [{ "id_pedido", "numero_pedido", "fecha_pedido" }],  // últimos 50; nunca incluye carritos
   "pedidos_fallidos": [ ... ] }
 ```
 
-### Exportación (CU-18) · **pendiente**
-Queda pendiente de la decisión D11 (dónde se generan Excel y PDF). Ver `docs/ROADMAP.md`.
+### `GET /dashboard/exportar?formato=xlsx|pdf` · admin · CU-18 · por implementar
+**Por implementar en el Sprint 4** (tareas [B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf) y [F4.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f42--exportar-informes)). Decisión D11: el archivo se genera en el backend con `exceljs` (xlsx) y `pdfkit` (pdf), en memoria; el frontend solo lo descarga. La tarea B4.1 completa este bloque antes de programar.
+
+Query params: `formato` (obligatorio: `xlsx` | `pdf`), y `desde`, `hasta` y `categoria` con las mismas reglas que `/dashboard/metricas`.
+- `200` → el archivo (no JSON), con `Content-Type` del formato y `Content-Disposition: attachment; filename="bike-store-informe-AAAA-MM-DD.<formato>"`
+- `400` formato inválido, fecha inválida o `desde` posterior a `hasta` (JSON) · `401` · `403`
 
 ---
 

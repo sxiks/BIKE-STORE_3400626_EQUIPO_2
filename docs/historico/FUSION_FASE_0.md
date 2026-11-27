@@ -1,6 +1,7 @@
 > **Documento histórico.** Describe la primera fusión (Laboratorio + Carrito) cuando el proyecto usaba MySQL.
 > Después el equipo cambió a **PostgreSQL**, se aprobó el modelo de datos completo y se regeneró el backend:
-> ver `docs/MODELO_DATOS.md`, `database/README.md` y `docs/ROADMAP.md`. El módulo `equipos` mencionado aquí ya fue retirado.
+> ver [MODELO_DATOS](../diseno-tecnico/MODELO_DATOS.md), [database/README](../../database/README.md) y [ROADMAP](../ROADMAP.md). El módulo `equipos` mencionado aquí ya fue retirado.
+> ← Volver al [índice de la documentación](../README.md)
 
 # Fase 0 · Registro de la fusión
 
@@ -25,7 +26,7 @@ Criterio: el Laboratorio es la base (ya tiene backend en capas y autenticación)
 | `frontend/src/data/productos.js`, `utils/formato.js`, `test/*` | Carrito |
 | `frontend/src/assets/tienda.css` | Carrito (`styles.css`) |
 | `frontend/src/assets/lab.css` | Laboratorio (`styles.css`) |
-| `docs/carrito/CHECKLIST_PRUEBAS.md` | Carrito |
+| [`docs/carrito/CHECKLIST_PRUEBAS.md`](../carrito/CHECKLIST_PRUEBAS.md) | Carrito |
 | `docs/requerimientos/*.pdf` | Casos de uso CU-01 a CU-22 |
 
 **No incluido:** las capturas `evidencias/*.png` del Carrito (eran binarios y no venían en el export). Si se quieren conservar, copiarlas a `docs/carrito/evidencias/`.

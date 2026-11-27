@@ -1,13 +1,15 @@
 // Capa de Negocio: carrito persistido por cliente (CU-03 a CU-07; R2; D1; D4).
-const carritosRepository = require('../repositories/carritos.repository');
+// El carrito es el pedido del cliente en estado 'carrito'; sus líneas están en detalle_pedido.
+const pedidosRepository = require('../repositories/pedidos.repository');
 const productosRepository = require('../repositories/productos.repository');
+const { withTransaction } = require('../repositories/transaction');
 const AppError = require('../utils/AppError');
 const v = require('../utils/validators');
 
 const MSG_MAX = 'Este es el máximo de producto disponible en stock';
 
 // Marca cada ítem con su disponibilidad actual (CU-06) y calcula totales (CU-04).
-function armarCarrito(idCarrito, filas) {
+function armarCarrito(idPedido, filas) {
   const items = filas.map((fila) => {
     let motivo = null;
     if (fila.estado !== 'activo') motivo = 'INACTIVO';
@@ -22,7 +24,7 @@ function armarCarrito(idCarrito, filas) {
   });
   const total = Math.round(items.reduce((s, i) => s + i.subtotal, 0) * 100) / 100;
   return {
-    id_carrito: idCarrito,
+    id_pedido: idPedido,
     items,
     total_unidades: items.reduce((s, i) => s + i.cantidad, 0),
     total,
@@ -31,31 +33,46 @@ function armarCarrito(idCarrito, filas) {
   };
 }
 
-async function obtener(idUsuario) {
-  const idCarrito = await carritosRepository.obtenerOCrear(idUsuario);
-  return armarCarrito(idCarrito, await carritosRepository.listarItems(idCarrito));
+// Carrito de un pedido ya conocido; `db` permite leerlo dentro de una transacción (confirmar).
+async function armarDesdePedido(idPedido, db) {
+  return armarCarrito(idPedido, await pedidosRepository.listarLineasCarrito(idPedido, db));
 }
 
-async function productoComprable(idProducto) {
-  const producto = await productosRepository.findById(idProducto);
+// CU-04/CU-06: consultar NO crea el carrito. Si el cliente todavía no tiene, se responde vacío
+// con id_pedido = null; el carrito se crea al agregar el primer producto.
+async function obtener(idUsuario) {
+  const idPedido = await pedidosRepository.buscarCarrito(idUsuario);
+  return idPedido ? armarDesdePedido(idPedido) : armarCarrito(null, []);
+}
+
+async function productoComprable(idProducto, db) {
+  const producto = await productosRepository.findById(idProducto, db);
   if (!producto) throw new AppError('Producto no encontrado', 404);
   if (producto.estado !== 'activo') throw new AppError('El producto no está disponible', 400, 'PRODUCTO_INACTIVO');
   if (producto.existencias === 0) throw new AppError('El producto está agotado', 400, 'SIN_STOCK');
   return producto;
 }
 
+const NO_ESTA = 'El producto no está en el carrito';
+
+// Las tres operaciones de escritura van en UNA transacción que bloquea la fila del carrito:
+// si el cliente confirma la compra al mismo tiempo (doble clic, dos pestañas), una espera a la otra
+// y nunca se escribe en un pedido que ya dejó de ser carrito.
+
 // CU-03: agregar (si ya está, se suma — R2) sin superar las existencias (CU-05).
 async function agregar(idUsuario, { id_producto, cantidad = 1 } = {}) {
   const idProducto = v.id(id_producto, 'id_producto');
   const unidades = v.entero(cantidad, 'cantidad', 1);
-  const producto = await productoComprable(idProducto);
-  const idCarrito = await carritosRepository.obtenerOCrear(idUsuario);
-  const actual = await carritosRepository.cantidadDe(idCarrito, idProducto);
 
-  if (actual + unidades > producto.existencias) {
-    throw new AppError(MSG_MAX, 400, 'STOCK_MAXIMO', { maximo: producto.existencias, en_carrito: actual });
-  }
-  await carritosRepository.sumarItem(idCarrito, idProducto, unidades);
+  await withTransaction(async (tx) => {
+    const producto = await productoComprable(idProducto, tx);
+    const idPedido = await pedidosRepository.obtenerOCrearCarrito(idUsuario, tx); // bloquea el carrito
+    const actual = await pedidosRepository.cantidadEnCarrito(idPedido, idProducto, tx);
+    if (actual + unidades > producto.existencias) {
+      throw new AppError(MSG_MAX, 400, 'STOCK_MAXIMO', { maximo: producto.existencias, en_carrito: actual });
+    }
+    await pedidosRepository.sumarLineaCarrito(idPedido, idProducto, unidades, producto.precio, tx);
+  });
   return obtener(idUsuario);
 }
 
@@ -70,23 +87,29 @@ async function actualizarCantidad(idUsuario, idProductoParam, { cantidad } = {})
       'CANTIDAD_MINIMA'
     );
   }
-  const producto = await productoComprable(idProducto);
-  if (unidades > producto.existencias) {
-    throw new AppError(MSG_MAX, 400, 'STOCK_MAXIMO', { maximo: producto.existencias });
-  }
-  const idCarrito = await carritosRepository.obtenerOCrear(idUsuario);
-  const afectados = await carritosRepository.fijarCantidad(idCarrito, idProducto, unidades);
-  if (!afectados) throw new AppError('El producto no está en el carrito', 404);
+
+  await withTransaction(async (tx) => {
+    const producto = await productoComprable(idProducto, tx);
+    if (unidades > producto.existencias) {
+      throw new AppError(MSG_MAX, 400, 'STOCK_MAXIMO', { maximo: producto.existencias });
+    }
+    const idPedido = await pedidosRepository.bloquearCarrito(idUsuario, tx); // no crea: si no hay, 404
+    const afectados = idPedido ? await pedidosRepository.fijarCantidadCarrito(idPedido, idProducto, unidades, tx) : 0;
+    if (!afectados) throw new AppError(NO_ESTA, 404);
+  });
   return obtener(idUsuario);
 }
 
 // Eliminar siempre se permite, incluso si el producto está inactivo (D4).
 async function eliminar(idUsuario, idProductoParam) {
   const idProducto = v.id(idProductoParam, 'id_producto');
-  const idCarrito = await carritosRepository.obtenerOCrear(idUsuario);
-  const afectados = await carritosRepository.eliminarItem(idCarrito, idProducto);
-  if (!afectados) throw new AppError('El producto no está en el carrito', 404);
+
+  await withTransaction(async (tx) => {
+    const idPedido = await pedidosRepository.bloquearCarrito(idUsuario, tx); // no crea: si no hay, 404
+    const afectados = idPedido ? await pedidosRepository.eliminarLineaCarrito(idPedido, idProducto, tx) : 0;
+    if (!afectados) throw new AppError(NO_ESTA, 404);
+  });
   return obtener(idUsuario);
 }
 
-module.exports = { obtener, agregar, actualizarCantidad, eliminar, MSG_MAX };
+module.exports = { obtener, armarDesdePedido, agregar, actualizarCantidad, eliminar, MSG_MAX };

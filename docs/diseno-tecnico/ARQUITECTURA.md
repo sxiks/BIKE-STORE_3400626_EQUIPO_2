@@ -1,5 +1,9 @@
 # Arquitectura en capas · Bike Store
 
+> **Para qué sirve:** explica cómo está organizado el código en [capas](../GLOSARIO.md#arquitectura-capas) y qué puede importar cada una.
+> **Cuándo usarlo:** antes de crear un archivo nuevo, y antes de abrir un PR (comprobación de la sección 2).
+> ← Volver al [índice de la documentación](../README.md) · Términos desconocidos: [GLOSARIO](../GLOSARIO.md)
+
 ## 1. Vista general
 
 ```
@@ -21,7 +25,7 @@
 
 ## 2. Regla de dependencia (obligatoria)
 
-Cada capa **solo** importa a la capa inmediatamente inferior:
+Cada capa **solo** importa a la capa inmediatamente inferior ([regla de dependencia](../GLOSARIO.md#regla-dependencia)). Qué hace cada capa: [ruta](../GLOSARIO.md#ruta), [middleware](../GLOSARIO.md#middleware), [controlador](../GLOSARIO.md#controlador), [servicio](../GLOSARIO.md#servicio), [repositorio](../GLOSARIO.md#repositorio-capa).
 
 | Capa | Puede importar | NO puede importar |
 |------|----------------|-------------------|
@@ -42,7 +46,7 @@ grep -rn "middlewares" backend/src/services
 ## 3. Convenciones del backend
 
 - **Nombres de archivo:** `<modulo>.routes.js`, `<modulo>.controller.js`, `<modulo>.services.js`, `<modulo>.repository.js`.
-- **Respuesta HTTP uniforme:** éxito `{ ok: true, data?, message? }` con `utils/respuesta.ok()`; error `{ ok: false, message, code?, data? }`. Ver `docs/API_CONTRATOS.md`.
+- **Respuesta HTTP uniforme:** éxito `{ ok: true, data?, message? }` con `utils/respuesta.ok()`; error `{ ok: false, message, code?, data? }`. Ver [API_CONTRATOS](API_CONTRATOS.md#formato-de-respuesta).
 - **Errores de negocio:** `throw new AppError(mensaje, status, code?, data?)` en `services`. El `error.middleware.js` los convierte en respuesta.
 - **Errores async:** Express 5 envía al `errorHandler` cualquier error de un controlador `async`, así que los controladores no necesitan `try/catch`.
 - **Cuerpo vacío:** en Express 5, `req.body` es `undefined` si no llega cuerpo. Los controladores pasan `req.body ?? {}`.
@@ -73,7 +77,7 @@ grep -rn "middlewares" backend/src/services
 
 - **Bloqueos:** para descontar stock se usa `SELECT … FOR UPDATE ORDER BY id_producto`, que evita deadlocks, y luego `UPDATE … WHERE existencias >= n`.
 - **Errores de PostgreSQL:** el servicio traduce los que tienen significado de negocio (ej. 23505 → "El correo ya está registrado"). Los demás los traduce el `errorHandler`: 23505 → 409, 23503 → 409, 23514 → 400, 22P02 → 400.
-- **Esquema:** cada cambio es una migración nueva en `database/migrations/`. Ver `database/README.md`.
+- **Esquema:** cada cambio es una migración nueva en `database/migrations/`. Ver [database/README](../../database/README.md).
 
 ## 4. Mapa de módulos del backend
 
@@ -82,8 +86,8 @@ grep -rn "middlewares" backend/src/services
 | Autenticación | `/api/auth` | `auth.services` | `usuarios`, `tokensRecuperacion` | 09, 10, 11, 22 |
 | Usuarios (admin) | `/api/usuarios` | `usuarios.services` | `usuarios` | 19, 20, 21 |
 | Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services` | `categorias`, `productos` | 01, 02, 12–15 |
-| Carrito | `/api/carrito` | `carrito.services` | `carritos`, `productos` | 03–07 |
-| Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos`, `carritos` | 07, 08 |
+| Carrito | `/api/carrito` | `carrito.services` | `pedidos` (el carrito es un pedido en estado `carrito`, D12), `productos` | 03–07 |
+| Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos` | 07, 08 |
 | Tablero | `/api/dashboard` | `dashboard.services` | `dashboard` | 16, 17 (18 pendiente) |
 
 ## 5. Convenciones del frontend
@@ -92,26 +96,32 @@ grep -rn "middlewares" backend/src/services
 |---------|-----------------|
 | `pages/` | Una pantalla por ruta. Orquesta componentes y llama a servicios o contextos. |
 | `components/` | Piezas visuales reutilizables. Reciben datos por props; no hacen `fetch`. |
-| `context/` | Estado global (`AuthContext`, `CarritoContext`, `ToastContext`). |
+| `context/` | Estado global (`AuthContext`, `CarritoContext`, `ToastContext`). `App.jsx` monta los proveedores en este orden: Router → `ToastProvider` → `AuthProvider`. |
 | `hooks/` | Hooks propios (`useAuth`, …). |
-| `services/` | Único lugar que llama a la API (`api.js` agrega el token Bearer). |
+| `services/` | Único lugar que llama a la API. `api.js` agrega el token Bearer, lanza `ApiError` (`message`, `status`, `code`, `data`) y avisa al `AuthContext` cuando una petición con token recibe 401 o 403 `CUENTA_DESACTIVADA`. |
 | `utils/` | Funciones puras (`formatoCOP`, `urlImagen`, `localStorage`). |
 | `data/` | Datos simulados mientras se conecta la API real. |
-| `assets/` | Estilos. `base.css` global; `lab.css` y `tienda.css` aislados por clase raíz. |
+| `assets/` | Sistema de diseño "Montaña Clara": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`navbar`, `toast`, `tienda`, `auth`, `panel`). |
 | `test/` | Pruebas con Vitest y Testing Library. |
 
 - Un componente **nunca** llama a `fetch` directamente: usa una función de `services/`.
 - Las URLs del backend salen de `config/env.js` (`VITE_API_URL`); nunca se escriben a mano.
-- Las respuestas se leen como `respuesta.data`. Los errores traen `message` y, a veces, `code` (ver contratos).
+- Las respuestas se leen como `respuesta.data`. Los errores llegan como `ApiError` y se manejan por su `code` (ver contratos), nunca comparando textos.
+- Las secciones privadas usan `components/ProtectedRoute.jsx` con roles: `/admin` solo `admin` y `/cuenta` solo `cliente`. Ocultar o proteger una pantalla no es seguridad: el backend valida el rol en cada petición.
+- Ningún `.css` escribe colores a mano: todo sale de `var(--…)` en `tokens.css`.
 
 ## 6. Estado actual (deuda técnica conocida)
 
 | Tema | Situación | Se resuelve en |
 |------|-----------|----------------|
-| El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 sin decidir | Sprint 4 |
-| La tienda usa datos simulados (`data/productos.js`) y `localStorage` | El backend ya ofrece catálogo y carrito reales | Sprints 2–3 (frontend) |
-| Dos estilos visuales (`.lab` y `.tienda`) y dos navbars | Aislados; `lab.css` conserva estilos sin uso del antiguo CRUD de equipos | Sprints 1–2 (frontend): un solo sistema de diseño |
-| Claves de `localStorage` con prefijo `labcrud_` | Funcionan; el nombre es heredado | Cuando se rehaga `AuthContext` |
-| Las imágenes de los productos de la semilla no existen en disco | El frontend necesita una imagen de reemplazo | Sprint 2 (decisión L) |
+| El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
+| La tienda usa datos simulados (`data/productos.js`) y el carrito vive en `localStorage` (clave heredada `tienda-palmira-carrito`) | El backend ya ofrece catálogo y carrito reales | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) y Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
+| Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
+| Versiones mayores nuevas de dependencias, sin vulnerabilidades: Vite 8, `@vitejs/plugin-react` 6, `@testing-library/jest-dom` 8 (frontend) y `dotenv` 18 (backend) | `npm audit` en 0; se actualizan cuando haga falta, cada una en su propio PR porque pueden traer cambios incompatibles | Sin sprint fijo |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Sin pruebas automatizadas del backend | Hubo verificación manual completa (78 casos) | Recomendado en el Sprint 1 |
+| Pruebas automatizadas del backend incompletas | 82 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), y el carrito como pedido con su concurrencia (D12). Faltan `productos` y la cobertura completa de carrito, pedidos, pago y tablero; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 2–4: [B2.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b21--pruebas-de-catálogo-y-productos), [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
+
+**Resuelto en el Sprint 1:**
+- Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.
+- Claves de `localStorage` con prefijo `labcrud_`: ahora son `bikestore_token` y `bikestore_user` (F1.1).
+- `ProtectedRoute` sin uso: ahora protege `/admin` y `/cuenta` por rol (F1.2).

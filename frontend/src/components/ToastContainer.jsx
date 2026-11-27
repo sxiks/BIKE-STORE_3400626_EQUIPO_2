@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import "../assets/toast.css";
 import { X } from "lucide-react";
 
 function ToastItem({ toast, onCerrar }) {

@@ -1,9 +1,9 @@
 // Capa de Negocio: pedidos y pago simulado (CU-07, CU-08; R3–R6; decisiones D, E, F).
+// El carrito es el pedido del cliente en estado 'carrito': confirmar lo pasa a 'pendiente'.
 const carritoService = require('./carrito.services');
 const pedidosRepository = require('../repositories/pedidos.repository');
 const pagosRepository = require('../repositories/pagos.repository');
 const productosRepository = require('../repositories/productos.repository');
-const carritosRepository = require('../repositories/carritos.repository');
 const { withTransaction } = require('../repositories/transaction');
 const AppError = require('../utils/AppError');
 const v = require('../utils/validators');
@@ -41,24 +41,32 @@ async function detalleCompleto(pedido) {
   return { ...pedido, items, pagos };
 }
 
-// CU-07 + CU-08 (inicio): crea el pedido 'pendiente' desde el carrito, sin tocar el stock.
-async function crearDesdeCarrito(idUsuario, datos) {
+// CU-07 + CU-08 (inicio): confirma el carrito. Todo en UNA transacción:
+//   1. bloquear el carrito del cliente (dos confirmaciones a la vez no lo procesan dos veces)
+//   2. validar: no vacío (CARRITO_VACIO) y todos los productos activos y con existencias (D4, CU-07)
+//   3. refrescar precio_unitario al precio vigente (R3)
+//   4. un solo UPDATE a 'pendiente' con los datos de envío: el trigger asigna fecha_pedido y numero_pedido
+// No toca el stock (se descuenta al pagar, decisión 10). El carrito queda vacío porque ya es un pedido;
+// el siguiente producto que se agregue crea un carrito nuevo.
+async function confirmarCarrito(idUsuario, datos) {
   const envio = validarEnvio(datos);
-  const carrito = await carritoService.obtener(idUsuario);
 
-  if (carrito.items.length === 0) throw new AppError('El carrito está vacío', 400, 'CARRITO_VACIO');
-  if (!carrito.puede_comprar) {
-    const noDisponibles = carrito.items.filter((i) => !i.disponible).map(({ id_producto, nombre, motivo }) => ({ id_producto, nombre, motivo }));
-    throw new AppError('Hay productos no disponibles en el carrito', 409, 'CARRITO_NO_DISPONIBLE', { items: noDisponibles });
-  }
+  const idPedido = await withTransaction(async (tx) => {
+    const idCarrito = await pedidosRepository.bloquearCarrito(idUsuario, tx);
+    const carrito = idCarrito ? await carritoService.armarDesdePedido(idCarrito, tx) : { items: [] };
 
-  const pedido = await withTransaction(async (tx) => {
-    const creado = await pedidosRepository.crear(idUsuario, envio, tx);
-    await pedidosRepository.insertarDetalle(creado.id_pedido, carrito.items, tx); // copia del precio (R3)
-    return creado;
+    if (carrito.items.length === 0) throw new AppError('El carrito está vacío', 400, 'CARRITO_VACIO');
+    if (!carrito.puede_comprar) {
+      const noDisponibles = carrito.items.filter((i) => !i.disponible).map(({ id_producto, nombre, motivo }) => ({ id_producto, nombre, motivo }));
+      throw new AppError('Hay productos no disponibles en el carrito', 409, 'CARRITO_NO_DISPONIBLE', { items: noDisponibles });
+    }
+
+    await pedidosRepository.refrescarPrecios(idCarrito, tx);
+    await pedidosRepository.confirmarCarrito(idCarrito, envio, tx);
+    return idCarrito;
   });
 
-  return detalleCompleto(await pedidosRepository.findById(pedido.id_pedido));
+  return detalleCompleto(await pedidosRepository.findById(idPedido));
 }
 
 async function listarMios(idUsuario) {
@@ -78,7 +86,7 @@ async function obtenerPorNumero(usuario, numero) {
 //   1. bloquear pedido y productos (orden por id_producto, evita deadlocks)
 //   2. validar estado y existencias ANTES de simular -> si falla: 409 y no se registra pago
 //   3. simular el resultado (decisión D)
-//   4a. aprobado: descontar stock, pago 'aprobado', pedido 'pagado', vaciar carrito
+//   4a. aprobado: descontar stock, pago 'aprobado', pedido 'pagado' (el carrito ya se vació al confirmar)
 //   4b. rechazado: pago 'rechazado', pedido 'fallido' (se puede reintentar: decisión F)
 async function pagar(idUsuario, idPedidoParam, datos) {
   const idPedido = v.id(idPedidoParam);
@@ -86,7 +94,10 @@ async function pagar(idUsuario, idPedidoParam, datos) {
 
   const resultado = await withTransaction(async (tx) => {
     const pedido = await pedidosRepository.bloquear(idPedido, tx);
-    if (!pedido || pedido.id_usuario !== idUsuario) throw new AppError('Pedido no encontrado', 404);
+    // Un carrito todavía no es un pedido que se pueda pagar: se responde igual que si no existiera.
+    if (!pedido || pedido.id_usuario !== idUsuario || pedido.estado === 'carrito') {
+      throw new AppError('Pedido no encontrado', 404);
+    }
     if (pedido.estado === 'pagado') throw new AppError('El pedido ya fue pagado', 409, 'PEDIDO_YA_PAGADO');
 
     const detalle = await pedidosRepository.listarDetalle(idPedido, tx);
@@ -121,11 +132,10 @@ async function pagar(idUsuario, idPedidoParam, datos) {
     }
     const pago = await pagosRepository.crear({ idPedido, medioPago, ultimos4, valor: total, estado: 'aprobado' }, tx);
     await pedidosRepository.actualizarEstado(idPedido, 'pagado', tx);
-    await carritosRepository.vaciarPorUsuario(idUsuario, tx);
     return { aprobado: true, numero_pedido: pedido.numero_pedido, estado: 'pagado', valor_pagado: total, pago };
   });
 
   return resultado;
 }
 
-module.exports = { crearDesdeCarrito, listarMios, obtenerPorNumero, pagar, MEDIOS_PAGO };
+module.exports = { confirmarCarrito, listarMios, obtenerPorNumero, pagar, MEDIOS_PAGO };

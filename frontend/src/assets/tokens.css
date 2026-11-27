@@ -1,0 +1,71 @@
+/* Sistema de diseño de Bike Store · opción C "Montaña Clara" (F2.1).
+   ÚNICA fuente de colores, tipografía, espacios, radios y sombras.
+   Regla: ningún otro .css escribe colores a mano; siempre var(--…). */
+:root {
+  /* Marca */
+  --color-primario: #1e40af;          /* azul de confianza: botones principales, enlaces, precios */
+  --color-primario-hover: #1e3a8a;
+  --color-primario-suave: #eef2fb;    /* fondos de chips, placeholders e íconos */
+  --color-primario-texto: #dbe4ff;    /* texto secundario sobre el primario */
+  --color-acento: #fbbf24;            /* amarillo: destacar (contador del carrito, rol admin) */
+  --color-acento-hover: #f59e0b;
+
+  /* Neutros */
+  --color-fondo: #f7f8fb;
+  --color-superficie: #ffffff;
+  --color-texto: #1f2937;
+  --color-texto-suave: #4b5563;
+  --color-texto-tenue: #6b7280;
+  --color-borde: #e5e8ef;
+  --color-deshabilitado: #cbd2e0;
+  --color-oscuro: #1f2937;            /* chip seleccionado, toasts */
+
+  /* Estados (fondo + texto, contraste AA) */
+  --color-exito: #15803d;
+  --color-exito-fondo: #dcfce7;
+  --color-exito-texto: #166534;
+  --color-aviso-fondo: #fef3c7;
+  --color-aviso-texto: #92400e;
+  --color-error: #b91c1c;
+  --color-error-fondo: #fee2e2;
+  --color-error-texto: #991b1b;
+
+  /* Tipografía */
+  --fuente-titulos: "Outfit", system-ui, sans-serif;
+  --fuente-texto: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --texto-xs: 0.75rem;
+  --texto-sm: 0.875rem;
+  --texto-md: 1rem;
+  --texto-lg: 1.125rem;
+  --texto-xl: 1.375rem;
+  --texto-2xl: 1.75rem;
+  --texto-3xl: 2.25rem;
+
+  /* Espacios (escala de 4 px) */
+  --espacio-1: 4px;
+  --espacio-2: 8px;
+  --espacio-3: 12px;
+  --espacio-4: 16px;
+  --espacio-5: 20px;
+  --espacio-6: 24px;
+  --espacio-8: 32px;
+  --espacio-12: 48px;
+
+  /* Radios */
+  --radio-sm: 10px;
+  --radio-md: 12px;
+  --radio-lg: 14px;
+  --radio-xl: 20px;
+  --radio-2xl: 24px;
+  --radio-pildora: 999px;
+
+  /* Sombras */
+  --sombra-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --sombra-md: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+  --sombra-lg: 0 12px 32px rgba(15, 23, 42, 0.18);
+
+  /* Medidas */
+  --ancho-contenido: 1120px;
+  --alto-navbar: 68px;
+  --tactil-min: 44px;                 /* objetivo táctil mínimo */
+}

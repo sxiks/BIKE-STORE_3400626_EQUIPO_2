@@ -48,7 +48,7 @@ module.exports = {
   stockBajoUmbral: entero('STOCK_BAJO_UMBRAL', 5, 0),
   resetToken: {
     minutos: entero('RESET_TOKEN_MINUTOS', 30),
-    // Solo tiene efecto si NODE_ENV=development (ver docs/GUIA_DESARROLLO_LOCAL.md)
+    // Solo tiene efecto si NODE_ENV=development (ver docs/GUIA_PRUEBAS_LOCALES.md, sección 1)
     enRespuesta: process.env.RESET_TOKEN_EN_RESPUESTA === 'true'
   }
 };
