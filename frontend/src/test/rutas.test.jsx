@@ -4,6 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
 import { renderApp, respuesta } from "./utils";
 
+// La tienda pide el catálogo a la API: se simula para que estas pruebas solo vean las llamadas de sesión.
+vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
+
 const CLIENTE = { id_usuario: 2, nombre: "Ana Cliente", email: "ana@prueba.local", rol: "cliente", estado: "activo" };
 const ADMIN = { id_usuario: 1, nombre: "Admin Tienda", email: "admin@prueba.local", rol: "admin", estado: "activo" };
 
@@ -48,6 +51,17 @@ describe("Sin sesión", () => {
     expect(screen.getByRole("heading", { name: /inicia sesión para continuar/i })).toBeInTheDocument();
   });
 
+  it("el login de un administrador termina en /admin aunque no venga de una ruta protegida", async () => {
+    fetchMock.mockImplementation(() => respuesta(200, { ok: true, data: { user: ADMIN, token: "token-admin" } }));
+    renderApp("/login");
+
+    fireEvent.change(screen.getByPlaceholderText("Correo"), { target: { value: ADMIN.email } });
+    fireEvent.change(screen.getByPlaceholderText("Contraseña"), { target: { value: "Clave1234" } });
+    fireEvent.click(screen.getByRole("button", { name: /ingresar/i }));
+
+    expect(await screen.findByRole("heading", { name: "Panel de administración" })).toBeInTheDocument();
+  });
+
   it("un login que no viene de una ruta protegida sigue llevando a la tienda", async () => {
     fetchMock.mockImplementation(() => respuesta(200, { ok: true, data: { user: CLIENTE, token: "token-cliente" } }));
     renderApp("/login");
@@ -68,6 +82,7 @@ describe("Con sesión de cliente", () => {
 
     expect(await screen.findByRole("heading", { name: "No autorizado" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /volver a la tienda/i })).toHaveAttribute("href", "/");
+    expect(nav().getByRole("link", { name: /bike store/i })).toBeInTheDocument(); // con la barra del cliente
     expect(screen.queryByRole("heading", { name: "Panel de administración" })).not.toBeInTheDocument();
   });
 
@@ -89,24 +104,41 @@ describe("Con sesión de cliente", () => {
 describe("Con sesión de administrador", () => {
   beforeEach(() => conSesion(ADMIN));
 
-  it("en /admin ve el panel de administración", async () => {
+  const lateral = () => within(screen.getByRole("navigation", { name: "Administración" }));
+
+  it("en /admin ve el panel de administración con la barra lateral", async () => {
     renderApp("/admin");
 
     expect(await screen.findByRole("heading", { name: "Panel de administración" })).toBeInTheDocument();
-    expect(screen.getByText("Usuarios")).toBeInTheDocument();
+    expect(lateral().getByRole("link", { name: "Inicio" })).toHaveAttribute("href", "/admin");
+    expect(lateral().getByRole("link", { name: "Usuarios" })).toHaveAttribute("href", "/admin/usuarios");
   });
 
-  it("en /cuenta ve 'No autorizado' (el carrito y los pedidos son solo de clientes)", async () => {
-    renderApp("/cuenta");
+  it("la barra lateral no tiene enlace a la tienda ni la barra del cliente", async () => {
+    renderApp("/admin");
+    await screen.findByRole("heading", { name: "Panel de administración" });
 
-    expect(await screen.findByRole("heading", { name: "No autorizado" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Principal" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /tienda/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /abrir carrito/i })).not.toBeInTheDocument();
   });
 
-  it("la navbar muestra 'Administración' y no 'Mi cuenta'", async () => {
-    renderApp("/");
+  it.each(["/", "/cuenta", "/login", "/registro", "/recuperar"])(
+    "en %s lo lleva a /admin (el admin solo ve su panel)",
+    async (ruta) => {
+      renderApp(ruta);
 
-    expect(await nav().findByRole("link", { name: /administración/i })).toHaveAttribute("href", "/admin");
-    expect(nav().queryByRole("link", { name: /mi cuenta/i })).not.toBeInTheDocument();
+      expect(await screen.findByRole("heading", { name: "Panel de administración" })).toBeInTheDocument();
+    }
+  );
+
+  it("cerrar sesión desde la barra lateral lleva al login", async () => {
+    renderApp("/admin");
+    await screen.findByRole("heading", { name: "Panel de administración" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+
+    expect(await screen.findByRole("heading", { name: /inicia sesión para continuar/i })).toBeInTheDocument();
   });
 });
 

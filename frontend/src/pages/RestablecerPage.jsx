@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, Eye, EyeOff, KeyRound, Lock, Save } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Lock, Save } from 'lucide-react';
 import { restablecer } from '../services/auth.service';
 import { useToast } from '../context/ToastContext';
 import { validarRestablecer } from '../utils/validaciones';
@@ -55,12 +55,8 @@ export default function RestablecerPage() {
     return (
       <main className="auth">
         <section className="auth__tarjeta tarjeta">
-          <div className="auth__logo">
-            <KeyRound size={28} aria-hidden="true" />
-          </div>
           <div className="auth__encabezado">
-            <h1>BIKE STORE</h1>
-            <h2>Restablecer contraseña</h2>
+            <h1>Restablecer contraseña</h1>
           </div>
           <p className="alerta alerta--error" role="alert">
             <AlertCircle size={18} aria-hidden="true" />
@@ -80,13 +76,8 @@ export default function RestablecerPage() {
   return (
     <main className="auth">
       <form className="auth__tarjeta tarjeta" onSubmit={submit} noValidate>
-        <div className="auth__logo">
-          <KeyRound size={28} aria-hidden="true" />
-        </div>
-
         <div className="auth__encabezado">
-          <h1>BIKE STORE</h1>
-          <h2>Restablecer contraseña</h2>
+          <h1>Restablecer contraseña</h1>
         </div>
 
         {errorApi.mensaje && (

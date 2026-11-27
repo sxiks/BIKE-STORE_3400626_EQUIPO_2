@@ -9,6 +9,7 @@ Una **migración** es un archivo SQL numerado que describe **un cambio** en la e
 003_datos_semilla.sql           ← carga categorías y productos de ejemplo
 004_estado_pedido_carrito.sql   ← agrega el estado 'carrito' a estado_pedido
 005_carrito_como_pedido.sql     ← el carrito pasa a ser un pedido en estado 'carrito'
+006_producto_imagenes.sql       ← galería: imágenes adicionales de cada producto
 ```
 
 **Por qué conviene en este proyecto:**
@@ -31,9 +32,31 @@ Herramientas como `node-pg-migrate`, Knex o Flyway guardan en una tabla qué mig
 
 Consecuencia práctica: la `002` **no se puede ejecutar dos veces** sobre la misma base, porque `CREATE TYPE` fallaría. La `003` y la `004` sí se pueden repetir sin efecto. La `005` no: falla porque las tablas `carritos` y `carrito_items` ya no existen.
 
-## Cómo aplicarlas (primera vez)
+## Con Docker
 
-Los pasos completos, incluida la instalación de PostgreSQL, están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md) (pasos 4 y 5, con comandos para Linux y Windows). Resumen, desde la raíz del repositorio:
+Es la forma principal (decisión D13 del [ROADMAP](../docs/ROADMAP.md#resueltas)). `docker-compose.yml`, en la raíz, levanta PostgreSQL 17 en el puerto **5433**, accesible solo desde el mismo PC. Las contraseñas salen del `.env` de la raíz (copia de `.env.example`, no se sube a GitHub). La primera vez que se crea el volumen de datos, `docker/initdb/01-crear-bases.sh` crea el rol `bike_store_app`, las bases `bike_store` y `bike_store_test`, y aplica de la `002` a la `005` sobre `bike_store`. Los pasos completos están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker). Desde la raíz del repositorio:
+
+```bash
+cp .env.example .env                 # una sola vez: elige POSTGRES_PASSWORD (y DB_PASSWORD si quieres otra)
+docker compose up -d                 # arranca la base (la primera vez, la crea y aplica las migraciones)
+docker compose logs db               # qué pasó al iniciar
+
+# Consola psql dentro del contenedor (no necesitas psql instalado)
+docker compose exec db psql -U bike_store_app -d bike_store
+
+# Aplicar una migración NUEVA sin borrar datos (ejemplo con la 006)
+docker compose exec -T db psql -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f /migraciones/006_descripcion_corta.sql
+
+# Empezar de cero: BORRA todos los datos y vuelve a crear todo
+docker compose down -v
+docker compose up -d
+```
+
+La carpeta `migrations/` está montada en el contenedor como `/migraciones` (solo lectura), por eso un archivo nuevo se puede aplicar sin copiarlo.
+
+## Sin Docker: cómo aplicarlas (primera vez)
+
+Los pasos completos, incluida la instalación de PostgreSQL, están en el [anexo de la GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#anexo-alternativa-sin-docker), con comandos para Linux y Windows. Resumen, desde la raíz del repositorio:
 
 ```bash
 # 1. Crear el rol de la aplicación y la base (una sola vez, como superusuario postgres)
@@ -46,13 +69,14 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/003_datos_semilla.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
 ```
 
 `-v ON_ERROR_STOP=1` detiene el archivo en el primer error en lugar de seguir a medias.
 
-## Cómo empezar de cero (solo en desarrollo)
+## Sin Docker: cómo empezar de cero (solo en desarrollo)
 
-Mientras no haya datos reales, si la base queda en mal estado se puede recrear:
+Con Docker, ver la sección [Con Docker](#con-docker). Sin Docker, mientras no haya datos reales, si la base queda en mal estado se puede recrear:
 
 ```bash
 sudo -u postgres psql -c "DROP DATABASE IF EXISTS bike_store;"
@@ -65,8 +89,9 @@ sudo -u postgres psql -c "DROP DATABASE IF EXISTS bike_store;"
 2. Envolverla en `BEGIN; ... COMMIT;` para que se aplique completa o no se aplique.
    - **Excepción: agregar un valor a un ENUM** (`ALTER TYPE ... ADD VALUE`). PostgreSQL no permite usar el valor nuevo en la misma transacción en que se agrega. Va sola, en su propio archivo y sin `BEGIN`, y la migración siguiente lo usa (ejemplo: `004` y `005`).
 3. Probarla en tu base local.
-4. Abrir el PR indicando en la descripción: "**Requiere aplicar la migración 00N**".
-5. Tras el merge, cada integrante ejecuta solo ese archivo con `psql`.
+4. Agregarla a la lista de `docker/initdb/01-crear-bases.sh` (para las bases nuevas de Docker) y a `MIGRACIONES` en `backend/scripts/preparar-db-test.js` (para la base de pruebas).
+5. Abrir el PR indicando en la descripción: "**Requiere aplicar la migración 00N**".
+6. Tras el merge, cada integrante aplica solo ese archivo: con Docker, `docker compose exec -T db psql ... -f /migraciones/00N_....sql` (ver [Con Docker](#con-docker)); sin Docker, con `psql`.
 
 ## Archivos
 
@@ -76,6 +101,8 @@ sudo -u postgres psql -c "DROP DATABASE IF EXISTS bike_store;"
 | `migrations/003_datos_semilla.sql` | 5 categorías y 10 productos de ejemplo (uno con stock bajo, uno agotado y uno inactivo) |
 | `migrations/004_estado_pedido_carrito.sql` | Agrega `carrito` al ENUM `estado_pedido`. Va sola y sin transacción (ver la excepción de arriba) |
 | `migrations/005_carrito_como_pedido.sql` | El carrito pasa a ser un pedido en estado `carrito` (decisión D12): `fecha_pedido`, columnas de envío y número opcionales mientras es carrito, CHECK `ck_pedidos_confirmado`, índice único parcial de un carrito por cliente, trigger que numera al confirmar, conversión de los carritos existentes y eliminación de `carritos` y `carrito_items`. Quedan 7 tablas |
+| `migrations/006_producto_imagenes.sql` | Tabla `producto_imagenes` (decisión M): imágenes adicionales de cada producto, con su `orden`, y `ON DELETE CASCADE` hacia `productos`. La portada sigue en `productos.imagen`. Quedan 8 tablas |
 | `migrations/legacy_mysql/` | Migración original en MySQL. Histórico, **no se ejecuta** |
+| `docker/initdb/01-crear-bases.sh` | Inicialización del contenedor de Docker: rol, bases `bike_store` y `bike_store_test`, y migraciones 002 a 006. Corre solo cuando el volumen está vacío |
 
 El modelo completo (MER, MR y decisiones) está en [MODELO_DATOS](../docs/diseno-tecnico/MODELO_DATOS.md) y su justificación en [JUSTIFICACION_MODELO_DATOS](../docs/diseno-tecnico/JUSTIFICACION_MODELO_DATOS.md).

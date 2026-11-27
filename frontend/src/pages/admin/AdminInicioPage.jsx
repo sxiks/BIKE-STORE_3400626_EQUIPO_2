@@ -6,7 +6,8 @@ import '../../assets/panel.css';
 // Cada sección se convierte en un enlace (campo `ruta`) cuando su tarea esté integrada.
 const SECCIONES = [
   { nombre: 'Usuarios', detalle: 'Buscar usuarios, cambiar rol y estado', ruta: '/admin/usuarios' },
-  { nombre: 'Productos', detalle: 'Crear, editar e inactivar productos', tarea: 'F2.3 · Sprint 2' },
+  { nombre: 'Productos', detalle: 'Crear, editar e inactivar productos, con su galería de imágenes', ruta: '/admin/productos' },
+  { nombre: 'Categorías', detalle: 'Crear, renombrar y eliminar categorías sin productos', ruta: '/admin/categorias' },
   { nombre: 'Tablero', detalle: 'Métricas de ventas, alertas e informes', tarea: 'F4.1 · Sprint 4' }
 ];
 
@@ -14,7 +15,7 @@ export default function AdminInicioPage() {
   const { user } = useAuth();
 
   return (
-    <main className="contenedor">
+    <main className="contenedor contenedor--panel">
       <header className="panel__encabezado">
         <h1>Panel de administración</h1>
         <p>Hola, {user?.nombre}. Estas son las secciones del panel.</p>

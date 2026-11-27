@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, CheckCircle, KeyRound, Mail, Send, Wrench } from 'lucide-react';
+import { AlertCircle, CheckCircle, Mail, Send, Wrench } from 'lucide-react';
 import { recuperar } from '../services/auth.service';
 import { errorEmail } from '../utils/validaciones';
 
@@ -40,13 +40,8 @@ export default function RecuperarPage() {
   return (
     <main className="auth">
       <form className="auth__tarjeta tarjeta" onSubmit={submit} noValidate>
-        <div className="auth__logo">
-          <KeyRound size={28} aria-hidden="true" />
-        </div>
-
         <div className="auth__encabezado">
-          <h1>BIKE STORE</h1>
-          <h2>Recuperar contraseña</h2>
+          <h1>Recuperar contraseña</h1>
         </div>
 
         <p className="auth__texto">

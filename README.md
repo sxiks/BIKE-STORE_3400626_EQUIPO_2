@@ -8,7 +8,7 @@ Monorepo con dos aplicaciones independientes y su base de datos:
 |---------|--------|-------|-------------|
 | `backend/` | API REST en capas | Node.js 22.12+ (recomendado 26 LTS), Express 5, PostgreSQL (`pg`), JWT, bcrypt, multer | Dev Backend |
 | `frontend/` | SPA (capa de presentación) | React 19, Vite 7, React Router 7, Vitest | Dev Frontend |
-| `database/` | Migraciones SQL numeradas | PostgreSQL 15+ | Dev Backend |
+| `database/` | Migraciones SQL numeradas y arranque de la base en Docker | PostgreSQL 17 en Docker (`docker-compose.yml`); 15+ sin Docker | Dev Backend |
 | `docs/` | Diseño técnico, guías, prompts, glosario y requerimientos (CU-01…CU-22) | Markdown / PDF | Ambos (vía PR) |
 
 ## Arquitectura
@@ -23,11 +23,20 @@ Detalle y reglas de cada capa: [ARQUITECTURA](docs/diseno-tecnico/ARQUITECTURA.m
 ## Estado
 
 - **Backend:** implementado para los CU-01 a CU-22 (la exportación de CU-18 está decidida y se implementa en el Sprint 4), con 78 casos verificados contra PostgreSQL. Tiene base de pruebas automatizadas (Vitest + Supertest) y el módulo de autenticación ya está cubierto.
-- **Frontend:** sistema de diseño "Montaña Clara", navbar con sesión, rutas `/admin` y `/cuenta` protegidas por rol, login y registro conectados a la API. El catálogo y el carrito siguen con datos simulados hasta los sprints 2 y 3 ([ROADMAP](docs/ROADMAP.md)).
+- **Frontend:** sistema de diseño "Noche" con tema oscuro y claro, navbar con sesión, rutas `/admin` y `/cuenta` protegidas por rol, login y registro conectados a la API. El catálogo viene de la API; el carrito sigue en el navegador hasta el Sprint 3 ([ROADMAP](docs/ROADMAP.md)).
 
 ## Ejecutar el proyecto en tu PC
 
-Sigue la [GUIA_EJECUCION_LOCAL](docs/GUIA_EJECUCION_LOCAL.md): verificar e instalar requisitos (Linux y Windows), crear la base de datos, levantar la API y la interfaz web, y comprobar que todo funciona.
+Sigue la [GUIA_EJECUCION_LOCAL](docs/GUIA_EJECUCION_LOCAL.md): verificar e instalar requisitos (Linux y Windows), levantar la base de datos con Docker, levantar la API y la interfaz web, y comprobar que todo funciona.
+
+Inicio rápido, si ya tienes Node.js, Git y Docker (desde la raíz del repositorio, cada servicio en su terminal):
+
+```bash
+cp .env.example .env                                   # elige POSTGRES_PASSWORD (ver la guía, paso 4)
+docker compose up -d                                   # base de datos: PostgreSQL con el modelo y la semilla
+cd backend && cp .env.example .env && npm install && npm run dev
+cd frontend && cp .env.example .env && npm install && npm run dev    # http://localhost:5173
+```
 
 ## Cómo trabajamos
 

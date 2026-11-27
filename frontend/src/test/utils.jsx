@@ -1,17 +1,20 @@
 // Utilidades compartidas por las pruebas.
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { TemaProvider } from "../context/TemaContext";
 import { ToastProvider } from "../context/ToastContext";
 import { AuthProvider } from "../context/AuthContext";
 import { AppRutas } from "../App";
 
-// Renderiza un componente con los proveedores globales de la app (Router, Toasts y Sesión).
+// Renderiza un componente con los proveedores globales de la app (Router, Tema, Toasts y Sesión).
 export function renderConProveedores(ui, { ruta = "/" } = {}) {
   return render(
     <MemoryRouter initialEntries={[ruta]}>
-      <ToastProvider>
-        <AuthProvider>{ui}</AuthProvider>
-      </ToastProvider>
+      <TemaProvider>
+        <ToastProvider>
+          <AuthProvider>{ui}</AuthProvider>
+        </ToastProvider>
+      </TemaProvider>
     </MemoryRouter>
   );
 }

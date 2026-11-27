@@ -35,4 +35,41 @@ async function cambiarEstado(req, res) {
   ok(res, await productosService.cambiarEstado(req.params.id, req.body ?? {}), { message: 'Estado actualizado' });
 }
 
-module.exports = { listarCategorias, listarCatalogo, obtenerPublico, listarAdmin, obtenerAdmin, crear, actualizar, cambiarEstado };
+// ---------- B2.2: eliminar y galería ----------
+
+async function eliminar(req, res) {
+  ok(res, await productosService.eliminar(req.params.id), { message: 'Producto eliminado' });
+}
+
+async function agregarImagen(req, res) {
+  const data = await productosService.agregarImagen(req.params.id, req.file?.filename);
+  ok(res, data, { status: 201, message: 'Imagen agregada' });
+}
+
+async function quitarImagen(req, res) {
+  ok(res, await productosService.quitarImagen(req.params.id, req.params.idImagen), { message: 'Imagen eliminada' });
+}
+
+async function elegirPortada(req, res) {
+  ok(res, await productosService.elegirPortada(req.params.id, req.params.idImagen), { message: 'Portada actualizada' });
+}
+
+async function reordenarImagenes(req, res) {
+  ok(res, await productosService.reordenarImagenes(req.params.id, req.body ?? {}), { message: 'Orden actualizado' });
+}
+
+module.exports = {
+  listarCategorias,
+  listarCatalogo,
+  obtenerPublico,
+  listarAdmin,
+  obtenerAdmin,
+  crear,
+  actualizar,
+  cambiarEstado,
+  eliminar,
+  agregarImagen,
+  quitarImagen,
+  elegirPortada,
+  reordenarImagenes
+};

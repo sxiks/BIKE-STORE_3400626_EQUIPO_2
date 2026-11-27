@@ -30,6 +30,10 @@
 | `TOKEN_INVALIDO` | 400 al restablecer contraseña | Ofrecer pedir un token nuevo |
 | `ACCION_SOBRE_SI_MISMO` | 400: un admin intenta cambiarse su propio rol o estado (D5/D6) | Mostrar el mensaje |
 | `PRODUCTO_DUPLICADO` | 409 al crear o editar un producto | Marcar el campo nombre |
+| `CATEGORIA_DUPLICADA` | 409 al crear o renombrar una categoría | Marcar el campo nombre |
+| `CATEGORIA_CON_PRODUCTOS` | 409 al eliminar una categoría que tiene productos (activos o inactivos) | Mostrar el mensaje; `data.total_productos` trae cuántos |
+| `PRODUCTO_CON_PEDIDOS` | 409 al eliminar un producto que está o estuvo en un carrito o pedido | Ofrecer inactivarlo en su lugar |
+| `LIMITE_IMAGENES` | 409 al agregar una imagen a un producto que ya tiene 5 (portada + 4) | Mostrar el mensaje; `data.maximo` trae el límite |
 | `PRODUCTO_INACTIVO` / `SIN_STOCK` | 400 al agregar al carrito; 409 al pagar | Mostrar el mensaje; al pagar, `data.items` lista los productos con problema |
 | `STOCK_MAXIMO` | 400: la cantidad supera las existencias | Toast "máximo disponible"; `data.maximo` trae el tope |
 | `CANTIDAD_MINIMA` | 400: cantidad 0 en el carrito | Toast con la opción "Sí, eliminar" |
@@ -53,10 +57,14 @@
 ```jsonc
 Usuario   = { "id_usuario": 2, "nombre": "Ana", "email": "ana@correo.com", "rol": "cliente", "estado": "activo", "created_at": "..." }
 Categoria = { "id_categoria": 1, "nombre": "Accesorios" }
+CategoriaAdmin = { "id_categoria": 1, "nombre": "Accesorios", "total_productos": 3 }   // cuenta activos e inactivos
 Producto  = { "id_producto": 1, "id_categoria": 1, "categoria": "Bicicletas de montaña", "nombre": "MTB Sierra 29",
               "descripcion": "texto o null", "precio": 2890000, "existencias": 8, "imagen": "mtb-sierra-29.jpg",
               "estado": "activo", "disponible": true, "created_at": "..." }
+ProductoDetalle = Producto + { "imagenes": [Imagen] }   // solo en GET /productos/:id y GET /productos/admin/:id
+Imagen    = { "id_imagen": 7, "imagen": "1795...-123.webp", "orden": 1 }
 // Imagen: http://localhost:3000/uploads/productos/<imagen>
+// `imagen` del producto es la portada; `imagenes` son las adicionales de la galería (máximo 4), en su orden.
 // disponible = estado 'activo' Y existencias > 0
 ```
 
@@ -112,24 +120,41 @@ Efecto inmediato: el usuario desactivado recibe 403 `CUENTA_DESACTIVADA` en su s
 ### `GET /categorias` · pública · CU-02
 - `200` → `{ "ok": true, "data": [Categoria] }`
 
+### `GET /categorias/admin` · admin · B2.2
+Todas las categorías con su número de productos, para saber cuáles se pueden eliminar. Orden por nombre.
+- `200` → `{ "ok": true, "data": [CategoriaAdmin] }`
+
+### `POST /categorias` · admin · B2.2
+Request: `{ "nombre": "Repuestos" }` (obligatorio, máximo 100 caracteres).
+- `201` → `data: CategoriaAdmin` · `400` · `409` `CATEGORIA_DUPLICADA` (mismo nombre sin distinguir mayúsculas)
+
+### `PUT /categorias/:id` · admin · B2.2
+Request: `{ "nombre": "Repuestos y partes" }`. Los productos de la categoría muestran el nombre nuevo.
+- `200` → `data: CategoriaAdmin` · `400` · `404` · `409` `CATEGORIA_DUPLICADA`
+
+### `DELETE /categorias/:id` · admin · B2.2
+Solo si la categoría no tiene productos, ni activos ni inactivos (decisión M).
+- `200` → `data: { "id_categoria": 6 }` · `404` · `409` `CATEGORIA_CON_PRODUCTOS` con `data.total_productos`
+
 ### `GET /productos?categoria=&orden=` · pública · CU-01, CU-02
 Solo productos **activos** (incluye los agotados, con `disponible: false`). `categoria` es un id; `orden` es `precio_asc` o `precio_desc` (sin `orden`, se ordena por nombre).
 - `200` → `{ "ok": true, "data": [Producto] }` · `400` parámetro inválido
 
 ### `GET /productos/:id` · pública
-- `200` → `data: Producto` · `404` si no existe o está inactivo
+- `200` → `data: ProductoDetalle` (con la galería) · `404` si no existe o está inactivo
 
 ### `GET /productos/admin?q=&categoria=&estado=` · admin · CU-15
-Incluye los inactivos. `q` busca por nombre.
+Incluye los inactivos. `q` busca por nombre, como "contiene" y sin distinguir mayúsculas; `%` y `_` se buscan como texto, no como comodines.
 - `200` → `{ "ok": true, "data": [Producto] }`
 
 ### `GET /productos/admin/:id` · admin
-- `200` → `data: Producto` (aunque esté inactivo)
+- `200` → `data: ProductoDetalle` (aunque esté inactivo)
 
 ### `POST /productos` · admin · CU-12 · multipart
 Campos: `nombre`*, `precio`* (> 0), `existencias`* (entero ≥ 0), `id_categoria`*, `imagen`* (jpg/png/webp ≤ 2 MB) y `descripcion` (opcional).
+- La imagen se valida dos veces: por su tipo (`Content-Type` del archivo) y por su contenido (los primeros bytes deben corresponder a ese tipo). El archivo se guarda con un nombre generado y la extensión del tipo (`.jpg`, `.png` o `.webp`), nunca con la del nombre original.
 - `201` → `data: Producto`
-- `400` falta algún dato, imagen inválida o demasiado grande, categoría inexistente
+- `400` falta algún dato, categoría inexistente, imagen demasiado grande (*"La imagen supera el máximo de 2 MB"*), tipo no permitido (*"Formato de imagen no permitido…"*) o archivo que no es una imagen de ese tipo (*"El archivo no es una imagen válida…"*). En cualquier error, la imagen subida se borra
 - `409` `PRODUCTO_DUPLICADO` (mismo nombre en la misma categoría, sin distinguir mayúsculas)
 
 ### `PUT /productos/:id` · admin · CU-13 · multipart
@@ -137,8 +162,28 @@ Actualización **parcial**: solo se cambian los campos enviados. Si llega una `i
 - `200` → `data: Producto` · `400` · `404` · `409` `PRODUCTO_DUPLICADO`
 
 ### `PATCH /productos/:id/estado` · admin · CU-14
-Request: `{ "estado": "inactivo" }`. Es borrado lógico: el producto nunca se elimina.
+Request: `{ "estado": "inactivo" }`. Es borrado lógico y es **la forma normal** de retirar un producto: conserva su historia en los pedidos y se puede volver a activar.
 - `200` → `data: Producto` · `404`
+
+### `DELETE /productos/:id` · admin · B2.2
+Elimina el producto de verdad, **solo si nunca estuvo en un carrito ni en un pedido** (decisión M); sirve para corregir un producto creado por error. También borra del disco la portada y las imágenes de la galería.
+- `200` → `data: { "id_producto": 12 }` · `404` · `409` `PRODUCTO_CON_PEDIDOS` (*"…inactívalo en su lugar"*)
+
+### `POST /productos/:id/imagenes` · admin · B2.2 · multipart
+Agrega **una** imagen a la galería (campo `imagen`, con la misma validación doble que al crear). Va al final del orden.
+- `201` → `data: ProductoDetalle` · `400` imagen inválida (se borra) · `404` · `409` `LIMITE_IMAGENES` (ya tiene 5 contando la portada; la imagen subida se borra)
+
+### `DELETE /productos/:id/imagenes/:idImagen` · admin · B2.2
+Quita una imagen de la galería y borra su archivo. La portada no se quita así: se reemplaza con `PUT /productos/:id` o eligiendo otra como portada.
+- `200` → `data: ProductoDetalle` · `404` (el producto no existe o la imagen no es suya)
+
+### `PATCH /productos/:id/imagenes/:idImagen/portada` · admin · B2.2
+Intercambio: esa imagen pasa a ser la portada y la portada anterior ocupa su lugar en la galería. No se borra ningún archivo.
+- `200` → `data: ProductoDetalle` · `404`
+
+### `PATCH /productos/:id/imagenes/orden` · admin · B2.2
+Request: `{ "ids": [9, 7, 8] }`: **todos** los `id_imagen` de la galería del producto, cada uno una vez, en el orden nuevo.
+- `200` → `data: ProductoDetalle` · `400` si falta, sobra o se repite algún id · `404`
 
 ## Carrito · cliente · Sprint 3
 

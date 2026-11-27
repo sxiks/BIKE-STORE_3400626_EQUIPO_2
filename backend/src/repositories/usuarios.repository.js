@@ -1,5 +1,6 @@
 // Acceso a datos de `usuarios`. El correo se compara siempre con lower() (índice uq_usuarios_email).
 const pool = require('../config/db');
+const { patronContiene } = require('../utils/like');
 
 const COLUMNAS_PUBLICAS = 'id_usuario, nombre, email, rol, estado, created_at';
 
@@ -37,19 +38,13 @@ async function create({ nombre, email, passwordHash, rol }, db = pool) {
   return rows[0].id_usuario;
 }
 
-// En un patrón LIKE/ILIKE, % y _ son comodines y \ es el carácter de escape (el predeterminado de PostgreSQL).
-// Se escapan para que q se busque como texto literal ("contiene"), no como patrón.
-function escaparLike(texto) {
-  return texto.replace(/[\\%_]/g, (c) => `\\${c}`);
-}
-
 // CU-19: búsqueda por nombre o correo, con filtros opcionales.
 async function buscar({ q, rol, estado }, db = pool) {
   const condiciones = [];
   const valores = [];
 
   if (q) {
-    valores.push(`%${escaparLike(q)}%`);
+    valores.push(patronContiene(q));
     condiciones.push(`(nombre ILIKE $${valores.length} OR email ILIKE $${valores.length})`);
   }
   if (rol) {

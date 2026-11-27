@@ -53,7 +53,8 @@ Un prompt por tarea. **Cada tarea es una rama y un PR.** Hazlas en el orden de l
 |---|---|---|---|---|
 | 1 ✅ | [B1.1 Base de pruebas automatizadas y autenticación](#b11--base-de-pruebas-automatizadas-y-autenticación) | `feature/back-tests-auth` | 09, 10, 11 | — |
 | 1 ✅ | [B1.2 Pruebas de usuarios y control de acceso](#b12--pruebas-de-usuarios-y-control-de-acceso) | `feature/back-tests-usuarios` | 19–22 | B1.1 |
-| 2 | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
+| 2 ✅ | [B2.1 Pruebas de catálogo y productos](#b21--pruebas-de-catálogo-y-productos) | `feature/back-tests-productos` | 01, 02, 12–15 | B1.1 |
+| 2 ✅ | [B2.2 Categorías, eliminar productos y galería](#b22--categorías-eliminar-productos-y-galería) | `feature/back-categorias-imagenes` | 12–15 (extensión, decisión M) | B2.1 |
 | 3 | [B3.1 Pruebas del carrito](#b31--pruebas-del-carrito) | `feature/back-tests-carrito` | 03–07 | B1.1 |
 | 3 | [B3.2 Pruebas de pedidos y pago](#b32--pruebas-de-pedidos-y-pago) | `feature/back-tests-pedidos-pagos` | 07, 08 | B3.1 |
 | 4 | [B4.1 Exportación Excel y PDF](#b41--exportación-excel-y-pdf) | `docs/contrato-exportacion` + `feature/back-exportacion-dashboard` | 18 | B1.1 |
@@ -122,6 +123,8 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 
 ### B2.1 · Pruebas de catálogo y productos
 
+> ✅ **Hecha.** Resultado: `tests/productos.test.js` (37 pruebas), `tests/helpers/imagenes.js` (imágenes generadas en memoria y control de archivos huérfanos) y `fotoProductos` / `restaurarProductos` en `tests/helpers/db.js`. Reveló dos errores, ya corregidos: la subida aceptaba cualquier archivo enviado como imagen y lo guardaba con la extensión del nombre original (un `.html` quedaba publicado en `/uploads`), y la búsqueda del panel trataba `%` y `_` como comodines. Ahora `upload.middleware.js` revisa los primeros bytes del archivo y usa la extensión del tipo, y `utils/like.js` escapa la búsqueda (compartido con usuarios). Este prompt queda como referencia.
+
 ```
 TAREA B2.1 · Sprint 2 · CU-01, CU-02, CU-12 a CU-15 · Rama: feature/back-tests-productos (ya creada desde develop actualizado; si no, dame primero los comandos).
 REQUISITO PREVIO: B1.1 integrada.
@@ -146,6 +149,33 @@ AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
 1. EXPLICACIÓN: para cada archivo creado o modificado, cómo se hizo, por qué se hizo así (y qué alternativa se descartó, si la hubo) y para qué sirve dentro del proyecto. Directo y al grano, pero sin omitir ningún concepto ni término técnico importante; si usas uno que no esté en docs/GLOSARIO.md, defínelo en una línea.
 2. CÓMO PROBARLO: comandos exactos y resultado esperado.
 3. PASOS PARA SUBIRLO según CONTRIBUTING.md, con comandos exactos: commits sugeridos (Conventional Commits), git fetch origin y git merge origin/develop, volver a probar, git push -u origin <rama>, y el título y la descripción del PR hacia develop llenando .github/pull_request_template.md. Si hay migración nueva o variables nuevas en .env.example, indícalo en el PR y di qué debe ejecutar el Dev Frontend en su PC. Indica qué hace el Dev Frontend (revisar y aprobar) y los comandos para después del merge (git switch develop, git pull, git branch -d <rama>).
+```
+
+### B2.2 · Categorías, eliminar productos y galería
+
+> ✅ **Hecha.** Resultado: migración `006_producto_imagenes.sql`; `categorias.services.js`, `categorias.controller.js` y `productoImagenes.repository.js`; eliminación y galería en `productos.services.js`; `tests/categorias.test.js` (13 pruebas) y 16 pruebas nuevas en `tests/productos.test.js`. Las reglas quedaron en la decisión M del ROADMAP. Este prompt queda como referencia.
+
+```
+TAREA B2.2 · Sprint 2 · Extensión de CU-12 a CU-15 (decisión M) · Rama: feature/back-categorias-imagenes (ya creada desde develop actualizado; si no, dame primero los comandos).
+REQUISITO PREVIO: B2.1 integrada.
+
+OBJETIVO: gestión de categorías, eliminación de productos nunca usados y galería de imágenes por producto.
+
+ESPECIFICACIONES (contrato primero: sección "Catálogo y productos" de API_CONTRATOS.md, adjunto):
+- Migración 006: tabla producto_imagenes (id_producto con ON DELETE CASCADE, imagen, orden). La portada sigue en productos.imagen. Agregarla a docker/initdb/01-crear-bases.sh y a scripts/preparar-db-test.js.
+- Categorías (admin): GET /categorias/admin con total_productos; POST y PUT con nombre obligatorio (máx. 100) y 409 CATEGORIA_DUPLICADA; DELETE solo sin productos, ni activos ni inactivos (409 CATEGORIA_CON_PRODUCTOS con data.total_productos).
+- DELETE /productos/:id: solo si nunca estuvo en un carrito ni en un pedido (detalle_pedido); si no, 409 PRODUCTO_CON_PEDIDOS. Bloquear el producto en una transacción antes de revisar; borrar los archivos (portada y galería) después del COMMIT.
+- Galería: máximo 5 imágenes contando la portada (409 LIMITE_IMAGENES con data.maximo); agregar (multipart, misma validación doble de B2.1), quitar, elegir portada (intercambio, sin borrar archivos) y reordenar (PATCH con todos los ids, cada uno una vez; si no, 400). GET /productos/:id y /productos/admin/:id incluyen imagenes; los listados no.
+- Si algo falla después de subir un archivo, el archivo se borra.
+
+ARCHIVOS PROBABLES: database/migrations/, backend/src/routes, controllers, services y repositories de categorías y productos, backend/tests/.
+
+CRITERIOS DE ACEPTACIÓN: npm run test:db y npm test pasan; no quedan archivos huérfanos en uploads/; la 006 se aplica sobre una base existente sin perder datos.
+
+AL TERMINAR LA IMPLEMENTACIÓN entrega, en este orden:
+1. EXPLICACIÓN: para cada archivo creado o modificado, cómo se hizo, por qué se hizo así (y qué alternativa se descartó, si la hubo) y para qué sirve dentro del proyecto. Directo y al grano, pero sin omitir ningún concepto ni término técnico importante; si usas uno que no esté en docs/GLOSARIO.md, defínelo en una línea.
+2. CÓMO PROBARLO: comandos exactos y resultado esperado.
+3. PASOS PARA SUBIRLO según CONTRIBUTING.md, con comandos exactos: commits sugeridos (Conventional Commits), git fetch origin y git merge origin/develop, volver a probar, git push -u origin <rama>, y el título y la descripción del PR hacia develop llenando .github/pull_request_template.md. Indica en el PR "Requiere aplicar la migración 006" y qué debe ejecutar cada integrante en su PC. Indica qué hace el Dev Frontend (revisar y aprobar) y los comandos para después del merge (git switch develop, git pull, git branch -d <rama>).
 ```
 
 ### B3.1 · Pruebas del carrito

@@ -85,7 +85,7 @@ grep -rn "middlewares" backend/src/services
 |--------|-------|----------|--------------|----|
 | Autenticación | `/api/auth` | `auth.services` | `usuarios`, `tokensRecuperacion` | 09, 10, 11, 22 |
 | Usuarios (admin) | `/api/usuarios` | `usuarios.services` | `usuarios` | 19, 20, 21 |
-| Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services` | `categorias`, `productos` | 01, 02, 12–15 |
+| Catálogo y productos | `/api/categorias`, `/api/productos` | `productos.services`, `categorias.services` | `categorias`, `productos`, `producto_imagenes` (galería, decisión M) | 01, 02, 12–15 |
 | Carrito | `/api/carrito` | `carrito.services` | `pedidos` (el carrito es un pedido en estado `carrito`, D12), `productos` | 03–07 |
 | Pedidos y pagos | `/api/pedidos` | `pedidos.services` | `pedidos`, `pagos`, `productos` | 07, 08 |
 | Tablero | `/api/dashboard` | `dashboard.services` | `dashboard` | 16, 17 (18 pendiente) |
@@ -100,14 +100,14 @@ grep -rn "middlewares" backend/src/services
 | `hooks/` | Hooks propios (`useAuth`, …). |
 | `services/` | Único lugar que llama a la API. `api.js` agrega el token Bearer, lanza `ApiError` (`message`, `status`, `code`, `data`) y avisa al `AuthContext` cuando una petición con token recibe 401 o 403 `CUENTA_DESACTIVADA`. |
 | `utils/` | Funciones puras (`formatoCOP`, `urlImagen`, `localStorage`). |
-| `data/` | Datos simulados mientras se conecta la API real. |
-| `assets/` | Sistema de diseño "Montaña Clara": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`navbar`, `toast`, `tienda`, `auth`, `panel`). |
+| `assets/` | Sistema de diseño "Noche": `tokens.css` (única fuente de colores, tipografía, espacios, radios y sombras, con un bloque por tema: oscuro y claro), `base.css` (base global y componentes `.btn`, `.campo`, `.input`, `.tarjeta`, `.etiqueta`, `.alerta`…) y un `.css` por vista con clases BEM propias (`barra-cliente`, `barra-admin`, `toast`, `tienda`, `auth`, `panel`, `usuarios`, `dialogo`). |
 | `test/` | Pruebas con Vitest y Testing Library. |
 
 - Un componente **nunca** llama a `fetch` directamente: usa una función de `services/`.
 - Las URLs del backend salen de `config/env.js` (`VITE_API_URL`); nunca se escriben a mano.
 - Las respuestas se leen como `respuesta.data`. Los errores llegan como `ApiError` y se manejan por su `code` (ver contratos), nunca comparando textos.
 - Las secciones privadas usan `components/ProtectedRoute.jsx` con roles: `/admin` solo `admin` y `/cuenta` solo `cliente`. Ocultar o proteger una pantalla no es seguridad: el backend valida el rol en cada petición.
+- Dos estructuras de pantalla (rediseño): el cliente y el público usan la barra superior `BarraCliente` (`ClienteLayout`); el admin usa `AdminLayout` con la barra lateral `BarraAdmin` y solo ve su panel (`SinAdmin` lo redirige a `/admin` desde cualquier ruta del cliente).
 - Ningún `.css` escribe colores a mano: todo sale de `var(--…)` en `tokens.css`.
 
 ## 6. Estado actual (deuda técnica conocida)
@@ -115,11 +115,11 @@ grep -rn "middlewares" backend/src/services
 | Tema | Situación | Se resuelve en |
 |------|-----------|----------------|
 | El backend de los CU-01 a CU-22 está implementado; falta exportar (CU-18) | D11 decidida: `exceljs` + `pdfkit` en el backend, en memoria; por implementar | Sprint 4 ([B4.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b41--exportación-excel-y-pdf)) |
-| La tienda usa datos simulados (`data/productos.js`) y el carrito vive en `localStorage` (clave heredada `tienda-palmira-carrito`) | El backend ya ofrece catálogo y carrito reales | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) y Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
+| El carrito vive en `localStorage` (`bikestore_carrito`, con una copia de cada producto); el catálogo ya viene de la API (F2.2) | El backend ya ofrece el carrito real | Sprint 3 ([F3.1](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f31--carrito-conectado-a-la-api)) |
 | Las imágenes de los productos de la semilla no existen en disco | Decisión L: el frontend muestra una imagen de reemplazo | Sprint 2 ([F2.2](../guias-prompts/GUIA_PROMPTS_FRONTEND.md#f22--catálogo-desde-la-api)) |
 | Versiones mayores nuevas de dependencias, sin vulnerabilidades: Vite 8, `@vitejs/plugin-react` 6, `@testing-library/jest-dom` 8 (frontend) y `dotenv` 18 (backend) | `npm audit` en 0; se actualizan cuando haga falta, cada una en su propio PR porque pueden traer cambios incompatibles | Sin sprint fijo |
 | Sin ejecutor automático de migraciones ni envío real de correos | Manual con `psql`; token por consola | Sprint 5 (despliegue) |
-| Pruebas automatizadas del backend incompletas | 82 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), y el carrito como pedido con su concurrencia (D12). Faltan `productos` y la cobertura completa de carrito, pedidos, pago y tablero; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 2–4: [B2.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b21--pruebas-de-catálogo-y-productos), [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
+| Pruebas automatizadas del backend incompletas | 148 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), el carrito como pedido con su concurrencia (D12), catálogo, productos e imágenes (B2.1), y categorías, eliminación de productos y galería (B2.2). Falta la cobertura completa de carrito, pedidos, pago y tablero; para ellos sigue valiendo la verificación manual (78 casos) | Sprints 3–4: [B3.1](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b31--pruebas-del-carrito), [B3.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b32--pruebas-de-pedidos-y-pago), [B4.2](../guias-prompts/GUIA_PROMPTS_BACKEND.md#b42--pruebas-del-tablero) |
 
 **Resuelto en el Sprint 1:**
 - Dos navbars y dos estilos aislados (`.lab` y `.tienda`): una sola navbar (F1.1) y el sistema de diseño "Montaña Clara" (F2.1). Se eliminaron `lab.css`, `LabLayout` y los estilos sin uso del CRUD de equipos.

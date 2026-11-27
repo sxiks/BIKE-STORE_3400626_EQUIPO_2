@@ -1,38 +1,106 @@
-/* Sistema de diseño de Bike Store · opción C "Montaña Clara" (F2.1).
+/* Sistema de diseño de Bike Store · rediseño con tema oscuro y claro (reemplaza a "Montaña Clara").
    ÚNICA fuente de colores, tipografía, espacios, radios y sombras.
-   Regla: ningún otro .css escribe colores a mano; siempre var(--…). */
-:root {
-  /* Marca */
-  --color-primario: #1e40af;          /* azul de confianza: botones principales, enlaces, precios */
-  --color-primario-hover: #1e3a8a;
-  --color-primario-suave: #eef2fb;    /* fondos de chips, placeholders e íconos */
-  --color-primario-texto: #dbe4ff;    /* texto secundario sobre el primario */
-  --color-acento: #fbbf24;            /* amarillo: destacar (contador del carrito, rol admin) */
+   Regla: ningún otro .css escribe colores a mano; siempre var(--…).
+   El tema se elige con <html data-tema="oscuro|claro"> (TemaContext). Sin atributo, se usa el oscuro. */
+
+/* Tema oscuro (por defecto) */
+:root,
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+
+  /* Marca y acciones */
+  --color-primario: #e9e9ec;          /* botón principal, marca, precios y títulos destacados */
+  --color-primario-hover: #ffffff;
+  --color-sobre-primario: #0a0b0d;    /* texto sobre el botón principal */
+  --color-primario-suave: #1d1f24;    /* fondos de chips, hover de botones e íconos */
+  --color-enlace: #9db5ff;
+  --color-enlace-hover: #c3d1ff;
+  --color-acento: #fbbf24;            /* ámbar: contador del carrito, rol admin, foco */
   --color-acento-hover: #f59e0b;
+  --color-sobre-acento: #1a1300;
+  --color-destacado-fondo: #22304f;   /* azul: etiquetas "Destacado" y avatar del cliente */
+  --color-destacado-texto: #c3d1ff;
 
   /* Neutros */
-  --color-fondo: #f7f8fb;
-  --color-superficie: #ffffff;
-  --color-texto: #1f2937;
-  --color-texto-suave: #4b5563;
-  --color-texto-tenue: #6b7280;
-  --color-borde: #e5e8ef;
-  --color-deshabilitado: #cbd2e0;
-  --color-oscuro: #1f2937;            /* chip seleccionado, toasts */
+  --color-fondo: #101114;
+  --color-superficie: #17191d;        /* tarjetas, barras, campos */
+  --color-superficie-2: #1d1f24;      /* elementos activos y fondos secundarios */
+  --color-texto: #e9e9ec;
+  --color-texto-suave: #b4b6bd;
+  --color-texto-tenue: #8b8d94;
+  --color-borde: #2a2c32;
+  --color-deshabilitado: #2a2c32;
+  --color-sobre-deshabilitado: #8b8d94;
+  --color-oscuro: #2a2d34;            /* toasts y fondo de diálogos */
+  --color-sobre-oscuro: #ffffff;
+  --color-sobre-oscuro-suave: #c9cbd1;
 
   /* Estados (fondo + texto, contraste AA) */
+  --color-exito: #4ade80;
+  --color-exito-fondo: #12301f;
+  --color-exito-texto: #86efac;
+  --color-aviso-fondo: #3a2a12;
+  --color-aviso-texto: #fcd29a;
+  --color-error: #dc2626;
+  --color-sobre-error: #ffffff;
+  --color-error-fondo: #3b1618;
+  --color-error-texto: #fca5a5;
+
+  /* Sombras */
+  --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+
+/* Tema claro */
+:root[data-tema="claro"] {
+  color-scheme: light;
+
+  --color-primario: #16181d;
+  --color-primario-hover: #2b2f38;
+  --color-sobre-primario: #ffffff;
+  --color-primario-suave: #f0f1f4;
+  --color-enlace: #2443a8;
+  --color-enlace-hover: #1b3284;
+  --color-acento: #fbbf24;
+  --color-acento-hover: #f59e0b;
+  --color-sobre-acento: #1a1300;
+  --color-destacado-fondo: #e3e9fb;
+  --color-destacado-texto: #2443a8;
+
+  --color-fondo: #f6f7f9;
+  --color-superficie: #ffffff;
+  --color-superficie-2: #f0f1f4;
+  --color-texto: #16181d;
+  --color-texto-suave: #4b4f59;
+  --color-texto-tenue: #636773;
+  --color-borde: #e2e4e9;
+  --color-deshabilitado: #e2e4e9;
+  --color-sobre-deshabilitado: #636773;
+  --color-oscuro: #16181d;
+  --color-sobre-oscuro: #ffffff;
+  --color-sobre-oscuro-suave: #c9cbd1;
+
   --color-exito: #15803d;
   --color-exito-fondo: #dcfce7;
   --color-exito-texto: #166534;
-  --color-aviso-fondo: #fef3c7;
-  --color-aviso-texto: #92400e;
+  --color-aviso-fondo: #fff4e5;
+  --color-aviso-texto: #9a3412;
   --color-error: #b91c1c;
+  --color-sobre-error: #ffffff;
   --color-error-fondo: #fee2e2;
   --color-error-texto: #991b1b;
 
-  /* Tipografía */
-  --fuente-titulos: "Outfit", system-ui, sans-serif;
-  --fuente-texto: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sombra-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --sombra-md: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+  --sombra-lg: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+/* Igual en los dos temas */
+:root {
+  /* Tipografía: Inter para todo */
+  --fuente-titulos: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fuente-texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --texto-xs: 0.75rem;
   --texto-sm: 0.875rem;
   --texto-md: 1rem;
@@ -52,20 +120,18 @@
   --espacio-12: 48px;
 
   /* Radios */
-  --radio-sm: 10px;
-  --radio-md: 12px;
-  --radio-lg: 14px;
-  --radio-xl: 20px;
-  --radio-2xl: 24px;
+  --radio-sm: 6px;
+  --radio-md: 8px;
+  --radio-lg: 10px;
+  --radio-xl: 12px;
+  --radio-2xl: 14px;
   --radio-pildora: 999px;
 
-  /* Sombras */
-  --sombra-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --sombra-md: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
-  --sombra-lg: 0 12px 32px rgba(15, 23, 42, 0.18);
+  /* Velo detrás de paneles y diálogos */
+  --color-velo: rgba(0, 0, 0, 0.5);
 
   /* Medidas */
-  --ancho-contenido: 1120px;
-  --alto-navbar: 68px;
+  --ancho-contenido: 1280px;
+  --alto-navbar: 64px;
   --tactil-min: 44px;                 /* objetivo táctil mínimo */
 }

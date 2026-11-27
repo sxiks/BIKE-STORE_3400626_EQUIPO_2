@@ -1,0 +1,111 @@
+/* Panel de administración (rediseño · estructura B): barra lateral + contenido. Solo variables de tokens.css. */
+.admin { display: flex; min-height: 100vh; }
+.admin__contenido { flex: 1 1 auto; min-width: 0; }
+
+.barra-admin {
+  position: sticky;
+  top: 0;
+  flex: 0 0 248px;
+  height: 100vh;
+  padding: var(--espacio-5) var(--espacio-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-6);
+  background: var(--color-superficie);
+  border-right: 1px solid var(--color-borde);
+  overflow-y: auto;
+}
+
+.barra-admin__cabecera { display: flex; align-items: center; justify-content: space-between; padding: 0 var(--espacio-2); }
+.barra-admin__marca { display: inline-flex; align-items: center; gap: var(--espacio-2); font-weight: 700; letter-spacing: 0.02em; }
+.barra-admin__logo {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radio-md);
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+/* Más específico que .icono-btn de base.css, que se carga después */
+.barra-admin .barra-admin__menu { display: none; }
+
+.barra-admin__cuerpo { flex: 1; display: flex; flex-direction: column; gap: var(--espacio-6); }
+
+.barra-admin__seccion {
+  margin: 0 var(--espacio-3) var(--espacio-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto-tenue);
+}
+.barra-admin__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.barra-admin__enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  min-height: var(--tactil-min);
+  padding: 0 var(--espacio-3);
+  border-radius: var(--radio-md);
+  color: var(--color-texto-suave);
+  font-weight: 500;
+  text-decoration: none;
+}
+a.barra-admin__enlace:hover { color: var(--color-texto); background: var(--color-superficie-2); }
+.barra-admin__enlace--activo { color: var(--color-texto); background: var(--color-superficie-2); font-weight: 600; }
+.barra-admin__enlace--pronto { color: var(--color-texto-tenue); cursor: default; }
+.barra-admin__sprint { margin-left: auto; font-size: 11px; color: var(--color-texto-tenue); }
+
+.barra-admin__pie { margin-top: auto; display: flex; flex-direction: column; gap: var(--espacio-2); }
+.barra-admin__tema {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--espacio-1) 0 var(--espacio-3);
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+}
+.barra-admin__usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background: var(--color-fondo);
+}
+.barra-admin__avatar {
+  flex: 0 0 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+.barra-admin__usuario-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.barra-admin__nombre { font-size: var(--texto-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra-admin__rol { font-size: var(--texto-xs); color: var(--color-texto-tenue); text-transform: capitalize; }
+
+/* Pantallas angostas: barra superior con menú desplegable */
+@media (max-width: 860px) {
+  .admin { flex-direction: column; }
+  .barra-admin {
+    position: sticky;
+    z-index: 40;
+    flex: 0 0 auto;
+    height: auto;
+    padding: var(--espacio-2) var(--espacio-3);
+    gap: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-borde);
+    overflow: visible;
+  }
+  .barra-admin .barra-admin__menu { display: inline-grid; }
+  .barra-admin__cuerpo { display: none; padding: var(--espacio-4) 0 var(--espacio-2); }
+  .barra-admin--abierta .barra-admin__cuerpo { display: flex; }
+}

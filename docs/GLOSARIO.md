@@ -76,6 +76,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="env"></a>**Variables de entorno (`.env`):** configuración privada de cada PC (contraseñas, secretos). Se copia desde `.env.example` y **nunca** se sube a GitHub.
 - <a name="multer"></a>**multer:** librería que recibe archivos (imágenes de productos) en peticiones `multipart/form-data`.
 - <a name="multipart"></a>**multipart/form-data:** formato de petición que permite enviar archivos junto con campos de texto.
+- <a name="on-delete-cascade"></a>**`ON DELETE CASCADE` / `RESTRICT`:** qué hace una llave foránea cuando se borra la fila a la que apunta. `RESTRICT` impide el borrado (por eso no se elimina una categoría con productos); `CASCADE` borra también las filas que dependen de ella (las imágenes de la galería al eliminar su producto).
 - <a name="sqlstate"></a>**SQLSTATE:** código de error estándar de PostgreSQL, por ejemplo 23505 = valor duplicado o 23503 = viola una llave foránea.
 - <a name="pago-simulado"></a>**Pago simulado:** el sistema no cobra de verdad. Valida los datos y decide aprobado o rechazado con una regla fija. Ver la [guía de pruebas locales](GUIA_PRUEBAS_LOCALES.md#2-pago-simulado-cu-08).
 - <a name="supertest"></a>**Supertest:** librería para probar la API haciendo peticiones HTTP desde las pruebas automatizadas.
@@ -84,6 +85,11 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 
 - <a name="postgresql"></a>**PostgreSQL:** el motor de base de datos relacional del proyecto (versión 15 o superior).
 - <a name="psql"></a>**`psql`:** cliente de terminal de PostgreSQL para ejecutar SQL y aplicar migraciones.
+- <a name="docker"></a>**Docker:** programa que ejecuta aplicaciones dentro de [contenedores](#contenedor). En el proyecto corre PostgreSQL, para que cada PC tenga la misma base sin instalarla a mano (decisión D13).
+- <a name="imagen-docker"></a>**Imagen (Docker):** plantilla de solo lectura con un programa listo para ejecutarse. El proyecto usa la imagen oficial `postgres:17-alpine`, que Docker descarga la primera vez.
+- <a name="contenedor"></a>**Contenedor:** un programa en ejecución creado a partir de una imagen, aislado del resto del PC. El de la base se llama `bike-store-db`.
+- <a name="volumen-docker"></a>**Volumen (Docker):** espacio donde Docker guarda los datos de un contenedor para que no se pierdan al apagarlo. `docker compose down -v` lo borra.
+- <a name="docker-compose"></a>**Docker Compose:** herramienta que levanta uno o varios contenedores con la configuración escrita en `docker-compose.yml` (`docker compose up -d`, `docker compose stop`).
 - <a name="base-pruebas"></a>**Base de datos de pruebas:** base separada (`bike_store_test`) que usan las pruebas automatizadas del backend. Se vacía y se recrea con `npm run test:db`; por eso su nombre debe terminar en `_test` y nunca es la base de desarrollo. Ver [backend/README](../backend/README.md#pruebas-automatizadas).
 - <a name="rol-postgres"></a>**Rol de PostgreSQL:** usuario de la base de datos. La API se conecta con `bike_store_app`, no con el superusuario `postgres`.
 - <a name="sql-parametrizado"></a>**SQL parametrizado:** consultas con marcadores `$1, $2…` en lugar de pegar texto del usuario. Evita la inyección SQL.
@@ -121,6 +127,7 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="react"></a>**React:** librería con la que se construye la interfaz a partir de componentes.
 - <a name="vite"></a>**Vite:** herramienta que arranca el frontend en desarrollo (`npm run dev`) y genera la versión de producción (`npm run build`).
 - <a name="componente"></a>**Componente:** pieza reutilizable de la interfaz, como una tarjeta de producto. Recibe datos por *props*.
+- <a name="layout"></a>**Layout:** componente que pone la estructura común de un grupo de pantallas (barras, márgenes) y muestra la página del momento en su `<Outlet />`. En el proyecto: `ClienteLayout` (barra superior) y `AdminLayout` (barra lateral).
 - <a name="props"></a>**Props:** datos que un componente recibe de quien lo usa.
 - <a name="pagina"></a>**Página (page):** componente que representa una pantalla completa asociada a una ruta, como `/login`.
 - <a name="contexto"></a>**Contexto (React Context):** estado compartido por muchos componentes, como la sesión (`AuthContext`) o el carrito (`CarritoContext`).
@@ -129,12 +136,17 @@ Los términos están agrupados por tema. Cada uno tiene un enlace propio, para q
 - <a name="ruta-protegida"></a>**Ruta protegida:** página que solo se muestra con sesión iniciada o con un rol concreto, mediante `<ProtectedRoute roles={['admin']} />`. Sin sesión lleva a `/login` y con otro rol muestra "No autorizado". No reemplaza la seguridad del backend.
 - <a name="apierror"></a>**ApiError:** error que lanza `services/api.js` cuando la API responde con fallo. Trae `message`, `status` (código HTTP), `code` y `data`, para que cada pantalla reaccione según el `code`.
 - <a name="fetch"></a>**fetch:** función del navegador para hacer peticiones HTTP. En el proyecto solo se usa dentro de `services/api.js`.
+- <a name="formdata"></a>**FormData:** objeto del navegador que arma un cuerpo [`multipart/form-data`](#multipart) con campos y archivos. El formulario de productos lo usa para enviar la imagen junto con los datos.
+- <a name="vista-previa"></a>**Vista previa (`URL.createObjectURL`):** URL temporal que el navegador crea para un archivo elegido, sin subirlo, para mostrarlo en pantalla. Se libera con `URL.revokeObjectURL` cuando ya no se usa.
+- <a name="arrastrar-soltar"></a>**Arrastrar y soltar (drag and drop):** mover un elemento con el mouse, el dedo o el teclado y dejarlo en otra posición. La galería de productos lo usa para ordenar las imágenes, con la librería dnd-kit.
+- <a name="debounce"></a>**Debounce (retraso):** esperar a que el usuario deje de escribir (350 ms en el proyecto, `hooks/useDebounce.js`) antes de llamar a la API, en lugar de llamarla en cada tecla.
 - <a name="localstorage"></a>**localStorage:** almacenamiento del navegador donde el frontend guarda la sesión.
 - <a name="toast"></a>**Toast:** mensaje emergente breve en una esquina de la pantalla (éxito, error o aviso).
 - <a name="mock"></a>**Mock (datos simulados):** datos falsos con la misma forma que la API real, para trabajar sin backend.
 - <a name="vitest"></a>**Vitest / Testing Library:** herramientas para escribir y ejecutar pruebas automatizadas (`npm test`).
 - <a name="build"></a>**Build:** la versión optimizada del frontend lista para publicar, en la carpeta `dist/`.
-- <a name="sistema-diseno"></a>**Sistema de diseño:** conjunto de reglas visuales y piezas reutilizables que comparten todas las pantallas. El del proyecto se llama "Montaña Clara" y vive en `assets/tokens.css` y `assets/base.css`.
+- <a name="sistema-diseno"></a>**Sistema de diseño:** conjunto de reglas visuales y piezas reutilizables que comparten todas las pantallas. El del proyecto se llama "Noche" (tema oscuro y claro) y vive en `assets/tokens.css` y `assets/base.css`.
+- <a name="tema"></a>**Tema (oscuro / claro):** juego de colores de la interfaz. Se elige con el botón de luna o sol, se guarda en el navegador (`bikestore_tema`) y se aplica como `<html data-tema="…">`; `tokens.css` define los colores de cada uno.
 - <a name="tokens-diseno"></a>**Tokens de diseño:** variables CSS con nombre (`--color-primario`, `--espacio-4`, `--radio-md`…) que guardan los valores del sistema de diseño. Se usan con `var(--nombre)` en lugar de escribir el valor a mano.
 - <a name="bem"></a>**BEM (Bloque, Elemento, Modificador):** forma de nombrar clases CSS: `bloque__elemento--modificador`, por ejemplo `producto__stock--agotado`. Evita que los estilos de una pantalla afecten a otra.
 - <a name="contraste-aa"></a>**Contraste AA:** nivel mínimo de accesibilidad entre el color del texto y el del fondo (4.5:1 en texto normal), para que se lea bien.
