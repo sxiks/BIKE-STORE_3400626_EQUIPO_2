@@ -112,7 +112,8 @@ async function restablecerPassword({ token, password } = {}) {
     if (!registro) {
       throw new AppError('El enlace de recuperación no es válido o ya venció', 400, 'TOKEN_INVALIDO');
     }
-    await usuariosRepository.updatePassword(registro.id_usuario, passwordHash, tx);
+    // H-04: fijar password_cambiada_en cierra las sesiones abiertas (auth.middleware rechaza los tokens anteriores).
+    await usuariosRepository.updatePassword(registro.id_usuario, passwordHash, new Date(), tx);
     await tokensRepository.marcarUsado(registro.id_token, tx);
   });
 }

@@ -27,6 +27,7 @@
 | `code` | Cuándo | Qué debería hacer el frontend |
 |--------|--------|-------------------------------|
 | `CUENTA_DESACTIVADA` | 403 en login o en cualquier petición con sesión | Cerrar la sesión y mostrar el mensaje |
+| `SESION_REVOCADA` | 401 en cualquier petición con sesión, si el token se emitió antes del último restablecimiento de contraseña | Cerrar la sesión y mostrar el mensaje |
 | `TOKEN_INVALIDO` | 400 al restablecer contraseña | Ofrecer pedir un token nuevo |
 | `ACCION_SOBRE_SI_MISMO` | 400: un admin intenta cambiarse su propio rol o estado (D5/D6) | Mostrar el mensaje |
 | `PRODUCTO_DUPLICADO` | 409 al crear o editar un producto | Marcar el campo nombre |
@@ -97,6 +98,7 @@ Request: `{ "email": "ana@correo.com", "password": "Segura123" }`
 
 ### `GET /auth/me` · con sesión · CU-22
 - `200` → `{ "ok": true, "data": Usuario }` (rol y estado leídos de la base en ese momento)
+- `401` sin token, token inválido o vencido, o `SESION_REVOCADA` · `403` `CUENTA_DESACTIVADA`
 
 ### `POST /auth/recuperar` · pública · CU-11
 Request: `{ "email": "ana@correo.com" }`
@@ -108,6 +110,8 @@ Request: `{ "email": "ana@correo.com" }`
 Request: `{ "token": "<64 hex>", "password": "Nueva1234" }`
 - `200` → `{ "ok": true, "message": "Contraseña actualizada. Ya puedes iniciar sesión" }`
 - `400` `TOKEN_INVALIDO` (no existe, venció o ya se usó) o contraseña que no cumple D7
+
+Efecto inmediato: se cierran todas las sesiones abiertas de ese usuario. Cualquier petición con un token emitido antes del cambio recibe `401` `SESION_REVOCADA` ("Tu contraseña cambió. Inicia sesión de nuevo"), aunque el token no haya vencido. Un login hecho después funciona de inmediato.
 
 ## Usuarios · admin · Sprint 1
 
