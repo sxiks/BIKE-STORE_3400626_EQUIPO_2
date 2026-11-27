@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { api, ApiError } from "../services/api";
-import { renderApp, respuesta } from "./utils";
+import { esperarTienda, renderApp, respuesta } from "./utils";
 
 // La tienda pide el catálogo a la API: se simula para que estas pruebas solo vean las llamadas de sesión.
 vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
@@ -38,7 +38,7 @@ function simularApi(rutas) {
 }
 
 describe("Navbar unificada", () => {
-  it("sin sesión muestra la marca BIKE STORE y los enlaces de iniciar sesión y registro", () => {
+  it("sin sesión muestra la marca BIKE STORE y los enlaces de iniciar sesión y registro", async () => {
     renderApp("/");
 
     expect(nav().getByRole("link", { name: /bike store/i })).toHaveAttribute("href", "/");
@@ -46,6 +46,7 @@ describe("Navbar unificada", () => {
     expect(nav().getByRole("link", { name: /registrarme/i })).toHaveAttribute("href", "/registro");
     expect(screen.queryByTestId("usuario-sesion")).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled(); // sin token no se valida nada
+    await esperarTienda();
   });
 
   it("también aparece en las páginas de login y registro (sin el botón del carrito)", () => {
@@ -87,7 +88,7 @@ describe("Navbar unificada", () => {
 });
 
 describe("Sesión guardada al abrir la app", () => {
-  it("borra las claves antiguas labcrud_* del Laboratorio", () => {
+  it("borra las claves antiguas labcrud_* del Laboratorio", async () => {
     localStorage.setItem("labcrud_token", "viejo");
     localStorage.setItem("labcrud_user", JSON.stringify(CLIENTE));
     renderApp("/");
@@ -95,6 +96,7 @@ describe("Sesión guardada al abrir la app", () => {
     expect(localStorage.getItem("labcrud_token")).toBeNull();
     expect(localStorage.getItem("labcrud_user")).toBeNull();
     expect(nav().getByRole("link", { name: /iniciar sesión/i })).toBeInTheDocument();
+    await esperarTienda();
   });
 
   it("valida el token con GET /auth/me y actualiza el rol con el dato actual de la base", async () => {

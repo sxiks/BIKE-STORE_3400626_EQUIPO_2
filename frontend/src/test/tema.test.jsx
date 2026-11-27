@@ -1,7 +1,7 @@
 // Rediseño · tema oscuro y claro (TemaContext + BotonTema).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
-import { renderApp } from "./utils";
+import { esperarTienda, renderApp } from "./utils";
 
 // La tienda pide el catálogo a la API: se simula para que estas pruebas solo vean las llamadas de sesión.
 vi.mock("../services/productos.service", async () => (await import("./fixtures/catalogo")).servicioSimulado());
@@ -19,20 +19,22 @@ afterEach(() => {
 });
 
 describe("Tema de la interfaz", () => {
-  it("arranca en oscuro y el botón ofrece pasar a claro", () => {
+  it("arranca en oscuro y el botón ofrece pasar a claro", async () => {
     renderApp("/");
 
     expect(html().dataset.tema).toBe("oscuro");
     expect(screen.getByRole("button", { name: "Cambiar a tema claro" })).toBeInTheDocument();
+    await esperarTienda();
   });
 
-  it("al pulsar el botón cambia a claro, lo aplica en <html> y lo guarda", () => {
+  it("al pulsar el botón cambia a claro, lo aplica en <html> y lo guarda", async () => {
     renderApp("/");
     fireEvent.click(screen.getByRole("button", { name: "Cambiar a tema claro" }));
 
     expect(html().dataset.tema).toBe("claro");
     expect(localStorage.getItem("bikestore_tema")).toBe("claro");
     expect(screen.getByRole("button", { name: "Cambiar a tema oscuro" })).toBeInTheDocument();
+    await esperarTienda();
   });
 
   it("recuerda el tema elegido al volver a abrir la app", () => {
@@ -43,12 +45,13 @@ describe("Tema de la interfaz", () => {
     expect(screen.getByRole("button", { name: "Cambiar a tema oscuro" })).toBeInTheDocument();
   });
 
-  it("un valor guardado inválido vuelve al tema oscuro", () => {
+  it("un valor guardado inválido vuelve al tema oscuro", async () => {
     localStorage.setItem("bikestore_tema", "morado");
     renderApp("/");
 
     expect(html().dataset.tema).toBe("oscuro");
     expect(localStorage.getItem("bikestore_tema")).toBe("oscuro");
+    await esperarTienda();
   });
 
   it("el botón de tema está en todas las vistas, también en las de acceso", () => {
