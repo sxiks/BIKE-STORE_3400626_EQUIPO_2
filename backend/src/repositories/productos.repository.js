@@ -1,5 +1,6 @@
 // Acceso a datos de `productos` (CU-01, CU-02, CU-08, CU-12 a CU-15).
 const pool = require('../config/db');
+const { patronContiene } = require('../utils/like');
 
 const SELECT_PRODUCTO = `
   SELECT p.id_producto, p.id_categoria, c.nombre AS categoria, p.nombre, p.descripcion,
@@ -35,7 +36,7 @@ async function listarAdmin({ q, idCategoria, estado }, db = pool) {
   const condiciones = [];
   const valores = [];
   if (q) {
-    valores.push(`%${q}%`);
+    valores.push(patronContiene(q)); // % y _ del usuario se buscan como texto (B2.1)
     condiciones.push(`p.nombre ILIKE $${valores.length}`);
   }
   if (idCategoria) {
