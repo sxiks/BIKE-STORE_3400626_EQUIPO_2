@@ -343,3 +343,78 @@ export function carritoSimulado({ inicial = [] } = {}) {
     cantidades: () => Object.fromEntries(lineas),
   };
 }
+
+// ---------- Pedidos del cliente (F3.2) ----------
+
+const ENVIO_PRUEBA = {
+  envio_nombre: "Ana Cliente",
+  envio_telefono: "3001234567",
+  envio_departamento: "Valle del Cauca",
+  envio_ciudad: "Palmira",
+  envio_direccion: "Calle 1 # 2-3",
+};
+
+// Pedido con la forma del contrato ("Pedido" en API_CONTRATOS.md), hecho con productos de la semilla.
+//   lineas: [[producto, cantidad]] · pagos: [[medio, ultimos4, estado]]
+function pedido(n, estado, fecha, lineas, pagos = []) {
+  const items = lineas.map(([p, cantidad]) => ({
+    id_producto: p.id_producto,
+    nombre: p.nombre,
+    cantidad,
+    precio_unitario: p.precio,
+    subtotal: p.precio * cantidad,
+  }));
+  const total = items.reduce((s, i) => s + i.subtotal, 0);
+  return {
+    id_pedido: n,
+    numero_pedido: `BS-2026-${String(n).padStart(6, "0")}`,
+    id_usuario: 2,
+    estado,
+    ...ENVIO_PRUEBA,
+    fecha_pedido: fecha,
+    created_at: fecha,
+    total,
+    items,
+    pagos: pagos.map(([medio_pago, ultimos4, estadoPago], i) => ({
+      id_pago: n * 10 + i,
+      medio_pago,
+      ultimos4,
+      valor: total,
+      estado: estadoPago,
+      created_at: fecha,
+    })),
+  };
+}
+
+/** Pedidos del cliente de prueba, del más reciente al más antiguo (como GET /pedidos). */
+export const PEDIDOS = (() => {
+  const [a, b, c] = conStockMinimo(3);
+  return [
+    pedido(4, "pendiente", "2026-11-26T20:15:00.000Z", [[a, 1]]),
+    pedido(3, "fallido", "2026-11-24T16:00:00.000Z", [[b, 2]], [["tarjeta_debito", "0000", "rechazado"]]),
+    pedido(2, "pagado", "2026-11-22T14:30:00.000Z", [[a, 1], [c, 3]], [
+      ["tarjeta_credito", "0000", "rechazado"],
+      ["cuenta_bancaria", "3456", "aprobado"],
+    ]),
+    pedido(1, "pagado", "2026-11-20T15:30:00.000Z", [[c, 1]], [["tarjeta_credito", "1111", "aprobado"]]),
+  ];
+})();
+/** El pedido de prueba en cierto estado; con `reintentado`, el pagado que tuvo un rechazo antes. */
+export const pedidoEn = (estado, { reintentado = false } = {}) =>
+  PEDIDOS.find((p) => p.estado === estado && (!reintentado || p.pagos.length > 1));
+
+// Reemplazo de services/pedidos.service.js para vi.mock:
+//   vi.mock("../services/pedidos.service", async () => (await import("./fixtures/catalogo")).pedidosSimulado());
+export function pedidosSimulado() {
+  return {
+    listarPedidos: vi.fn(() =>
+      Promise.resolve({ ok: true, data: PEDIDOS.map(({ items, pagos, ...resumen }) => ({ ...resumen })) })
+    ),
+    obtenerPedido: vi.fn((numero) => {
+      const encontrado = PEDIDOS.find((p) => p.numero_pedido === numero);
+      return encontrado
+        ? Promise.resolve({ ok: true, data: structuredClone(encontrado) })
+        : Promise.reject(errorApi("Pedido no encontrado", 404));
+    }),
+  };
+}
