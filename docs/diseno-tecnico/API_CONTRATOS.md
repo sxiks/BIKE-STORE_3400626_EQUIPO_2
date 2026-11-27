@@ -120,7 +120,7 @@ Solo productos **activos** (incluye los agotados, con `disponible: false`). `cat
 - `200` → `data: Producto` · `404` si no existe o está inactivo
 
 ### `GET /productos/admin?q=&categoria=&estado=` · admin · CU-15
-Incluye los inactivos. `q` busca por nombre.
+Incluye los inactivos. `q` busca por nombre, como "contiene" y sin distinguir mayúsculas; `%` y `_` se buscan como texto, no como comodines.
 - `200` → `{ "ok": true, "data": [Producto] }`
 
 ### `GET /productos/admin/:id` · admin
@@ -128,8 +128,9 @@ Incluye los inactivos. `q` busca por nombre.
 
 ### `POST /productos` · admin · CU-12 · multipart
 Campos: `nombre`*, `precio`* (> 0), `existencias`* (entero ≥ 0), `id_categoria`*, `imagen`* (jpg/png/webp ≤ 2 MB) y `descripcion` (opcional).
+- La imagen se valida dos veces: por su tipo (`Content-Type` del archivo) y por su contenido (los primeros bytes deben corresponder a ese tipo). El archivo se guarda con un nombre generado y la extensión del tipo (`.jpg`, `.png` o `.webp`), nunca con la del nombre original.
 - `201` → `data: Producto`
-- `400` falta algún dato, imagen inválida o demasiado grande, categoría inexistente
+- `400` falta algún dato, categoría inexistente, imagen demasiado grande (*"La imagen supera el máximo de 2 MB"*), tipo no permitido (*"Formato de imagen no permitido…"*) o archivo que no es una imagen de ese tipo (*"El archivo no es una imagen válida…"*). En cualquier error, la imagen subida se borra
 - `409` `PRODUCTO_DUPLICADO` (mismo nombre en la misma categoría, sin distinguir mayúsculas)
 
 ### `PUT /productos/:id` · admin · CU-13 · multipart
