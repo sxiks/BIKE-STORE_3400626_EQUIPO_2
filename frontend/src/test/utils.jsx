@@ -4,15 +4,18 @@ import { MemoryRouter } from "react-router-dom";
 import { TemaProvider } from "../context/TemaContext";
 import { ToastProvider } from "../context/ToastContext";
 import { AuthProvider } from "../context/AuthContext";
+import { CarritoProvider } from "../context/CarritoContext";
 import { AppRutas } from "../App";
 
-// Renderiza un componente con los proveedores globales de la app (Router, Tema, Toasts y Sesión).
+// Renderiza un componente con los proveedores globales de la app (Router, Tema, Toasts, Sesión y Carrito).
 export function renderConProveedores(ui, { ruta = "/" } = {}) {
   return render(
     <MemoryRouter initialEntries={[ruta]}>
       <TemaProvider>
         <ToastProvider>
-          <AuthProvider>{ui}</AuthProvider>
+          <AuthProvider>
+            <CarritoProvider>{ui}</CarritoProvider>
+          </AuthProvider>
         </ToastProvider>
       </TemaProvider>
     </MemoryRouter>

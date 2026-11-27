@@ -185,3 +185,12 @@
 /* F2.4: el nombre del producto (tarjeta y destacado) lleva al detalle */
 .producto__enlace { color: inherit; text-decoration: none; }
 .producto__enlace:hover { color: var(--color-enlace); text-decoration: underline; }
+
+/* F3.1: carrito con ítems no disponibles (D4) y botón Comprar */
+.carrito__aviso { margin-bottom: var(--espacio-2); }
+.carrito__linea--no-disponible { border-color: var(--color-aviso-texto); background: var(--color-aviso-fondo); }
+.carrito__motivo { margin: 0; font-size: var(--texto-sm); font-weight: 600; color: var(--color-aviso-texto); }
+.carrito__controles .icono-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.carrito__comprar { display: grid; gap: var(--espacio-2); padding-top: var(--espacio-3); }
+.carrito__comprar .btn { text-decoration: none; }
+.carrito__nota { margin: 0; font-size: var(--texto-xs); color: var(--color-texto-tenue); text-align: center; }

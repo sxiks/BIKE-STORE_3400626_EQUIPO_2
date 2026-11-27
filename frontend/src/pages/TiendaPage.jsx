@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CarritoProvider, useCarrito } from '../context/CarritoContext';
+import { useCarrito } from '../context/CarritoContext';
 import { listarCategorias, listarProductos, ORDENES } from '../services/productos.service';
 import BarraCliente from '../components/BarraCliente';
 import ProductoDestacado, { elegirDestacado } from '../components/ProductoDestacado';
@@ -12,13 +12,9 @@ import '../assets/tienda.css';
 // Tienda (CU-01, CU-02). Ruta pública; el admin no llega aquí (SinAdmin).
 // F2.2: categorías y productos vienen de la API. La categoría y el orden se guardan en la URL
 // (?categoria=3&orden=precio_asc) para poder compartir el enlace; cada cambio vuelve a pedir los productos.
-// El carrito sigue siendo local hasta F3.1.
+// El carrito (CarritoProvider en App.jsx) vive en el navegador para visitantes y en la API para clientes (F3.1).
 export default function TiendaPage() {
-  return (
-    <CarritoProvider>
-      <TiendaContenido />
-    </CarritoProvider>
-  );
+  return <TiendaContenido />;
 }
 
 // Lee la URL descartando valores inválidos: categoría numérica y orden de la lista permitida.
@@ -31,7 +27,6 @@ function leerFiltros(params) {
   };
 }
 
-// Separado de TiendaPage porque necesita leer el carrito (useCarrito) dentro de su proveedor.
 function TiendaContenido() {
   const { totalUnidades, sincronizarProductos } = useCarrito();
   const [params, setParams] = useSearchParams();
