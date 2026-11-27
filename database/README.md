@@ -9,6 +9,7 @@ Una **migración** es un archivo SQL numerado que describe **un cambio** en la e
 003_datos_semilla.sql           ← carga categorías y productos de ejemplo
 004_estado_pedido_carrito.sql   ← agrega el estado 'carrito' a estado_pedido
 005_carrito_como_pedido.sql     ← el carrito pasa a ser un pedido en estado 'carrito'
+006_producto_imagenes.sql       ← galería: imágenes adicionales de cada producto
 ```
 
 **Por qué conviene en este proyecto:**
@@ -68,6 +69,7 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/003_datos_semilla.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
 ```
 
 `-v ON_ERROR_STOP=1` detiene el archivo en el primer error en lugar de seguir a medias.
@@ -99,7 +101,8 @@ sudo -u postgres psql -c "DROP DATABASE IF EXISTS bike_store;"
 | `migrations/003_datos_semilla.sql` | 5 categorías y 10 productos de ejemplo (uno con stock bajo, uno agotado y uno inactivo) |
 | `migrations/004_estado_pedido_carrito.sql` | Agrega `carrito` al ENUM `estado_pedido`. Va sola y sin transacción (ver la excepción de arriba) |
 | `migrations/005_carrito_como_pedido.sql` | El carrito pasa a ser un pedido en estado `carrito` (decisión D12): `fecha_pedido`, columnas de envío y número opcionales mientras es carrito, CHECK `ck_pedidos_confirmado`, índice único parcial de un carrito por cliente, trigger que numera al confirmar, conversión de los carritos existentes y eliminación de `carritos` y `carrito_items`. Quedan 7 tablas |
+| `migrations/006_producto_imagenes.sql` | Tabla `producto_imagenes` (decisión M): imágenes adicionales de cada producto, con su `orden`, y `ON DELETE CASCADE` hacia `productos`. La portada sigue en `productos.imagen`. Quedan 8 tablas |
 | `migrations/legacy_mysql/` | Migración original en MySQL. Histórico, **no se ejecuta** |
-| `docker/initdb/01-crear-bases.sh` | Inicialización del contenedor de Docker: rol, bases `bike_store` y `bike_store_test`, y migraciones 002 a 005. Corre solo cuando el volumen está vacío |
+| `docker/initdb/01-crear-bases.sh` | Inicialización del contenedor de Docker: rol, bases `bike_store` y `bike_store_test`, y migraciones 002 a 006. Corre solo cuando el volumen está vacío |
 
 El modelo completo (MER, MR y decisiones) está en [MODELO_DATOS](../docs/diseno-tecnico/MODELO_DATOS.md) y su justificación en [JUSTIFICACION_MODELO_DATOS](../docs/diseno-tecnico/JUSTIFICACION_MODELO_DATOS.md).

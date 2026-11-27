@@ -160,7 +160,7 @@ Si ya tenías un clon viejo del repositorio, renómbralo como respaldo antes de 
 **Qué hace.** Un solo comando, desde la **raíz del repositorio**, descarga la imagen oficial de PostgreSQL 17 y arranca un [contenedor](GLOSARIO.md#contenedor) llamado `bike-store-db`. **La primera vez**, el script `database/docker/initdb/01-crear-bases.sh`:
 - crea el [rol](GLOSARIO.md#rol-postgres) `bike_store_app` con la contraseña de `DB_PASSWORD` del `.env` de la raíz (por defecto `cambia_esta_clave`, la misma de `backend/.env.example`);
 - crea las bases `bike_store` y `bike_store_test`, en hora de Colombia;
-- aplica las [migraciones](GLOSARIO.md#migracion) 002 a 005 sobre `bike_store` (tablas, [semilla](GLOSARIO.md#semilla) y carrito como pedido).
+- aplica las [migraciones](GLOSARIO.md#migracion) 002 a 006 sobre `bike_store` (tablas, [semilla](GLOSARIO.md#semilla), carrito como pedido y galería de imágenes).
 
 Los datos se guardan en un [volumen](GLOSARIO.md#volumen-docker) llamado `bike-store_bike_store_datos`: sobreviven al apagar el contenedor o el PC.
 
@@ -289,7 +289,7 @@ npm run dev
 | El catálogo tiene datos | `curl -s http://localhost:3000/api/productos` | `Invoke-RestMethod http://localhost:3000/api/productos` | 9 productos activos |
 | El login funciona | Abre `http://localhost:5173/login` | igual | Con el admin, redirige a la tienda |
 | Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 90 pruebas en verde |
-| Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas) (con Docker, `bike_store_test` ya existe). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y 119 pruebas en verde |
+| Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas) (con Docker, `bike_store_test` ya existe). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y 148 pruebas en verde |
 
 ### Usuarios de prueba
 
@@ -371,6 +371,7 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/003_datos_semilla.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
 psql -h localhost -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
 unset PGPASSWORD
 ```
@@ -382,13 +383,16 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/003_datos_semilla.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
 psql -h localhost -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
 Remove-Item Env:PGPASSWORD
 ```
 
 Si usaste otra contraseña al crear el rol en el paso A.2, pon esa en `PGPASSWORD`.
 
-**Si tu base ya tenía la `002` y la `003`** (montaste el entorno antes de la decisión D12): aplica **solo la `004` y luego la `005`**. Comprueba que quedó bien con `psql -h localhost -U bike_store_app -d bike_store -c "\dt"`: deben aparecer 7 tablas y ya no `carritos` ni `carrito_items`.
+**Si tu base ya tenía la `002` y la `003`** (montaste el entorno antes de la decisión D12): aplica **solo la `004` y luego la `005`**. Comprueba que quedó bien con `psql -h localhost -U bike_store_app -d bike_store -c "\dt"`: deben aparecer 7 tablas y ya no `carritos` ni `carrito_items`. Luego aplica la `006`: quedan 8 tablas, con `producto_imagenes`.
+
+**Si tu base ya tenía de la `002` a la `005`:** aplica **solo la `006`**, con el mismo comando de arriba.
 
 - **Nunca ejecutes** `database/migrations/legacy_mysql/001_base_usuarios_equipos.sql`: es MySQL y falla.
 - La `002` y la `005` no se pueden aplicar dos veces sobre la misma base.

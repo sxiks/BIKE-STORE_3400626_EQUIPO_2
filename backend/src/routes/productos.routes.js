@@ -13,6 +13,14 @@ router.post('/', soloAdmin, uploadProductoImagen, controller.crear);
 router.put('/:id', soloAdmin, uploadProductoImagen, controller.actualizar);
 router.patch('/:id/estado', soloAdmin, controller.cambiarEstado);
 
+// Eliminar productos nunca usados y galería de imágenes (B2.2, decisión M).
+// '/imagenes/orden' va antes de '/imagenes/:idImagen' para que 'orden' no se lea como id.
+router.delete('/:id', soloAdmin, controller.eliminar);
+router.post('/:id/imagenes', soloAdmin, uploadProductoImagen, controller.agregarImagen);
+router.patch('/:id/imagenes/orden', soloAdmin, controller.reordenarImagenes);
+router.delete('/:id/imagenes/:idImagen', soloAdmin, controller.quitarImagen);
+router.patch('/:id/imagenes/:idImagen/portada', soloAdmin, controller.elegirPortada);
+
 // Catálogo público (CU-01, CU-02): solo productos activos.
 router.get('/', controller.listarCatalogo);
 router.get('/:id', controller.obtenerPublico);

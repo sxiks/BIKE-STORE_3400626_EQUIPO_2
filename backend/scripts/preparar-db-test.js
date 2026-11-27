@@ -1,5 +1,5 @@
 // npm run test:db
-// Deja la base de PRUEBAS como recién creada: borra todo y aplica las migraciones 002 a 005.
+// Deja la base de PRUEBAS como recién creada: borra todo y aplica las migraciones 002 a 006.
 // Usa el rol de la aplicación (dueño de la base), sin sudo ni superusuario.
 // Solo acepta bases cuyo nombre termine en _test (ver tests/helpers/cargarEnvTest.js).
 const fs = require('fs');
@@ -12,7 +12,8 @@ const MIGRACIONES = [
   '002_modelo_bike_store.sql',
   '003_datos_semilla.sql',
   '004_estado_pedido_carrito.sql',
-  '005_carrito_como_pedido.sql'
+  '005_carrito_como_pedido.sql',
+  '006_producto_imagenes.sql'
 ];
 const CARPETA_MIGRACIONES = path.resolve(__dirname, '..', '..', 'database', 'migrations');
 

@@ -44,7 +44,7 @@ Luego, dentro de `backend/`:
 ```bash
 cp .env.test.example .env.test      # Windows: Copy-Item .env.test.example .env.test
 # sin Docker: DB_PORT=5432 y, si tu rol usa otra contraseña, ajústala en DB_PASSWORD
-npm run test:db                     # deja la base de pruebas con las migraciones 002 a 005
+npm run test:db                     # deja la base de pruebas con las migraciones 002 a 006
 ```
 
 **Cada vez que pruebes:**
