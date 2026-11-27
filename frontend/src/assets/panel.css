@@ -1,4 +1,8 @@
-/* Secciones privadas (/admin, /cuenta) y "No autorizado" (F1.2), con el sistema de diseño (F2.1). */
+/* Secciones privadas (/admin, /cuenta) y "No autorizado" (F1.2), con el sistema de diseño Noche (rediseño). */
+/* Contenido del panel del admin: ancho completo junto a la barra lateral */
+.contenedor--panel { max-width: 1120px; margin: 0; padding: var(--espacio-8) var(--espacio-8) var(--espacio-12); }
+@media (max-width: 860px) { .contenedor--panel { padding: var(--espacio-6) var(--espacio-4) var(--espacio-8); } }
+
 .panel__encabezado { margin-bottom: var(--espacio-6); }
 
 .panel__encabezado h1 {
@@ -28,7 +32,9 @@
 /* El enlace cubre toda la tarjeta: se puede hacer clic en cualquier parte */
 .panel__seccion-enlace::after { content: ""; position: absolute; inset: 0; border-radius: var(--radio-xl); }
 
-.panel__seccion-enlace:hover { color: var(--color-primario); }
+.panel__seccion-enlace:hover { color: var(--color-enlace); }
+.panel__seccion { transition: border-color 0.15s ease; }
+.panel__seccion:has(.panel__seccion-enlace):hover { border-color: var(--color-texto-tenue); }
 
 .panel__seccion p { margin: 0 0 var(--espacio-3); color: var(--color-texto-suave); }
 

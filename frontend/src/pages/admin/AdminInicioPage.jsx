@@ -14,7 +14,7 @@ export default function AdminInicioPage() {
   const { user } = useAuth();
 
   return (
-    <main className="contenedor">
+    <main className="contenedor contenedor--panel">
       <header className="panel__encabezado">
         <h1>Panel de administración</h1>
         <p>Hola, {user?.nombre}. Estas son las secciones del panel.</p>

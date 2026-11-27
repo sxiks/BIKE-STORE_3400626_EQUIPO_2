@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, Eye, EyeOff, Lock, Mail, Mountain, UserPlus } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
 import { register } from '../services/auth.service';
 import { useToast } from '../context/ToastContext';
 import { validarRegistro } from '../utils/validaciones';
@@ -56,13 +56,8 @@ export default function RegisterPage() {
   return (
     <main className="auth">
       <form className="auth__tarjeta tarjeta" onSubmit={submit} noValidate>
-        <div className="auth__logo">
-          <Mountain size={28} aria-hidden="true" />
-        </div>
-
         <div className="auth__encabezado">
-          <h1>BIKE STORE</h1>
-          <h2>Crear usuario</h2>
+          <h1>Crear usuario</h1>
         </div>
 
         {errorApi.mensaje && !errorApi.campo && (

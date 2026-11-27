@@ -1,5 +1,13 @@
 export const PRODUCTOS = [
-  { id: 1, nombre: "Café de Huila 500 g", precio: 28500, stock: 8 },
+  {
+    id: 1,
+    nombre: "Café de Huila 500 g",
+    precio: 28500,
+    stock: 8,
+    // Rediseño: producto del bloque "Destacado" de la tienda mientras el catálogo sea simulado (F2.2 lo trae de la API).
+    destacado: true,
+    descripcion: "Café de origen, tostión media, cultivado en las montañas del Huila."
+  },
   { id: 2, nombre: "Panela orgánica 1 kg", precio: 9800, stock: 3 },
   { id: 3, nombre: "Arepa de choclo x6", precio: 12000, stock: 12 },
   { id: 4, nombre: "Chocolate de mesa", precio: 15400, stock: 1 },

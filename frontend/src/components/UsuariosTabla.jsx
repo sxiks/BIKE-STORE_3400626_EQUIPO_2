@@ -1,7 +1,9 @@
 import { nombreEstado, nombreRol } from '../utils/usuarios';
+import { iniciales } from './BarraCliente';
 import '../assets/usuarios.css';
 
 // Tabla de usuarios (CU-19) con las acciones de CU-20 (rol) y CU-21 (estado).
+// Rediseño: cada fila se ve como una tarjeta (sigue siendo una tabla, por accesibilidad).
 // Solo props: no llama a la API. La fila del propio administrador tiene las acciones deshabilitadas (D5 y D6).
 //   usuarios: [Usuario] · idPropio: id del admin con sesión · idOcupado: id de la fila que se está guardando
 //   onCambiarRol(usuario) · onCambiarEstado(usuario): piden la acción; quien usa la tabla confirma y guarda.
@@ -30,8 +32,15 @@ export default function UsuariosTabla({ usuarios, idPropio, idOcupado = null, on
           return (
             <tr key={usuario.id_usuario}>
               <td data-etiqueta="Nombre">
-                {usuario.nombre}
-                {esPropio && <span className="etiqueta etiqueta--acento usuarios-tabla__yo">Tú</span>}
+                <span className="usuarios-tabla__persona">
+                  <span className={`usuarios-tabla__avatar usuarios-tabla__avatar--${usuario.rol}`} aria-hidden="true">
+                    {iniciales(usuario.nombre)}
+                  </span>
+                  <span>
+                    {usuario.nombre}
+                    {esPropio && <span className="etiqueta etiqueta--acento usuarios-tabla__yo">Tú</span>}
+                  </span>
+                </span>
               </td>
               <td data-etiqueta="Correo">{usuario.email}</td>
               <td data-etiqueta="Rol">
@@ -40,7 +49,11 @@ export default function UsuariosTabla({ usuarios, idPropio, idOcupado = null, on
                 </span>
               </td>
               <td data-etiqueta="Estado">
-                <span className={`etiqueta ${estaActivo ? 'etiqueta--exito' : 'etiqueta--error'}`}>
+                <span className="usuarios-tabla__estado">
+                  <span
+                    className={`usuarios-tabla__punto usuarios-tabla__punto--${usuario.estado}`}
+                    aria-hidden="true"
+                  />
                   {nombreEstado(usuario.estado)}
                 </span>
               </td>

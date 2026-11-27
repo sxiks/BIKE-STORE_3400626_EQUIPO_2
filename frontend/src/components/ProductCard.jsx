@@ -25,8 +25,13 @@ export default function ProductCard({ producto }) {
   return (
     <article className="producto tarjeta" data-testid={`producto-${producto.id}`}>
       {/* Imagen de reemplazo (decisión L): la foto real llega con el catálogo de la API (F2.2) */}
-      <div className="producto__imagen" aria-hidden="true">
-        <Bike size={64} strokeWidth={1.5} />
+      <div className="producto__imagen">
+        <Bike size={56} strokeWidth={1.3} aria-hidden="true" />
+        {libres === 0 ? (
+          <span className="producto__insignia producto__insignia--agotado">Agotado</span>
+        ) : libres <= 3 ? (
+          <span className="producto__insignia producto__insignia--pocas">Últimas {libres}</span>
+        ) : null}
       </div>
       <div className="producto__cuerpo">
         <h3 className="producto__nombre">{producto.nombre}</h3>
