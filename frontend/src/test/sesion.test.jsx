@@ -121,6 +121,18 @@ describe("Sesión guardada al abrir la app", () => {
     expect(localStorage.getItem("bikestore_token")).toBeNull();
   });
 
+  it("si la contraseña se restableció en otro lugar (401 SESION_REVOCADA), cierra la sesión con ese mensaje", async () => {
+    guardarSesion();
+    const mensaje = "Tu contraseña cambió. Inicia sesión de nuevo";
+    simularApi({ "/auth/me": () => respuesta(401, { ok: false, message: mensaje, code: "SESION_REVOCADA" }) });
+    renderApp("/");
+
+    expect(await screen.findByText(mensaje)).toBeInTheDocument();
+    expect(screen.queryByText("Tu sesión venció. Inicia sesión de nuevo.")).not.toBeInTheDocument();
+    expect(nav().getByRole("link", { name: /iniciar sesión/i })).toBeInTheDocument();
+    expect(localStorage.getItem("bikestore_token")).toBeNull();
+  });
+
   it("si la API no responde, conserva la sesión (no se puede saber si el token es válido)", async () => {
     guardarSesion();
     fetchMock.mockImplementation(() => Promise.reject(new TypeError("Failed to fetch")));
