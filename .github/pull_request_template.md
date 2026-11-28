@@ -13,8 +13,8 @@
 - [ ] Si cambié o agregué endpoints, `docs/diseno-tecnico/API_CONTRATOS.md` está actualizado
 - [ ] Si agregué variables de entorno, están en el `.env.example`
 - [ ] Si cambié el esquema, es una migración nueva (no edité una existente) y lo indico: "Requiere aplicar la migración 00N"
-- [ ] Frontend: `npm test` y `npm run build` pasan
-- [ ] Backend: probé los endpoints afectados (curl / Thunder Client / Postman)
+- [ ] Frontend: `npm run lint`, `npm test` y `npm run build` pasan
+- [ ] Backend: `npm run lint` pasa y probé los endpoints afectados (curl / Thunder Client / Postman)
 - [ ] No subo `.env`, `node_modules/`, `uploads/` ni `dist/`
 
 ## Cómo probarlo

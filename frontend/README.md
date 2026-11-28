@@ -4,7 +4,7 @@ SPA en React 19 + Vite 7 + React Router 7. Es la capa de presentación y consume
 
 ## Requisitos
 
-- Node.js 22.12+ (recomendado 26 LTS)
+- Node.js 22.13+ (recomendado 26 LTS)
 - Backend corriendo en `http://localhost:3000`, con PostgreSQL: [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md). Desde F2.2 la tienda también lo necesita: el catálogo viene de la API.
 
 ## Instalar y ejecutar
@@ -14,6 +14,7 @@ cp .env.example .env
 npm ci             # instala exactamente las versiones de package-lock.json
 npm run dev        # http://localhost:5173
 npm test           # pruebas (Vitest + Testing Library)
+npm run lint       # revisa el código con ESLint (falla también con avisos)
 npm run build      # versión de producción en dist/
 ```
 
@@ -55,7 +56,7 @@ Las rutas privadas usan `components/ProtectedRoute.jsx` (`<ProtectedRoute roles=
 - sin sesión lleva a `/login`;
 - con otro rol muestra "No autorizado" en la misma URL (en la práctica, un cliente que abre `/admin`).
 
-Para agregar una página privada, ponla dentro del grupo de su rol en `App.jsx`. Si es de admin, convierte también su sección de `BarraAdmin.jsx` en enlace (campo `ruta`).
+Para agregar una página privada, ponla dentro del grupo de su rol en `App.jsx`. Si es de admin, impórtala con `lazy(() => import('./pages/admin/...'))` como las demás del panel (`AdminLayout` ya muestra "Cargando…" mientras llega) y convierte su sección de `BarraAdmin.jsx` en enlace (campo `ruta`).
 
 Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar contraseña, secciones de los paneles) se construyen por sprints: [ROADMAP](../docs/ROADMAP.md). El backend de todas ya existe: [API_CONTRATOS](../docs/diseno-tecnico/API_CONTRATOS.md).
 
@@ -72,10 +73,11 @@ Las demás pantallas (catálogo real, carrito real, checkout, pedidos, recuperar
   - `assets/base.css` trae la base global y los componentes reutilizables: `.contenedor`, `.btn` con sus variantes (`--primario`, `--suave`, `--acento`, `--peligro`, `--bloque`), `.icono-btn`, `.campo` / `.input`, `.tarjeta`, `.etiqueta--exito|aviso|error|acento|destacado`, `.alerta--error` y `.solo-lector`.
   - Cada vista tiene su `.css` con clases BEM propias: `barra-cliente.css`, `barra-admin.css`, `toast.css`, `tienda.css`, `auth.css`, `panel.css`, `usuarios.css`, `productos.css`, `categorias.css`, `galeria.css`, `detalle.css` y `dialogo.css`. Los botones segmentados de los filtros son el componente `Segmentado.jsx` (con `segmentado.css`), compartido por usuarios y productos.
   - Tipografía Inter, cargada desde Google Fonts en `index.html`.
+- Las pruebas esperan hasta 5 s en `findBy*` y `waitFor` (`test/setup.js`): las páginas del panel se cargan aparte y en un equipo lento la primera carga pasa de 1 s, el valor por defecto.
 - Las pruebas no salen a la red: `test/setup.js` reemplaza `fetch` por uno que siempre falla como "sin conexión". Cada archivo simula `fetch` o los servicios que usa, así que da igual si la API está encendida mientras se corre `npm test`. Las que abren la tienda (`/`) y no revisan el catálogo terminan con `await esperarTienda()` (`test/utils.jsx`), para que las categorías y los productos simulados lleguen antes de que acabe la prueba (si no, React avisa con `not wrapped in act(...)`).
 - Pruebas de la tienda: simulan `services/productos.service.js` con `test/fixtures/catalogo.js`, que tiene los productos de la semilla con la forma de la API. Las pruebas no escriben nombres ni precios a mano: eligen productos con sus selectores (`conStockMinimo`, `conPocoStock`, `masCaroDisponible`…). Si la semilla cambia o crece, solo se actualiza ese archivo. Las pruebas del panel de productos (`test/productos-admin.test.jsx`) usan el mismo archivo: `catalogoAdmin`, `productoPorId`, `unActivo` y `unInactivo`.
 - Arrastrar y soltar (galería de productos): [dnd-kit](https://dndkit.com) (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`). Funciona con mouse, pantalla táctil y teclado; los anuncios para el lector de pantalla están en español en `GaleriaProducto.jsx`. jsdom no tiene medidas de pantalla, así que en las pruebas se reordena con los botones de mover.
-- Gráficas (tablero): [recharts](https://recharts.org), junto con `react-is` en la misma versión de React (lo pide recharts para reconocer sus componentes). La página del tablero se carga aparte con `React.lazy`, así que recharts no pesa en la tienda. La gráfica es solo visual (`aria-hidden`): los mismos datos están en una tabla. En las pruebas, `ResponsiveContainer` se reemplaza por un contenedor de tamaño fijo, porque jsdom no mide la pantalla.
+- Gráficas (tablero): [recharts](https://recharts.org), junto con `react-is` en la misma versión de React (lo pide recharts para reconocer sus componentes). Todas las páginas del panel se cargan aparte con `React.lazy` (auditoría H-09): un cliente no descarga recharts (tablero) ni dnd-kit (galería), y cada sección del admin baja su archivo la primera vez que se abre. La gráfica es solo visual (`aria-hidden`): los mismos datos están en una tabla. En las pruebas, `ResponsiveContainer` se reemplaza por un contenedor de tamaño fijo, porque jsdom no mide la pantalla.
 - Para pedir ayuda sin romper la arquitectura: [GUIA_PROMPTS_FRONTEND](../docs/guias-prompts/GUIA_PROMPTS_FRONTEND.md).
 
 ## Carrito (F3.1, decisión D1)

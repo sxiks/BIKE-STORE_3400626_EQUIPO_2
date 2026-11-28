@@ -15,6 +15,9 @@ import {
 export const AuthContext = createContext(null);
 
 const MSG_SESION_VENCIDA = 'Tu sesión venció. Inicia sesión de nuevo.';
+// Rechazos con un mensaje propio de la API que vale la pena mostrar tal cual al abrir la app.
+// SESION_REVOCADA: la contraseña se restableció en otro lugar (auditoría H-04, backend B4).
+const CODIGOS_CON_MENSAJE = ['CUENTA_DESACTIVADA', 'SESION_REVOCADA'];
 
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
@@ -70,7 +73,7 @@ export function AuthProvider({ children }) {
         // Sin conexión (status 0) no se puede saber si el token es válido: se conserva la sesión.
         if (error.status === 401 || error.status === 403) {
           logout();
-          mostrar(error.code === 'CUENTA_DESACTIVADA' ? error.message : MSG_SESION_VENCIDA);
+          mostrar(CODIGOS_CON_MENSAJE.includes(error.code) ? error.message : MSG_SESION_VENCIDA);
         }
       })
       .finally(() => {

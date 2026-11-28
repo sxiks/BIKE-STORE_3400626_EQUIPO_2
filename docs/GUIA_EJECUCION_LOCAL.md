@@ -33,15 +33,15 @@ La base de datos corre en [Docker](GLOSARIO.md#docker) (decisión D13 del [ROADM
 
 | Herramienta | Versión mínima | Recomendada |
 |---|---|---|
-| [Node.js](GLOSARIO.md#nodejs) (incluye [npm](GLOSARIO.md#npm)) | **22.12** | **26 LTS** |
+| [Node.js](GLOSARIO.md#nodejs) (incluye [npm](GLOSARIO.md#npm)) | **22.13** | **26 LTS** |
 | [Git](GLOSARIO.md#git) | cualquier versión reciente | — |
 | [Docker](GLOSARIO.md#docker) con [Docker Compose](GLOSARIO.md#docker-compose) | Docker Engine 24 o Docker Desktop 4.x, con `docker compose` (v2) | La última versión estable |
 
-> El mínimo es 22.12 porque lo exige Vitest 5, la herramienta de pruebas; además, Node.js 20 dejó de recibir parches de seguridad el 30 de abril de 2026. Si ya tienes Node 24, sigue funcionando y no hace falta cambiarlo.
+> El mínimo es 22.13 porque lo exige ESLint 10, el revisor de código (Vitest 5, la herramienta de pruebas, pide 22.12); además, Node.js 20 dejó de recibir parches de seguridad el 30 de abril de 2026. Si ya tienes Node 24, sigue funcionando y no hace falta cambiarlo.
 
 **Linux**
 ```bash
-node -v                    # v22.12 o superior (ideal v26.x)
+node -v                    # v22.13 o superior (ideal v26.x)
 npm -v
 git --version
 docker --version
@@ -265,7 +265,7 @@ Abre **otra** terminal, distinta de la de la API.
 cd frontend
 cp .env.example .env      # indica a qué URL está la API (VITE_API_URL)
 npm ci
-npm test                  # debe dar 311 pruebas en verde
+npm test                  # debe dar 314 pruebas en verde
 npm run dev               # abre http://localhost:5173
 ```
 
@@ -289,7 +289,7 @@ npm run dev
 | La API responde | `curl -s http://localhost:3000/api/health` | `Invoke-RestMethod http://localhost:3000/api/health` | `ok: true` |
 | El catálogo tiene datos | `curl -s http://localhost:3000/api/productos` | `Invoke-RestMethod http://localhost:3000/api/productos` | 9 productos activos |
 | El login funciona | Abre `http://localhost:5173/login` | igual | Con el admin, redirige a la tienda |
-| Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 311 pruebas en verde |
+| Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 314 pruebas en verde |
 | Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas) (con Docker, `bike_store_test` ya existe). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y 282 pruebas en verde |
 
 ### Usuarios de prueba

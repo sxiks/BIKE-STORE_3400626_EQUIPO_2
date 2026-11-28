@@ -53,6 +53,7 @@ git commit -m "feat(auth): validar formato de correo en registro"
 # 3) Antes de abrir el PR: traer lo nuevo de develop a TU rama
 git fetch origin
 git merge origin/develop                       # resuelve conflictos aquí, en tu rama, no en develop
+npm run lint                                    # en la carpeta que tocaste (backend/ o frontend/)
 npm test                                        # (frontend) o prueba tus endpoints (backend)
 
 # 4) Subir la rama
