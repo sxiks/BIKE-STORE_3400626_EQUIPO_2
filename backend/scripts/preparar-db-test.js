@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
 const { cargarEnvTest } = require('../tests/helpers/cargarEnvTest');
+const { describirErrorConexion } = require('../src/utils/errorConexion');
 
 // La 004 va sola en su archivo: agrega un valor al ENUM que la 005 usa (PostgreSQL exige confirmarlo antes).
 const MIGRACIONES = [
@@ -48,6 +49,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`No se pudo preparar la base de pruebas: ${error.message}`);
+  // cargarEnvTest ya copió .env.test a process.env (si falló antes, su error trae su propio mensaje).
+  const destino = { host: process.env.DB_HOST, port: process.env.DB_PORT || 5432, archivo: '.env.test' };
+  console.error(`No se pudo preparar la base de pruebas: ${describirErrorConexion(error, destino)}`);
   process.exit(1);
 });
