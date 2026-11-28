@@ -210,7 +210,7 @@ describe("Carrito local con los datos de la API (hasta F3.1)", () => {
 
 describe("urlImagen", () => {
   it("arma la URL pública de la imagen y devuelve null sin imagen", async () => {
-    const { urlImagen } = await import("../utils/format");
+    const { urlImagen } = await import("../utils/formato");
     expect(urlImagen("casco.jpg")).toMatch(/\/uploads\/productos\/casco\.jpg$/);
     expect(urlImagen(null)).toBeNull();
   });

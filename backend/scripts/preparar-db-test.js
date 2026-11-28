@@ -1,11 +1,12 @@
 // npm run test:db
-// Deja la base de PRUEBAS como recién creada: borra todo y aplica las migraciones 002 a 006.
+// Deja la base de PRUEBAS como recién creada: borra todo y aplica las migraciones 002 a 007.
 // Usa el rol de la aplicación (dueño de la base), sin sudo ni superusuario.
 // Solo acepta bases cuyo nombre termine en _test (ver tests/helpers/cargarEnvTest.js).
 const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
 const { cargarEnvTest } = require('../tests/helpers/cargarEnvTest');
+const { describirErrorConexion } = require('../src/utils/errorConexion');
 
 // La 004 va sola en su archivo: agrega un valor al ENUM que la 005 usa (PostgreSQL exige confirmarlo antes).
 const MIGRACIONES = [
@@ -13,7 +14,8 @@ const MIGRACIONES = [
   '003_datos_semilla.sql',
   '004_estado_pedido_carrito.sql',
   '005_carrito_como_pedido.sql',
-  '006_producto_imagenes.sql'
+  '006_producto_imagenes.sql',
+  '007_password_cambiada_en.sql'
 ];
 const CARPETA_MIGRACIONES = path.resolve(__dirname, '..', '..', 'database', 'migrations');
 
@@ -47,6 +49,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`No se pudo preparar la base de pruebas: ${error.message}`);
+  // cargarEnvTest ya copió .env.test a process.env (si falló antes, su error trae su propio mensaje).
+  const destino = { host: process.env.DB_HOST, port: process.env.DB_PORT || 5432, archivo: '.env.test' };
+  console.error(`No se pudo preparar la base de pruebas: ${describirErrorConexion(error, destino)}`);
   process.exit(1);
 });

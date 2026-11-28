@@ -1,13 +1,16 @@
-// Pruebas de la API de autenticación: CU-09 (registro), CU-10 (login) y CU-11 (recuperación).
+// Pruebas de la API de autenticación: CU-09 (registro), CU-10 (login), CU-11 (recuperación)
+// y el cierre de las sesiones abiertas al restablecer la contraseña (auditoría H-04).
 // Contratos: docs/diseno-tecnico/API_CONTRATOS.md, sección "Autenticación · Sprint 1".
 import { createRequire } from 'node:module';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 
 const require = createRequire(import.meta.url);
+const jwt = require('jsonwebtoken');
 const app = require('../src/app.js');
 const env = require('../src/config/env.js');
 const { pool, limpiarUsuarios, cambiarEstadoUsuario, vencerTokensDe } = require('./helpers/db.js');
+const { cargarConfig } = require('./helpers/config.js');
 
 const PASSWORD = 'Clave1234';
 const NUEVA_PASSWORD = 'NuevaClave99';
@@ -221,13 +224,15 @@ describe('POST /api/auth/recuperar · CU-11 (D8)', () => {
     });
   });
 
-  it('no devuelve el token fuera de desarrollo, aunque RESET_TOKEN_EN_RESPUESTA esté encendido', async () => {
-    await conConfig(env, 'isDev', false, async () => {
-      const res = await recuperar();
-
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({ ok: true, message: MENSAJE });
-    });
+  // Desde B1 (H-03) la condición se decide en config/env.js con NODE_ENV escrito: se comprueba cargando
+  // la configuración en un proceso aparte, con las variables de cada caso.
+  it.each([
+    ['NODE_ENV=production', { NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(40) }],
+    ['sin NODE_ENV (no se supone desarrollo)', { NODE_ENV: undefined }]
+  ])('no devuelve el token fuera de desarrollo, aunque RESET_TOKEN_EN_RESPUESTA esté encendido: %s', (_caso, variables) => {
+    const salida = cargarConfig({ RESET_TOKEN_EN_RESPUESTA: 'true', ...variables }, 'resetToken.enRespuesta');
+    expect(salida).toBe('false');
+    expect(cargarConfig({ RESET_TOKEN_EN_RESPUESTA: 'true', NODE_ENV: 'development' }, 'resetToken.enRespuesta')).toBe('true');
   });
 
   it('responde 400 si el correo no tiene un formato válido', async () => {
@@ -297,5 +302,97 @@ describe('POST /api/auth/restablecer · CU-11 (D7, D8)', () => {
     expect(debil.body.message).toMatch(/mínimo 8 caracteres/);
 
     expect((await restablecer(token)).status).toBe(200); // el token seguía vigente
+  });
+});
+
+describe('Sesiones abiertas al restablecer la contraseña (auditoría H-04)', () => {
+  const me = (token) => request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+  const entrar = async (password = PASSWORD) => (await login(CLIENTE.email, password)).body.data.token;
+  const restablecerAhora = async () => {
+    const tokenRecuperacion = (await recuperar()).body.data.token_desarrollo;
+    expect((await restablecer(tokenRecuperacion)).status).toBe(200);
+  };
+  // Token como los firmados antes de este cambio: sin emitido_ms, solo con iat (en segundos).
+  const tokenSinEmitidoMs = (idUsuario, segundosAtras) =>
+    jwt.sign(
+      { id_usuario: idUsuario, rol: 'cliente', iat: Math.floor(Date.now() / 1000) - segundosAtras },
+      env.jwt.secret,
+      { expiresIn: '2h' }
+    );
+
+  let idCliente;
+
+  beforeEach(async () => {
+    idCliente = (await registrar()).body.data.id_usuario;
+  });
+
+  it('el token emitido antes del restablecimiento responde 401 SESION_REVOCADA', async () => {
+    const anterior = await entrar();
+    expect((await me(anterior)).status).toBe(200);
+
+    await restablecerAhora();
+    const res = await me(anterior);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({
+      ok: false,
+      code: 'SESION_REVOCADA',
+      message: 'Tu contraseña cambió. Inicia sesión de nuevo'
+    });
+  });
+
+  it('cierra todas las sesiones abiertas, no solo una', async () => {
+    const enElPortatil = await entrar();
+    const enElCelular = await entrar();
+
+    await restablecerAhora();
+
+    expect((await me(enElPortatil)).body.code).toBe('SESION_REVOCADA');
+    expect((await me(enElCelular)).body.code).toBe('SESION_REVOCADA');
+  });
+
+  it('el login justo después (en el mismo segundo) funciona, y /auth/me no expone la fecha del cambio', async () => {
+    await restablecerAhora();
+    const res = await me(await entrar(NUEVA_PASSWORD));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).not.toHaveProperty('password_cambiada_en');
+  });
+
+  it('pedir la recuperación sin completarla no cierra la sesión', async () => {
+    const token = await entrar();
+    await recuperar();
+
+    expect((await me(token)).status).toBe(200);
+  });
+
+  it('el restablecimiento de un usuario no afecta las sesiones de otro', async () => {
+    const otro = { nombre: 'Beto Cliente', email: 'beto@prueba.local', password: PASSWORD };
+    await registrar(otro);
+    const tokenOtro = (await login(otro.email)).body.data.token;
+
+    await restablecerAhora();
+
+    expect((await me(tokenOtro)).status).toBe(200);
+  });
+
+  it('un token sin emitido_ms (firmado antes de este cambio) se compara por iat', async () => {
+    const antiguo = tokenSinEmitidoMs(idCliente, 60);
+    expect((await me(antiguo)).status).toBe(200); // nunca ha restablecido: sigue sirviendo
+
+    await restablecerAhora();
+
+    expect((await me(antiguo)).body.code).toBe('SESION_REVOCADA');
+  });
+
+  it('una cuenta desactivada sigue respondiendo 403 CUENTA_DESACTIVADA aunque haya restablecido', async () => {
+    const anterior = await entrar();
+    await restablecerAhora();
+    await cambiarEstadoUsuario(CLIENTE.email, 'inactivo');
+
+    const res = await me(anterior);
+
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe('CUENTA_DESACTIVADA');
   });
 });

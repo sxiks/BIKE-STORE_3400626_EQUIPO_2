@@ -44,11 +44,17 @@ function textoOpcional(valor, campo, max = 255) {
   return texto;
 }
 
-// Acepta números o texto numérico ("12"). Rechaza decimales, negativos por debajo del mínimo y basura.
+// Mayor valor de una columna INT de PostgreSQL: ids, cantidades y existencias no pueden pasarlo (H-05).
+const ENTERO_MAXIMO = 2147483647;
+
+// Acepta números o texto numérico ("12"). Rechaza decimales, valores fuera de rango y basura.
 function entero(valor, campo, minimo = 0) {
   const n = typeof valor === 'string' && valor.trim() !== '' ? Number(valor) : valor;
   if (!Number.isInteger(n) || n < minimo) {
     throw new AppError(`El campo ${campo} debe ser un número entero mayor o igual a ${minimo}`, 400);
+  }
+  if (n > ENTERO_MAXIMO) {
+    throw new AppError(`El campo ${campo} admite como máximo ${ENTERO_MAXIMO}`, 400);
   }
   return n;
 }

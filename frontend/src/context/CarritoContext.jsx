@@ -89,6 +89,62 @@ function desdeApi(carrito) {
   };
 }
 
+// Rechazos de la API que dependen del producto, no de la conexión: la línea no se pasa (H-01).
+const RECHAZOS_DE_NEGOCIO = ["PRODUCTO_INACTIVO", "SIN_STOCK", "STOCK_MAXIMO"];
+
+// Pone la línea que falló en `descartados` (regla de negocio o producto inexistente) o en `conservados`.
+function clasificar(error, linea, resultado) {
+  if (RECHAZOS_DE_NEGOCIO.includes(error.code) || error.status === 404) {
+    resultado.descartados.push(linea.nombre);
+  } else {
+    resultado.conservados.push(linea);
+    resultado.error ??= error;
+  }
+}
+
+// Envía cada línea del navegador a la API y clasifica el resultado (ver el efecto del proveedor).
+async function pasarAlCarrito(lineas) {
+  const resultado = { conservados: [], incompletos: [], descartados: [], error: null };
+  for (const linea of lineas) {
+    try {
+      await agregarAlCarrito(linea.id, linea.cantidad);
+    } catch (error) {
+      if (error.code === "STOCK_MAXIMO") {
+        // Ya tenía unidades en su carrito y no caben todas: se agregan las que quedan libres.
+        const libres = error.data.maximo - error.data.en_carrito;
+        try {
+          if (libres > 0) await agregarAlCarrito(linea.id, libres);
+          resultado.incompletos.push(linea.nombre);
+        } catch (otro) {
+          clasificar(otro, { ...linea, cantidad: libres }, resultado);
+        }
+      } else {
+        clasificar(error, linea, resultado);
+      }
+    }
+  }
+  return resultado;
+}
+
+// Avisa con toasts cómo terminó el paso del carrito del navegador a la cuenta.
+function avisarPaso(mostrar, { conservados, incompletos, descartados, error }, total) {
+  if (conservados.length) {
+    mostrar(
+      `${error.message} No pudimos pasar a tu cuenta: ${conservados.map((l) => l.nombre).join(", ")}. ` +
+        "Siguen guardados en este navegador y se pasarán la próxima vez que entres."
+    );
+  }
+  if (descartados.length) {
+    mostrar(`Estos productos ya no están disponibles y no se pasaron a tu cuenta: ${descartados.join(", ")}.`);
+  }
+  if (incompletos.length) {
+    mostrar(`Pasamos tu carrito a tu cuenta, pero no cabían todas las unidades de: ${incompletos.join(", ")}.`);
+  }
+  if (total && !conservados.length && !descartados.length && !incompletos.length) {
+    mostrar("Pasamos a tu cuenta los productos que agregaste antes de iniciar sesión.");
+  }
+}
+
 const CarritoContext = createContext(null);
 
 export function CarritoProvider({ children }) {
@@ -121,6 +177,11 @@ export function CarritoProvider({ children }) {
 
   // Al entrar como cliente: pasar el carrito del navegador a la API y cargar el carrito de la API.
   // El navegador se vacía ANTES de enviar: si el efecto corre dos veces (StrictMode), nada se envía dos veces.
+  // Cada línea se resuelve por separado (auditoría, H-01):
+  //   · llegó a la API → sale del navegador;
+  //   · la API la rechaza por una regla de negocio (inactivo, agotado, no existe, sin cupo) → no se pasa y se avisa;
+  //   · falla por otra causa (sin conexión, error del servidor, sesión) → VUELVE al navegador y se intenta
+  //     la próxima vez que el cliente entre. Así nunca se pierde un producto ni se envía dos veces.
   const idUsuario = user?.id_usuario;
   useEffect(() => {
     if (!esCliente) {
@@ -134,36 +195,22 @@ export function CarritoProvider({ children }) {
       setLocal([]);
     }
 
+    let avisado = false; // sin conexión, el aviso del paso ya lo explicó: no se repite el error al cargar
     enCola(async () => {
-      const incompletos = [];
-      for (const linea of pendientes) {
-        try {
-          await agregarAlCarrito(linea.id, linea.cantidad);
-        } catch (error) {
-          if (error.status === 0) throw Object.assign(error, { pendientes }); // sin conexión: se reintenta luego
-          // Si ya tenía unidades en su carrito y no caben todas, se agregan las que quedan libres.
-          const libres = error.code === "STOCK_MAXIMO" ? error.data.maximo - error.data.en_carrito : 0;
-          if (libres > 0) await agregarAlCarrito(linea.id, libres).catch(() => {});
-          incompletos.push(linea.nombre);
-        }
+      const resultado = await pasarAlCarrito(pendientes);
+      // Lo que no se pudo pasar vuelve al navegador, aunque el efecto ya se haya cancelado: es del visitante.
+      if (resultado.conservados.length) {
+        guardarLocal(resultado.conservados);
+        setLocal(resultado.conservados);
       }
+      avisarPaso(mostrar, resultado, pendientes.length);
+      avisado = resultado.conservados.length > 0;
       const { data } = await obtenerCarrito();
-      if (cancelado) return;
-      setRemoto(desdeApi(data));
-      if (incompletos.length) {
-        mostrar(`Pasamos tu carrito a tu cuenta, pero no cabían todas las unidades de: ${incompletos.join(", ")}.`);
-      } else if (pendientes.length) {
-        mostrar("Pasamos a tu cuenta los productos que agregaste antes de iniciar sesión.");
-      }
+      if (!cancelado) setRemoto(desdeApi(data));
     }).catch((error) => {
-      // Sin conexión: los productos vuelven al navegador (estado y almacenamiento) y se pasan en la próxima carga.
-      if (error.pendientes) {
-        guardarLocal(error.pendientes);
-        setLocal(error.pendientes);
-      }
       if (cancelado) return;
       setRemoto(VACIO);
-      mostrar(error.message);
+      if (!avisado) mostrar(error.message);
     });
 
     return () => {

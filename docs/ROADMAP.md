@@ -6,7 +6,7 @@
 
 ## Estado general
 
-- **Backend:** implementado para los CU-01 a CU-22 sobre [PostgreSQL](GLOSARIO.md#postgresql), incluida la exportación de CU-18 ([D11](#resueltas), B4.1). Cada sprint de backend consiste en **asegurar con pruebas automatizadas** lo ya construido, corregir lo que esas pruebas revelen y terminar lo pendiente. Ya existe la base de pruebas (Vitest + Supertest, base `bike_store_test`) con 242 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), el carrito como pedido con su concurrencia (D12), catálogo, productos e imágenes (B2.1), categorías, eliminación de productos y galería (B2.2), el carrito, los pedidos y el pago con su concurrencia (B3.1 y B3.2), y el tablero, la exportación y el listado de pedidos del admin (B4.1, B4.2 y decisión N). B2.2 agregó endpoints nuevos (decisión M), que usa F2.4; B4 agregó la exportación y `GET /api/pedidos/admin` (decisión N), que usa F4.
+- **Backend:** implementado para los CU-01 a CU-22 sobre [PostgreSQL](GLOSARIO.md#postgresql), incluida la exportación de CU-18 ([D11](#resueltas), B4.1). Cada sprint de backend consiste en **asegurar con pruebas automatizadas** lo ya construido, corregir lo que esas pruebas revelen y terminar lo pendiente. Ya existe la base de pruebas (Vitest + Supertest, base `bike_store_test`) con 282 pruebas: `auth` (B1.1), `usuarios` y control de acceso (B1.2), el carrito como pedido con su concurrencia (D12), catálogo, productos e imágenes (B2.1), categorías, eliminación de productos y galería (B2.2), el carrito, los pedidos y el pago con su concurrencia (B3.1 y B3.2), el tablero, la exportación y el listado de pedidos del admin (B4.1, B4.2 y decisión N), y la seguridad y robustez de la API que pidió la auditoría (límite de intentos, configuración segura, 413/400 en lugar de 500, cabeceras y `SIN_CAMBIOS`) y el cierre de las sesiones abiertas al restablecer la contraseña (migración 007), además de mensajes claros cuando la API o `test:db` no encuentran PostgreSQL. B2.2 agregó endpoints nuevos (decisión M), que usa F2.4; B4 agregó la exportación y `GET /api/pedidos/admin` (decisión N), que usa F4.
 - **Frontend:**
   - **Ya hecho:** una sola navbar con la sesión, validación del token al abrir la app, cierre de sesión automático si la API la rechaza (F1.1); rutas `/admin` y `/cuenta` protegidas por rol (F1.2); recuperar y restablecer contraseña, y validaciones del registro (F1.3); panel de usuarios para el admin (F1.4); sistema de diseño "Noche", con tema oscuro y claro, aplicado a todas las vistas (rediseño, reemplaza a "Montaña Clara" de F2.1).
   - **Catálogo desde la API (F2.2):** productos y categorías reales, filtro por categoría y orden por precio en la URL, imagen de reemplazo (decisión L).
@@ -16,7 +16,7 @@
   - **Mis pedidos (F3.2):** el cliente ve su historial (`/cuenta/pedidos`) y el detalle de cada pedido con productos, envío y pagos (`/cuenta/pedidos/:numero`); los pedidos pendientes o rechazados se pagan desde ahí (`/cuenta/pedidos/:numero/pagar`).
   - **Checkout y pago simulado (F3.3):** `/checkout` en tres pasos (resumen, envío con la lista de departamentos y pago); confirmar vacía el carrito y crea el pedido; el pago rechazado se reintenta sobre el mismo pedido (F) y la falta de stock no cobra nada (E). Al aprobarse, el detalle del pedido sirve de confirmación. El número de tarjeta o cuenta solo vive en el formulario de pago.
   - **Tablero, informes y pedidos del admin (F4):** `/admin/dashboard` con métricas filtradas por fechas y categoría (atajos "Este mes" y "Últimos 30 días", filtros guardados en la URL), gráfica de los más vendidos (recharts, cargada aparte solo para el tablero), alertas con enlaces a cada producto y pedido, y descarga del informe en Excel y PDF; `/admin/pedidos` lista los pedidos de todos los clientes con búsqueda y filtros, y `/admin/pedidos/:numero` muestra el detalle de solo lectura (decisión N).
-- **Base de datos:** en local corre en Docker (D13). El modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) de la 002 a la 006 están verificadas. La 004 y la 005 aplican la decisión D12 (el carrito es un pedido en estado `carrito`); la 006 agrega la galería de imágenes (decisión M).
+- **Base de datos:** en local corre en Docker (D13). El modelo está aprobado ([MODELO_DATOS](diseno-tecnico/MODELO_DATOS.md)) y las [migraciones](GLOSARIO.md#migracion) de la 002 a la 007 están verificadas. La 004 y la 005 aplican la decisión D12 (el carrito es un pedido en estado `carrito`); la 006 agrega la galería de imágenes (decisión M) y la 007, la fecha del último restablecimiento de contraseña, que cierra las sesiones abiertas (auditoría).
 - **Único punto abierto:** el [Sprint 5 · Despliegue](#sprint-5--despliegue-pendiente).
 
 ## Sprints
@@ -36,15 +36,16 @@ Cada tarea enlaza a su prompt. **Cada tarea es una [rama](GLOSARIO.md#rama) y un
 
 ### Sprint 5 · Despliegue (pendiente)
 
-Es el único sprint sin definir. Se planifica cuando termine el Sprint 4.
+Es el único sprint sin definir. Se planifica cuando termine el Sprint 4. Los temas marcados con un hallazgo (H-NN) vienen de la auditoría de v0.4.0: hoy no afectan en local, pero hay que resolverlos antes de publicar.
 
 | Tema | A decidir |
 |------|-----------|
 | Hosting | Dónde se publican la API, la base PostgreSQL y el frontend (ej. un servicio con PostgreSQL gestionado para la API y Vercel/Netlify para el frontend) |
-| Migraciones | Adoptar un ejecutor automático (`node-pg-migrate` u otro) o aplicarlas con `psql` contra la base de producción |
-| Correo | Enviar el token de recuperación por correo (SMTP o un servicio transaccional). En producción el token nunca va en la respuesta. |
-| Imágenes | Disco del servidor o almacenamiento de objetos (el disco de muchos hostings se borra en cada despliegue) |
-| Seguridad | `NODE_ENV=production`, `JWT_SECRET` fuerte, `CORS_ORIGIN` con el dominio real, HTTPS, copias de seguridad de la base |
+| Migraciones | Adoptar un ejecutor automático (`node-pg-migrate` u otro) o aplicarlas con `psql` contra la base de producción. Hoy la lista está repetida en `01-crear-bases.sh`, `preparar-db-test.js` y la documentación, y no hay registro de cuáles se aplicaron en cada base (H-14) |
+| Correo | Enviar el token de recuperación por correo (SMTP o un servicio transaccional). En producción el token nunca va en la respuesta: la API ya lo ignora si `NODE_ENV` no es `development` escrito en el `.env` (D8). Sin el correo, en producción el token solo queda en la consola del servidor y el cliente no puede recuperar su cuenta (CU-11) |
+| Imágenes | Disco persistente o almacenamiento de objetos. Hoy se guardan en `backend/uploads/` y se sirven con `express.static`: en un hosting con disco efímero se perderían todas en el primer reinicio o despliegue (H-10) |
+| Imagen de PostgreSQL | Fijar la versión menor en `docker-compose.yml` (por ejemplo `postgres:17.x-alpine`) y usar la misma en producción, para que todos los entornos tengan la misma versión (H-15) |
+| Seguridad | `NODE_ENV=production`, `JWT_SECRET` fuerte (con `production` la API no arranca con uno corto o de ejemplo), `CORS_ORIGIN` con el dominio real, `TRUST_PROXY` según el hosting (el límite de intentos usa la IP real), HTTPS, copias de seguridad de la base |
 
 ## Decisiones
 

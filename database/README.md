@@ -10,6 +10,7 @@ Una **migración** es un archivo SQL numerado que describe **un cambio** en la e
 004_estado_pedido_carrito.sql   ← agrega el estado 'carrito' a estado_pedido
 005_carrito_como_pedido.sql     ← el carrito pasa a ser un pedido en estado 'carrito'
 006_producto_imagenes.sql       ← galería: imágenes adicionales de cada producto
+007_password_cambiada_en.sql    ← fecha del último restablecimiento de contraseña (cierra sesiones)
 ```
 
 **Por qué conviene en este proyecto:**
@@ -34,7 +35,7 @@ Consecuencia práctica: la `002` **no se puede ejecutar dos veces** sobre la mis
 
 ## Con Docker
 
-Es la forma principal (decisión D13 del [ROADMAP](../docs/ROADMAP.md#resueltas)). `docker-compose.yml`, en la raíz, levanta PostgreSQL 17 en el puerto **5433**, accesible solo desde el mismo PC. Las contraseñas salen del `.env` de la raíz (copia de `.env.example`, no se sube a GitHub). La primera vez que se crea el volumen de datos, `docker/initdb/01-crear-bases.sh` crea el rol `bike_store_app`, las bases `bike_store` y `bike_store_test`, y aplica de la `002` a la `005` sobre `bike_store`. Los pasos completos están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker). Desde la raíz del repositorio:
+Es la forma principal (decisión D13 del [ROADMAP](../docs/ROADMAP.md#resueltas)). `docker-compose.yml`, en la raíz, levanta PostgreSQL 17 en el puerto **5433**, accesible solo desde el mismo PC. Las contraseñas salen del `.env` de la raíz (copia de `.env.example`, no se sube a GitHub). La primera vez que se crea el volumen de datos, `docker/initdb/01-crear-bases.sh` crea el rol `bike_store_app`, las bases `bike_store` y `bike_store_test`, y aplica de la `002` a la `007` sobre `bike_store`. Los pasos completos están en la [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md#4-levantar-la-base-de-datos-con-docker). Desde la raíz del repositorio:
 
 ```bash
 cp .env.example .env                 # una sola vez: elige POSTGRES_PASSWORD (y DB_PASSWORD si quieres otra)
@@ -44,8 +45,8 @@ docker compose logs db               # qué pasó al iniciar
 # Consola psql dentro del contenedor (no necesitas psql instalado)
 docker compose exec db psql -U bike_store_app -d bike_store
 
-# Aplicar una migración NUEVA sin borrar datos (ejemplo con la 006)
-docker compose exec -T db psql -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f /migraciones/006_descripcion_corta.sql
+# Aplicar una migración NUEVA sin borrar datos (ejemplo con la 007)
+docker compose exec -T db psql -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f /migraciones/007_password_cambiada_en.sql
 
 # Empezar de cero: BORRA todos los datos y vuelve a crear todo
 docker compose down -v
@@ -70,6 +71,7 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/007_password_cambiada_en.sql
 ```
 
 `-v ON_ERROR_STOP=1` detiene el archivo en el primer error en lugar de seguir a medias.
@@ -102,7 +104,8 @@ sudo -u postgres psql -c "DROP DATABASE IF EXISTS bike_store;"
 | `migrations/004_estado_pedido_carrito.sql` | Agrega `carrito` al ENUM `estado_pedido`. Va sola y sin transacción (ver la excepción de arriba) |
 | `migrations/005_carrito_como_pedido.sql` | El carrito pasa a ser un pedido en estado `carrito` (decisión D12): `fecha_pedido`, columnas de envío y número opcionales mientras es carrito, CHECK `ck_pedidos_confirmado`, índice único parcial de un carrito por cliente, trigger que numera al confirmar, conversión de los carritos existentes y eliminación de `carritos` y `carrito_items`. Quedan 7 tablas |
 | `migrations/006_producto_imagenes.sql` | Tabla `producto_imagenes` (decisión M): imágenes adicionales de cada producto, con su `orden`, y `ON DELETE CASCADE` hacia `productos`. La portada sigue en `productos.imagen`. Quedan 8 tablas |
+| `migrations/007_password_cambiada_en.sql` | Columna `usuarios.password_cambiada_en` (auditoría H-04): la fija el restablecimiento de contraseña y el backend rechaza con 401 `SESION_REVOCADA` los tokens emitidos antes. Admite NULL, así que no cambia las filas existentes |
 | `migrations/legacy_mysql/` | Migración original en MySQL. Histórico, **no se ejecuta** |
-| `docker/initdb/01-crear-bases.sh` | Inicialización del contenedor de Docker: rol, bases `bike_store` y `bike_store_test`, y migraciones 002 a 006. Corre solo cuando el volumen está vacío |
+| `docker/initdb/01-crear-bases.sh` | Inicialización del contenedor de Docker: rol, bases `bike_store` y `bike_store_test`, y migraciones 002 a 007. Corre solo cuando el volumen está vacío |
 
 El modelo completo (MER, MR y decisiones) está en [MODELO_DATOS](../docs/diseno-tecnico/MODELO_DATOS.md) y su justificación en [JUSTIFICACION_MODELO_DATOS](../docs/diseno-tecnico/JUSTIFICACION_MODELO_DATOS.md).

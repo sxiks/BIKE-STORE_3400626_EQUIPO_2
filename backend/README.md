@@ -13,12 +13,18 @@ Arquitectura en capas: `routes → middlewares → controllers → services → 
    Los valores de ejemplo coinciden con la guía. Cambia `JWT_SECRET` y las contraseñas en tu `.env` real.
 3. Instalar y ejecutar:
    ```bash
-   npm install
+   npm ci             # instala exactamente las versiones de package-lock.json
    npm run dev        # node --watch → http://localhost:3000
    ```
    `npm run dev` usa `node --watch`, incluido en Node: reinicia la API al guardar un archivo de código. Un cambio en `.env` necesita reiniciarla a mano (Ctrl+C y `npm run dev`).
 
 Al arrancar, la API comprueba la conexión a PostgreSQL y crea el admin de `ADMIN_*` si no existe. La carpeta `uploads/productos/` se crea sola y está ignorada por Git.
+
+**Seguridad (B1, auditoría):**
+- `NODE_ENV` va siempre escrito en el `.env`. Si falta, la API avisa en consola y no activa las opciones solo de desarrollo, como devolver el token de recuperación.
+- Con `NODE_ENV=production`, la API no arranca si `JWT_SECRET` tiene menos de 32 caracteres o es el de ejemplo.
+- Login, recuperar y registro tienen límite de intentos: `AUTH_LIMITE_*` en `.env.example`, con 429 y `DEMASIADOS_INTENTOS`. El contador vive en memoria y se reinicia al reiniciar la API.
+- Todas las respuestas llevan `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`, y no anuncian Express.
 
 ## Pruebas automatizadas
 
@@ -44,7 +50,7 @@ Luego, dentro de `backend/`:
 ```bash
 cp .env.test.example .env.test      # Windows: Copy-Item .env.test.example .env.test
 # sin Docker: DB_PORT=5432 y, si tu rol usa otra contraseña, ajústala en DB_PASSWORD
-npm run test:db                     # deja la base de pruebas con las migraciones 002 a 006
+npm run test:db                     # deja la base de pruebas con las migraciones 002 a 007
 ```
 
 **Cada vez que pruebes:**
@@ -54,7 +60,7 @@ npm test             # corre todas las pruebas una vez
 npm run test:watch   # las repite al guardar cambios
 ```
 
-- Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`. El script aplica de la `002` a la `005`.
+- Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`. El script aplica de la `002` a la `007`.
 - Protección: si `.env.test` no existe o su `DB_NAME` no termina en `_test`, las pruebas y `test:db` se niegan a ejecutarse.
 - Las pruebas están en `tests/`: un archivo por módulo (`auth.test.js`, `carrito-pedido.test.js`, …) y utilidades en `tests/helpers/`.
 

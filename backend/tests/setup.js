@@ -12,6 +12,12 @@ const { cargarEnvTest } = require('./helpers/cargarEnvTest.js');
 
 cargarEnvTest();
 
+// Límite de intentos de /auth (B1): las pruebas inician sesión muchas veces desde la misma IP.
+// Si .env.test no trae estos valores (los .env.test creados antes de B1), se usan topes altos;
+// tests/seguridad.test.js los baja a propósito para probar el 429.
+process.env.AUTH_LIMITE_IP ??= '100000';
+process.env.AUTH_LIMITE_CORREO ??= '100000';
+
 afterAll(async () => {
   await require('../src/config/db.js').end();
 });

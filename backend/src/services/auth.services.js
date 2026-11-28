@@ -12,6 +12,10 @@ const v = require('../utils/validators');
 const BCRYPT_ROUNDS = 10;
 const UNIQUE_VIOLATION = '23505';
 
+// Hash bcrypt de una clave que nadie usa. Si el correo no existe, el login compara contra este hash:
+// así tarda lo mismo que con un correo registrado y el tiempo de respuesta no revela qué cuentas existen (H-12).
+const HASH_FICTICIO = '$2b$10$3njVpK.ITyq.6lop/2AQ3.z5JmtZEluk6R.thbOMxmVT8VoUUq6my';
+
 const sha256 = (texto) => crypto.createHash('sha256').update(texto).digest('hex');
 
 function sinPassword(usuario) {
@@ -47,12 +51,14 @@ async function registerUser({ nombre, email, password } = {}) {
 
 async function loginUser({ email, password } = {}) {
   const emailLimpio = v.normalizarEmail(email);
-  if (!emailLimpio || !password) {
+  // typeof: un password que no es texto (un objeto, un número) es un dato inválido, no un error interno (H-05).
+  if (!emailLimpio || typeof password !== 'string' || !password) {
     throw new AppError('Email y password son obligatorios', 400);
   }
 
   const usuario = await usuariosRepository.findByEmail(emailLimpio);
-  if (!usuario || !(await bcrypt.compare(password, usuario.password))) {
+  const coincide = await bcrypt.compare(password, usuario ? usuario.password : HASH_FICTICIO);
+  if (!usuario || !coincide) {
     throw new AppError('Credenciales incorrectas', 401);
   }
 
@@ -90,8 +96,8 @@ async function solicitarRecuperacion({ email } = {}) {
   );
 
   // Opción de desarrollo: también en la respuesta, para que el frontend pruebe el flujo.
-  const enRespuesta = env.isDev && env.resetToken.enRespuesta;
-  return { tokenDesarrollo: enRespuesta ? token : null };
+  // env.resetToken.enRespuesta ya exige NODE_ENV=development escrito (config/env.js).
+  return { tokenDesarrollo: env.resetToken.enRespuesta ? token : null };
 }
 
 async function restablecerPassword({ token, password } = {}) {
@@ -106,7 +112,8 @@ async function restablecerPassword({ token, password } = {}) {
     if (!registro) {
       throw new AppError('El enlace de recuperación no es válido o ya venció', 400, 'TOKEN_INVALIDO');
     }
-    await usuariosRepository.updatePassword(registro.id_usuario, passwordHash, tx);
+    // H-04: fijar password_cambiada_en cierra las sesiones abiertas (auth.middleware rechaza los tokens anteriores).
+    await usuariosRepository.updatePassword(registro.id_usuario, passwordHash, new Date(), tx);
     await tokensRepository.marcarUsado(registro.id_token, tx);
   });
 }

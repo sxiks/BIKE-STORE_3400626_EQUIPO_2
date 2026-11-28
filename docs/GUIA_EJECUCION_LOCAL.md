@@ -160,7 +160,7 @@ Si ya tenías un clon viejo del repositorio, renómbralo como respaldo antes de 
 **Qué hace.** Un solo comando, desde la **raíz del repositorio**, descarga la imagen oficial de PostgreSQL 17 y arranca un [contenedor](GLOSARIO.md#contenedor) llamado `bike-store-db`. **La primera vez**, el script `database/docker/initdb/01-crear-bases.sh`:
 - crea el [rol](GLOSARIO.md#rol-postgres) `bike_store_app` con la contraseña de `DB_PASSWORD` del `.env` de la raíz (por defecto `cambia_esta_clave`, la misma de `backend/.env.example`);
 - crea las bases `bike_store` y `bike_store_test`, en hora de Colombia;
-- aplica las [migraciones](GLOSARIO.md#migracion) 002 a 006 sobre `bike_store` (tablas, [semilla](GLOSARIO.md#semilla), carrito como pedido y galería de imágenes).
+- aplica las [migraciones](GLOSARIO.md#migracion) 002 a 007 sobre `bike_store` (tablas, [semilla](GLOSARIO.md#semilla), carrito como pedido, galería de imágenes y cierre de sesiones al restablecer la contraseña).
 
 Los datos se guardan en un [volumen](GLOSARIO.md#volumen-docker) llamado `bike-store_bike_store_datos`: sobreviven al apagar el contenedor o el PC.
 
@@ -208,7 +208,7 @@ Aplicar una migración nueva sin borrar datos y abrir una consola `psql` dentro 
 No necesitas `psql` instalado: se usa el que trae el contenedor.
 ```bash
 docker compose exec db psql -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
-docker compose exec db psql -U bike_store_app -d bike_store -c "\dt"                              # 7 tablas
+docker compose exec db psql -U bike_store_app -d bike_store -c "\dt"                              # 8 tablas
 docker compose exec db psql -U bike_store_app -l                                                  # aparecen bike_store y bike_store_test
 ```
 
@@ -228,7 +228,7 @@ Abre una terminal **solo para la API** y déjala abierta mientras trabajas.
 ```bash
 cd backend
 cp .env.example .env      # crea tu configuración local; ya apunta a la base de Docker (puerto 5433)
-npm install               # descarga las dependencias (solo la primera vez o si cambia package.json)
+npm ci                    # instala exactamente las versiones de package-lock.json
 npm run dev               # arranca la API y la reinicia sola al guardar cambios
 ```
 
@@ -236,7 +236,7 @@ npm run dev               # arranca la API y la reinicia sola al guardar cambios
 ```powershell
 cd backend
 Copy-Item .env.example .env
-npm install
+npm ci
 npm run dev
 ```
 
@@ -248,6 +248,7 @@ Bike Store API ejecutándose en http://localhost:3000
 
 - El archivo [`.env`](GLOSARIO.md#env) es tuyo: **nunca** se sube a GitHub.
 - Para detener la API: `Ctrl + C` en esa terminal.
+- **`npm ci` y no `npm install`.** `npm ci` instala exactamente lo que dice `package-lock.json` y no lo modifica. `npm install` puede reescribirlo (las versiones nuevas de npm cambian su formato), y aparece como un cambio que nadie hizo. Repite `npm ci` después de un `git pull` que cambie `package-lock.json`, en `backend/` o en `frontend/`. `npm install <paquete>` solo se usa para agregar una dependencia ([CONTRIBUTING, regla 7](../CONTRIBUTING.md#6-reglas-anti-conflictos)).
 
 ---
 
@@ -263,8 +264,8 @@ Abre **otra** terminal, distinta de la de la API.
 ```bash
 cd frontend
 cp .env.example .env      # indica a qué URL está la API (VITE_API_URL)
-npm install
-npm test                  # debe dar 308 pruebas en verde
+npm ci
+npm test                  # debe dar 311 pruebas en verde
 npm run dev               # abre http://localhost:5173
 ```
 
@@ -272,7 +273,7 @@ npm run dev               # abre http://localhost:5173
 ```powershell
 cd frontend
 Copy-Item .env.example .env
-npm install
+npm ci
 npm test
 npm run dev
 ```
@@ -288,8 +289,8 @@ npm run dev
 | La API responde | `curl -s http://localhost:3000/api/health` | `Invoke-RestMethod http://localhost:3000/api/health` | `ok: true` |
 | El catálogo tiene datos | `curl -s http://localhost:3000/api/productos` | `Invoke-RestMethod http://localhost:3000/api/productos` | 9 productos activos |
 | El login funciona | Abre `http://localhost:5173/login` | igual | Con el admin, redirige a la tienda |
-| Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 308 pruebas en verde |
-| Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas) (con Docker, `bike_store_test` ya existe). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y 242 pruebas en verde |
+| Las pruebas del frontend pasan | `npm test` en `frontend/` | igual | 311 pruebas en verde |
+| Las pruebas del backend pasan (Dev Backend) | Una sola vez: crear `.env.test` como indica [backend/README](../backend/README.md#pruebas-automatizadas) (con Docker, `bike_store_test` ya existe). Luego, en `backend/`: `npm run test:db` y `npm test` | igual | `Listo: 10 productos…` y 282 pruebas en verde |
 
 ### Usuarios de prueba
 
@@ -360,7 +361,7 @@ psql -U postgres -c "ALTER DATABASE bike_store SET timezone TO 'America/Bogota';
 
 ### A.3 Aplicar las migraciones
 
-Las [migraciones](GLOSARIO.md#migracion) crean las tablas (la `002`), cargan categorías y productos de ejemplo (la `003`, la [semilla](GLOSARIO.md#semilla)) y convierten el carrito en un pedido en estado `carrito` (la `004` y la `005`, decisión D12 del [ROADMAP](ROADMAP.md#resueltas)). Se ejecutan **desde la raíz del repositorio**, **en orden** y **una a la vez**: revisa que cada una termine sin `ERROR` antes de la siguiente.
+Las [migraciones](GLOSARIO.md#migracion) crean las tablas (la `002`), cargan categorías y productos de ejemplo (la `003`, la [semilla](GLOSARIO.md#semilla)) convierten el carrito en un pedido en estado `carrito` (la `004` y la `005`, decisión D12 del [ROADMAP](ROADMAP.md#resueltas)), agregan la galería de imágenes (la `006`) y la fecha del último restablecimiento de contraseña (la `007`). Se ejecutan **desde la raíz del repositorio**, **en orden** y **una a la vez**: revisa que cada una termine sin `ERROR` antes de la siguiente.
 
 Para no escribir la contraseña del rol en cada comando, guárdala en una variable que solo dura mientras la terminal esté abierta:
 
@@ -372,6 +373,7 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/007_password_cambiada_en.sql
 psql -h localhost -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
 unset PGPASSWORD
 ```
@@ -384,6 +386,7 @@ psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/004_estado_pedido_carrito.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/005_carrito_como_pedido.sql
 psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/006_producto_imagenes.sql
+psql -h localhost -U bike_store_app -d bike_store -v ON_ERROR_STOP=1 -f database/migrations/007_password_cambiada_en.sql
 psql -h localhost -U bike_store_app -d bike_store -c "SELECT count(*) FROM productos;"    # debe dar 10
 Remove-Item Env:PGPASSWORD
 ```
@@ -392,7 +395,9 @@ Si usaste otra contraseña al crear el rol en el paso A.2, pon esa en `PGPASSWOR
 
 **Si tu base ya tenía la `002` y la `003`** (montaste el entorno antes de la decisión D12): aplica **solo la `004` y luego la `005`**. Comprueba que quedó bien con `psql -h localhost -U bike_store_app -d bike_store -c "\dt"`: deben aparecer 7 tablas y ya no `carritos` ni `carrito_items`. Luego aplica la `006`: quedan 8 tablas, con `producto_imagenes`.
 
-**Si tu base ya tenía de la `002` a la `005`:** aplica **solo la `006`**, con el mismo comando de arriba.
+**Si tu base ya tenía de la `002` a la `005`:** aplica **solo la `006`** y luego la `007`, con los mismos comandos de arriba.
+
+**Si tu base ya tenía de la `002` a la `006`:** aplica **solo la `007`**. Con Docker, el comando está en [database/README](../database/README.md#con-docker).
 
 - **Nunca ejecutes** `database/migrations/legacy_mysql/001_base_usuarios_equipos.sql`: es MySQL y falla.
 - La `002` y la `005` no se pueden aplicar dos veces sobre la misma base.

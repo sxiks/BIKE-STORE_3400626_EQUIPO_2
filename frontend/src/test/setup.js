@@ -1,4 +1,11 @@
 import "@testing-library/jest-dom/vitest";
+import { configure } from "@testing-library/react";
+
+// Cuánto esperan findBy* y waitFor antes de fallar (por defecto, 1 segundo). El tablero se carga aparte
+// (React.lazy, con recharts) y la primera vez se compila durante la prueba: con las 19 suites en paralelo
+// tarda casi 1 s en el PC de la casa y casi 2 s en el portátil, donde la prueba fallaba sin que hubiera
+// ningún error. 5 s cubre los equipos lentos; una prueba que pasa no espera de más, solo la que falla.
+configure({ asyncUtilTimeout: 5000 });
 
 // Ninguna prueba puede salir a la red. Cada archivo simula fetch con vi.stubGlobal y lo restaura con
 // vi.unstubAllGlobals(), que devuelve el fetch que había antes de simularlo. Si ese fuera el fetch real,

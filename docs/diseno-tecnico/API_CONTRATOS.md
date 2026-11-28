@@ -27,6 +27,7 @@
 | `code` | Cuándo | Qué debería hacer el frontend |
 |--------|--------|-------------------------------|
 | `CUENTA_DESACTIVADA` | 403 en login o en cualquier petición con sesión | Cerrar la sesión y mostrar el mensaje |
+| `SESION_REVOCADA` | 401 en cualquier petición con sesión, si el token se emitió antes del último restablecimiento de contraseña | Cerrar la sesión y mostrar el mensaje |
 | `TOKEN_INVALIDO` | 400 al restablecer contraseña | Ofrecer pedir un token nuevo |
 | `ACCION_SOBRE_SI_MISMO` | 400: un admin intenta cambiarse su propio rol o estado (D5/D6) | Mostrar el mensaje |
 | `PRODUCTO_DUPLICADO` | 409 al crear o editar un producto | Marcar el campo nombre |
@@ -40,6 +41,8 @@
 | `CARRITO_VACIO` / `CARRITO_NO_DISPONIBLE` | 400/409 al confirmar el carrito (`POST /pedidos`) | Volver al carrito; `data.items` lista los no disponibles |
 | `PEDIDO_YA_PAGADO` | 409 | Ir a la confirmación del pedido |
 | `PAGO_RECHAZADO` | 402 | Ofrecer reintentar con otro medio de pago |
+| `SIN_CAMBIOS` | 409: se pide para un producto, rol o estado el valor que ya tiene (CU-14 2.1, CU-20 4.2, CU-21 2.1) | Mostrar el mensaje y refrescar el listado |
+| `DEMASIADOS_INTENTOS` | 429 en `/auth/login`, `/auth/recuperar` o `/auth/register` | Mostrar el mensaje; la cabecera `Retry-After` trae los segundos de espera |
 
 | Status | Significado |
 |--------|-------------|
@@ -49,8 +52,16 @@
 | 402 | Pago simulado rechazado |
 | 403 | Rol sin permiso, o cuenta desactivada |
 | 404 | No existe (o no te pertenece) |
-| 409 | Conflicto: duplicado, sin stock, pedido ya pagado |
+| 409 | Conflicto: duplicado, sin stock, pedido ya pagado, sin cambios |
+| 413 | El cuerpo JSON supera 100 kB (o la imagen, 2 MB: esa responde 400, como siempre) |
+| 429 | Demasiados intentos de acceso: `DEMASIADOS_INTENTOS` |
 | 500 | Error interno |
+
+Un número entero fuera de rango (ids, cantidades, existencias por encima de 2.147.483.647) responde `400`, nunca `500`.
+
+**Límite de intentos (B1).** `/auth/login`, `/auth/recuperar` y `/auth/register` comparten un límite por IP (`AUTH_LIMITE_IP`, 30 por defecto) en una ventana de `AUTH_LIMITE_MINUTOS` (15). Además, `/auth/login` cuenta los intentos **fallidos** de cada correo y `/auth/recuperar` todas las solicitudes de cada correo (`AUTH_LIMITE_CORREO`, 10). Al pasarse: `429` con `DEMASIADOS_INTENTOS` y las cabeceras `RateLimit` y `Retry-After`. El contador vive en la memoria de la API: se reinicia al reiniciarla. Detrás de un proxy (despliegue), `TRUST_PROXY` indica cuántos saltos hay para que la IP sea la del cliente.
+
+**Cabeceras de seguridad.** Todas las respuestas llevan `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` y `Referrer-Policy: no-referrer`, y ya no llevan `X-Powered-By`.
 
 ## Objetos
 
@@ -76,28 +87,31 @@ Imagen    = { "id_imagen": 7, "imagen": "1795...-123.webp", "orden": 1 }
 Request: `{ "nombre": "Ana", "email": "ana@correo.com", "password": "Segura123" }`
 - `201` → `{ "ok": true, "message": "Usuario registrado", "data": { "id_usuario": 2 } }`
 - `400` faltan datos, correo inválido o contraseña que no cumple D7 (mínimo 8 caracteres, con mayúscula, minúscula y número)
-- `409` el correo ya está registrado (sin distinguir mayúsculas)
+- `409` el correo ya está registrado (sin distinguir mayúsculas) · `429` `DEMASIADOS_INTENTOS`
 
 El correo se guarda en minúsculas y sin espacios. El rol siempre es `cliente`.
 
 ### `POST /auth/login` · pública · CU-10
 Request: `{ "email": "ana@correo.com", "password": "Segura123" }`
 - `200` → `{ "ok": true, "data": { "user": Usuario, "token": "eyJ..." } }`
-- `400` faltan datos · `401` credenciales incorrectas · `403` `CUENTA_DESACTIVADA`
+- `400` faltan datos (o `email`/`password` no son texto) · `401` credenciales incorrectas · `403` `CUENTA_DESACTIVADA` · `429` `DEMASIADOS_INTENTOS`
 
 ### `GET /auth/me` · con sesión · CU-22
 - `200` → `{ "ok": true, "data": Usuario }` (rol y estado leídos de la base en ese momento)
+- `401` sin token, token inválido o vencido, o `SESION_REVOCADA` · `403` `CUENTA_DESACTIVADA`
 
 ### `POST /auth/recuperar` · pública · CU-11
 Request: `{ "email": "ana@correo.com" }`
 - `200` → `{ "ok": true, "message": "Si el correo está registrado, se generó un enlace de recuperación" }`
-- Solo en desarrollo (`NODE_ENV=development` y `RESET_TOKEN_EN_RESPUESTA=true`), y si el correo existe: además `"data": { "token_desarrollo": "<64 hex>" }`. Uso: [sección 1 de GUIA_PRUEBAS_LOCALES](../GUIA_PRUEBAS_LOCALES.md#1-recuperación-de-contraseña-cu-11).
-- `400` correo con formato inválido
+- Solo en desarrollo (`NODE_ENV=development` escrito en el `.env`, no supuesto, y `RESET_TOKEN_EN_RESPUESTA=true`), y si el correo existe: además `"data": { "token_desarrollo": "<64 hex>" }`. Con `NODE_ENV=production`, la API además se niega a arrancar si `JWT_SECRET` tiene menos de 32 caracteres o es el de los archivos de ejemplo. Uso: [sección 1 de GUIA_PRUEBAS_LOCALES](../GUIA_PRUEBAS_LOCALES.md#1-recuperación-de-contraseña-cu-11).
+- `400` correo con formato inválido · `429` `DEMASIADOS_INTENTOS`
 
 ### `POST /auth/restablecer` · pública · CU-11
 Request: `{ "token": "<64 hex>", "password": "Nueva1234" }`
 - `200` → `{ "ok": true, "message": "Contraseña actualizada. Ya puedes iniciar sesión" }`
 - `400` `TOKEN_INVALIDO` (no existe, venció o ya se usó) o contraseña que no cumple D7
+
+Efecto inmediato: se cierran todas las sesiones abiertas de ese usuario. Cualquier petición con un token emitido antes del cambio recibe `401` `SESION_REVOCADA` ("Tu contraseña cambió. Inicia sesión de nuevo"), aunque el token no haya vencido. Un login hecho después funciona de inmediato.
 
 ## Usuarios · admin · Sprint 1
 
@@ -107,11 +121,11 @@ Request: `{ "token": "<64 hex>", "password": "Nueva1234" }`
 
 ### `PATCH /usuarios/:id/rol` · CU-20
 Request: `{ "rol": "admin" }` → `200` con `data: Usuario`
-- `400` `ACCION_SOBRE_SI_MISMO` (D5) · `404`
+- `400` `ACCION_SOBRE_SI_MISMO` (D5) · `404` · `409` `SIN_CAMBIOS` si ya tiene ese rol ("El usuario ya tiene el rol admin")
 
 ### `PATCH /usuarios/:id/estado` · CU-21
 Request: `{ "estado": "inactivo" }` → `200` con `data: Usuario`
-- `400` `ACCION_SOBRE_SI_MISMO` (D6) · `404`
+- `400` `ACCION_SOBRE_SI_MISMO` (D6) · `404` · `409` `SIN_CAMBIOS` si la cuenta ya está en ese estado ("La cuenta ya se encuentra desactivada")
 
 Efecto inmediato: el usuario desactivado recibe 403 `CUENTA_DESACTIVADA` en su siguiente petición, aunque su token no haya vencido.
 
@@ -163,7 +177,7 @@ Actualización **parcial**: solo se cambian los campos enviados. Si llega una `i
 
 ### `PATCH /productos/:id/estado` · admin · CU-14
 Request: `{ "estado": "inactivo" }`. Es borrado lógico y es **la forma normal** de retirar un producto: conserva su historia en los pedidos y se puede volver a activar.
-- `200` → `data: Producto` · `404`
+- `200` → `data: Producto` · `404` · `409` `SIN_CAMBIOS` si ya está en ese estado ("El producto ya se encuentra inactivo")
 
 ### `DELETE /productos/:id` · admin · B2.2
 Elimina el producto de verdad, **solo si nunca estuvo en un carrito ni en un pedido** (decisión M); sirve para corregir un producto creado por error. También borra del disco la portada y las imágenes de la galería.
