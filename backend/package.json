@@ -14,7 +14,8 @@
     "start": "node server.js",
     "test:db": "node scripts/preparar-db-test.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
