@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { TemaProvider } from './context/TemaContext';
 import { ToastProvider } from './context/ToastContext';
@@ -13,13 +13,6 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import RecuperarPage from './pages/RecuperarPage';
 import RestablecerPage from './pages/RestablecerPage';
-import AdminInicioPage from './pages/admin/AdminInicioPage';
-import UsuariosPage from './pages/admin/UsuariosPage';
-import ProductosPage from './pages/admin/ProductosPage';
-import ProductoFormPage from './pages/admin/ProductoFormPage';
-import CategoriasPage from './pages/admin/CategoriasPage';
-import PedidosAdminPage from './pages/admin/PedidosAdminPage';
-import PedidoAdminPage from './pages/admin/PedidoAdminPage';
 import ProductoPage from './pages/ProductoPage';
 import CuentaInicioPage from './pages/cuenta/CuentaInicioPage';
 import CheckoutPage from './pages/cuenta/CheckoutPage';
@@ -28,8 +21,17 @@ import PedidoDetallePage from './pages/cuenta/PedidoDetallePage';
 import PagarPedidoPage from './pages/cuenta/PagarPedidoPage';
 import './assets/base.css';
 
-// F4: el tablero se carga aparte (React.lazy) porque trae recharts, que la tienda no necesita.
-// Así el archivo principal no crece para los clientes; el admin lo descarga al abrir el tablero.
+// Las páginas del panel se cargan aparte (React.lazy): un cliente nunca las abre, así que no las descarga
+// (auditoría H-09; antes solo el tablero, F4). Cada una es un archivo propio que el navegador pide la primera
+// vez que el admin entra a esa sección; mientras llega, AdminLayout muestra "Cargando…" con la barra lateral.
+// El tablero trae recharts, y la edición de productos, dnd-kit (galería): por eso pesan más que el resto.
+const AdminInicioPage = lazy(() => import('./pages/admin/AdminInicioPage'));
+const UsuariosPage = lazy(() => import('./pages/admin/UsuariosPage'));
+const ProductosPage = lazy(() => import('./pages/admin/ProductosPage'));
+const ProductoFormPage = lazy(() => import('./pages/admin/ProductoFormPage'));
+const CategoriasPage = lazy(() => import('./pages/admin/CategoriasPage'));
+const PedidosAdminPage = lazy(() => import('./pages/admin/PedidosAdminPage'));
+const PedidoAdminPage = lazy(() => import('./pages/admin/PedidoAdminPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 
 // Orden de los proveedores: Router → Tema → Toasts → Sesión → Carrito. El tema va por fuera de todo lo visual.
@@ -98,20 +100,7 @@ export function AppRutas() {
                   {/* F4 · decisión N y CU-16 a CU-18 */}
                   <Route path="/admin/pedidos" element={<PedidosAdminPage />} />
                   <Route path="/admin/pedidos/:numero" element={<PedidoAdminPage />} />
-                  <Route
-                    path="/admin/dashboard"
-                    element={
-                      <Suspense
-                        fallback={
-                          <p className="ruta-verificando" role="status">
-                            Cargando el tablero…
-                          </p>
-                        }
-                      >
-                        <DashboardPage />
-                      </Suspense>
-                    }
-                  />
+                  <Route path="/admin/dashboard" element={<DashboardPage />} />
                 </Route>
               </Route>
 
