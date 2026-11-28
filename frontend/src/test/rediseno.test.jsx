@@ -112,6 +112,19 @@ describe("Barra lateral del admin", () => {
     expect(screen.getByRole("button", { name: "Abrir menú" })).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("al ir a otra sección desde el menú abierto, el menú se cierra", async () => {
+    renderApp("/admin");
+    await screen.findByRole("heading", { name: "Panel de administración" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const lateral = within(screen.getByRole("navigation", { name: "Administración" }));
+    fireEvent.click(lateral.getByRole("link", { name: "Usuarios" }));
+
+    // La navegación espera a que llegue la página (se carga aparte, H-09); con ella, el menú queda cerrado.
+    expect(await screen.findByRole("heading", { level: 1, name: /usuarios/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Abrir menú" })).toHaveAttribute("aria-expanded", "false");
+  });
+
   it("muestra el nombre del admin y el botón de tema", async () => {
     renderApp("/admin");
     await screen.findByRole("heading", { name: "Panel de administración" });

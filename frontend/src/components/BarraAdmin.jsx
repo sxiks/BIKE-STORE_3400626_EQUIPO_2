@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Bike, ChartColumn, House, LogOut, Menu, Package, ReceiptText, Tags, Users, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -25,10 +25,14 @@ export default function BarraAdmin() {
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
 
-  // Al navegar, el menú desplegable se cierra.
-  useEffect(() => {
+  // Al navegar, el menú desplegable se cierra. La ruta se compara durante el render y no en un efecto:
+  // un efecto también corre al montar la barra, y en un equipo lento podía llegar después del primer clic
+  // y cerrar el menú que se acababa de abrir.
+  const [rutaDelMenu, setRutaDelMenu] = useState(location.pathname);
+  if (rutaDelMenu !== location.pathname) {
+    setRutaDelMenu(location.pathname);
     setMenuAbierto(false);
-  }, [location.pathname]);
+  }
 
   function cerrarSesion() {
     logout();
