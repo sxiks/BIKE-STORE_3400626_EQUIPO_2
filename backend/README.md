@@ -28,7 +28,7 @@ Al arrancar, la API comprueba la conexión a PostgreSQL y crea el admin de `ADMI
 
 ## Pruebas automatizadas
 
-Vitest + Supertest (requiere Node.js 22.12 o superior). Las pruebas llaman a la app directamente (sin abrir el puerto 3000), así que pueden correr con la API encendida. Usan **su propia base**, `bike_store_test`, y **borran sus datos** en cada ejecución: nunca tocan `bike_store`.
+Vitest + Supertest (requiere Node.js 22.13 o superior). Las pruebas llaman a la app directamente (sin abrir el puerto 3000), así que pueden correr con la API encendida. Usan **su propia base**, `bike_store_test`, y **borran sus datos** en cada ejecución: nunca tocan `bike_store`.
 
 **Con Docker** la base `bike_store_test` ya existe: el contenedor la crea junto con `bike_store`. Pasa directo a "Luego, dentro de `backend/`".
 
@@ -58,6 +58,7 @@ npm run test:db                     # deja la base de pruebas con las migracione
 ```bash
 npm test             # corre todas las pruebas una vez
 npm run test:watch   # las repite al guardar cambios
+npm run lint         # revisa el código con ESLint (falla también con avisos)
 ```
 
 - Si cambian las migraciones (o la base de pruebas quedó en mal estado), vuelve a ejecutar `npm run test:db`. El script aplica de la `002` a la `007`.

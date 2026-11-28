@@ -6,7 +6,7 @@ Monorepo con dos aplicaciones independientes y su base de datos:
 
 | Carpeta | Qué es | Stack | Responsable |
 |---------|--------|-------|-------------|
-| `backend/` | API REST en capas | Node.js 22.12+ (recomendado 26 LTS), Express 5, PostgreSQL (`pg`), JWT, bcrypt, multer | Dev Backend |
+| `backend/` | API REST en capas | Node.js 22.13+ (recomendado 26 LTS), Express 5, PostgreSQL (`pg`), JWT, bcrypt, multer | Dev Backend |
 | `frontend/` | SPA (capa de presentación) | React 19, Vite 7, React Router 7, Vitest | Dev Frontend |
 | `database/` | Migraciones SQL numeradas y arranque de la base en Docker | PostgreSQL 17 en Docker (`docker-compose.yml`); 15+ sin Docker | Dev Backend |
 | `docs/` | Diseño técnico, guías, prompts, glosario y requerimientos (CU-01…CU-22) | Markdown / PDF | Ambos (vía PR) |
