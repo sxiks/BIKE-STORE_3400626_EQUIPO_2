@@ -129,7 +129,7 @@ Ejemplos: `feat(productos): filtrar por categoría (CU-02)`, `fix(carrito): no p
 
 1. Ambos confirman que `develop` arranca y pasa las pruebas.
 2. PR `develop → main` titulado `release: sprint N`, aprobado por ambos, **Create a merge commit** (no squash).
-3. Etiqueta: `git switch main && git pull && git tag -a v0.N.0 -m "Sprint N" && git push origin v0.N.0`.
+3. Etiqueta, **solo después de fusionar el PR**: `git switch main && git pull && git merge-base --is-ancestor origin/develop main && git tag -a v0.N.0 -m "Sprint N" && git push origin v0.N.0`. `git merge-base --is-ancestor` detiene el comando si `main` todavía no tiene todo lo de `develop`: así la etiqueta nunca queda sobre la versión anterior.
 
 ### Versión de correcciones (v0.N.1, v0.N.2…)
 
@@ -137,6 +137,6 @@ Cuando `develop` reúne correcciones sin un sprint nuevo (por ejemplo, las de un
 
 1. Ambos confirman que `develop` arranca y pasa las pruebas, y que cada PC aplicó las migraciones nuevas, si las hay.
 2. PR `develop → main` titulado `release: v0.N.M`, aprobado por ambos, **Create a merge commit** (no squash). La descripción lista los PR incluidos y las migraciones que exige.
-3. Etiqueta: `git switch main && git pull && git tag -a v0.N.M -m "Correcciones: <tema>" && git push origin v0.N.M`.
+3. Etiqueta, **solo después de fusionar el PR**: `git switch main && git pull && git merge-base --is-ancestor origin/develop main && git tag -a v0.N.M -m "Correcciones: <tema>" && git push origin v0.N.M`.
 
 Una etiqueta ya publicada no se borra ni se vuelve a crear: si falta algo, se publica la siguiente (`v0.N.M+1`).
