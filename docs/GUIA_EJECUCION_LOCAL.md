@@ -33,15 +33,15 @@ La base de datos corre en [Docker](GLOSARIO.md#docker) (decisión D13 del [ROADM
 
 | Herramienta | Versión mínima | Recomendada |
 |---|---|---|
-| [Node.js](GLOSARIO.md#nodejs) (incluye [npm](GLOSARIO.md#npm)) | **22.12** | **26 LTS** |
+| [Node.js](GLOSARIO.md#nodejs) (incluye [npm](GLOSARIO.md#npm)) | **22.13** | **26 LTS** |
 | [Git](GLOSARIO.md#git) | cualquier versión reciente | — |
 | [Docker](GLOSARIO.md#docker) con [Docker Compose](GLOSARIO.md#docker-compose) | Docker Engine 24 o Docker Desktop 4.x, con `docker compose` (v2) | La última versión estable |
 
-> El mínimo es 22.12 porque lo exige Vitest 5, la herramienta de pruebas; además, Node.js 20 dejó de recibir parches de seguridad el 30 de abril de 2026. Si ya tienes Node 24, sigue funcionando y no hace falta cambiarlo.
+> El mínimo es 22.13 porque lo exige ESLint 10, el revisor de código (Vitest 5, la herramienta de pruebas, pide 22.12); además, Node.js 20 dejó de recibir parches de seguridad el 30 de abril de 2026. Si ya tienes Node 24, sigue funcionando y no hace falta cambiarlo.
 
 **Linux**
 ```bash
-node -v                    # v22.12 o superior (ideal v26.x)
+node -v                    # v22.13 o superior (ideal v26.x)
 npm -v
 git --version
 docker --version

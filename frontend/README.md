@@ -4,7 +4,7 @@ SPA en React 19 + Vite 7 + React Router 7. Es la capa de presentación y consume
 
 ## Requisitos
 
-- Node.js 22.12+ (recomendado 26 LTS)
+- Node.js 22.13+ (recomendado 26 LTS)
 - Backend corriendo en `http://localhost:3000`, con PostgreSQL: [GUIA_EJECUCION_LOCAL](../docs/GUIA_EJECUCION_LOCAL.md). Desde F2.2 la tienda también lo necesita: el catálogo viene de la API.
 
 ## Instalar y ejecutar
@@ -14,6 +14,7 @@ cp .env.example .env
 npm ci             # instala exactamente las versiones de package-lock.json
 npm run dev        # http://localhost:5173
 npm test           # pruebas (Vitest + Testing Library)
+npm run lint       # revisa el código con ESLint (falla también con avisos)
 npm run build      # versión de producción en dist/
 ```
 

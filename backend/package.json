@@ -14,7 +14,8 @@
     "start": "node server.js",
     "test:db": "node scripts/preparar-db-test.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -29,6 +30,9 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.16.0",
+    "globals": "^17.14.0",
     "supertest": "^7.3.2",
     "vitest": "^5.1.2"
   },
@@ -36,6 +40,6 @@
     "uuid": "^11.1.1"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.13"
   }
 }

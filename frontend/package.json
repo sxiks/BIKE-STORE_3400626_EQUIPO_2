@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -22,15 +23,19 @@
     "recharts": "^3.11.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^10.16.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
     "jsdom": "^31.0.1",
     "vite": "^7.1.2",
     "vitest": "^5.1.2"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.13"
   }
 }

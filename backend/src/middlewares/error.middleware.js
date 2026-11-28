@@ -12,6 +12,8 @@ const PG_ERRORES = {
   22003: { status: 400, message: 'Un valor numérico está fuera del rango permitido' }
 };
 
+// Express reconoce un manejador de errores porque recibe 4 parámetros: next no se usa, pero debe estar.
+// eslint-disable-next-line no-unused-vars
 function errorHandler(error, req, res, next) {
   if (error instanceof AppError) {
     const cuerpo = { ok: false, message: error.message };
