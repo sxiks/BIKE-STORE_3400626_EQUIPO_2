@@ -37,7 +37,7 @@ function anuncios(imagenes) {
     onDragStart: ({ active }) => `Tomaste la imagen ${posicion(imagenes, active.id)} de ${imagenes.length}.`,
     onDragOver: ({ active, over }) =>
       over ? `La imagen ${posicion(imagenes, active.id)} está sobre la posición ${posicion(imagenes, over.id)}.` : undefined,
-    onDragEnd: ({ active, over }) =>
+    onDragEnd: ({ over }) =>
       over ? `Soltaste la imagen en la posición ${posicion(imagenes, over.id)}.` : 'Soltaste la imagen fuera de la galería.',
     onDragCancel: () => 'Se canceló el movimiento.'
   };
