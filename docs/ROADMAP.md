@@ -85,4 +85,4 @@ Es el único sprint sin definir. Se planifica cuando termine el Sprint 4. Los te
 | # | Pregunta | Sprint |
 |---|----------|--------|
 | — | Todo el [Sprint 5 (despliegue)](#sprint-5--despliegue-pendiente) | 5 |
-| — | ¿Adoptar las reglas del React Compiler de `eslint-plugin-react-hooks` (configuración `recommended` de la v7)? Hoy marcan 16 lugares, casi todos un `setState` al empezar una carga dentro de un efecto; adoptarlas exige reescribir esas cargas (auditoría H-11) | Por decidir |
+| — | ¿Adoptar las reglas del React Compiler de `eslint-plugin-react-hooks` (configuración `recommended` de la v7)? Hoy marcan 15 lugares, casi todos un `setState` al empezar una carga dentro de un efecto; adoptarlas exige reescribir esas cargas (auditoría H-11) | Por decidir |

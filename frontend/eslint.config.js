@@ -4,7 +4,7 @@
 //
 // De eslint-plugin-react-hooks se usan las dos reglas clásicas. Su configuración "recommended" (v7) agrega
 // reglas pensadas para el React Compiler, que el proyecto no usa: marcan como error patrones válidos que
-// aparecen en 16 lugares (setState al empezar una carga dentro de un efecto, la referencia con el valor
+// aparecen en 15 lugares (setState al empezar una carga dentro de un efecto, la referencia con el valor
 // más reciente). Adoptarlas exige reescribir esas cargas; queda como decisión aparte (ver ROADMAP).
 import js from '@eslint/js';
 import globals from 'globals';
